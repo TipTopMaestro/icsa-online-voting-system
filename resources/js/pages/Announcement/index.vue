@@ -5,8 +5,8 @@ import { Head } from '@inertiajs/vue3';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Result',
-        href: '/result',
+        title: 'Announcement',
+        href: '/anouncement',
     },
 ];
 </script>
@@ -16,7 +16,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="p-4">
-            Result Page
+            Announcement Page
             
         </div>
     </AppLayout>
