@@ -12,6 +12,6 @@ interface Props {
 defineProps<Props>();
 </script>
 
-<template>
-    <img src="../../../public/images/logo.png" alt="Logo" class="h-10 w-auto">
+<template class="bg-transparent">
+    <img src="../../../public/images/icsalogo.png" alt="Logo" class="bg-transparent" style="background: transparent;"/>
 </template>
