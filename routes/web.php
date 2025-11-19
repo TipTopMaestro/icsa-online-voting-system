@@ -15,6 +15,11 @@ Route::get('/', function () {
     ]);
 })->name('home');
 
+Route::view('/index', 'index')->name('index');
+Route::view('/about', 'about')->name('about');
+Route::view('/contact', 'contact')->name('contact');
+
+
 Route::get('dashboard', function () {
     return Inertia::render('Dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
