@@ -7,7 +7,7 @@ use Inertia\Inertia;
 class AnnouncementController extends Controller
 {
         
-        public function index() {
-        return Inertia::render('Announcement/index', []);
+        public function announcement() {
+        return Inertia::render('admin/announcement', []);
     }
 }

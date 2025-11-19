@@ -38,7 +38,7 @@
                         <a class="nav-link active" href="{{ route('contact') }}">Contact</a>
                     </li>
                 </ul>
-                <a href="{{ route('voterLogin') }}" class="btn btn-login">Login</a>
+                <a href="{{ route('login') }}" class="btn btn-login">Login</a>
             </div>
         </div>
     </nav>
