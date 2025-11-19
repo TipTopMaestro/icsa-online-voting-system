@@ -21,15 +21,18 @@ Route::view('/contact', 'contact')->name('contact');
 
 
 Route::get('dashboard', function () {
-    return Inertia::render('Dashboard');
+    return Inertia::render('admin/Dashboard', []);
 })->middleware(['auth', 'verified'])->name('dashboard');
 
+
+
 Route::middleware(['auth', 'verified'])->group(function(){
-    Route::get('/result',[ResultController::class, 'index'])->name('result.index');
-    Route::get('/election',[ElectionController::class, 'index'])->name('election.index');
-    Route::get('/voters',[VotersController::class, 'index'])->name('Voters.index');
-    Route::get('/candidates',[CandidatesController::class, 'index'])->name('Candidates.index');
-    Route::get('/announcement',[AnnouncementController::class, 'index'])->name('Announcement.index');
+
+    Route::get('/result',[ResultController::class, 'result'])->name('admin.result');
+    Route::get('/election',[ElectionController::class, 'election'])->name('admin.election');
+    Route::get('/voters',[VotersController::class, 'voters'])->name('admin.voters');
+    Route::get('/candidates',[CandidatesController::class, 'candidates'])->name('admin.candidates');
+    Route::get('/announcement',[AnnouncementController::class, 'announcement'])->name('admin.announcement');
     
 });
 

@@ -7,8 +7,8 @@ use Inertia\Inertia;
 class VotersController extends Controller
 {
         
-        public function index() {
-        return Inertia::render('Voters/index', []);
+        public function voters() {
+        return Inertia::render('admin/voters', []);
     }
 }
 
