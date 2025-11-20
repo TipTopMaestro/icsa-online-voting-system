@@ -11,8 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('positions', function (Blueprint $table) {
+        Schema::create('approved_students', function (Blueprint $table) {
             $table->id();
+            $table->string('student_id')->unique();
+            $table->string('name');
+            $table->string('email')->unique();
+            $table->enum('course', ['BSIT', 'BSIS']);
+            $table->unsignedTinyInteger('year_level');
             $table->timestamps();
         });
     }
@@ -22,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('positions');
+        Schema::dropIfExists('approved_students');
     }
 };

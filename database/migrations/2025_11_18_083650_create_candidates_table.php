@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('candidates', function (Blueprint $table) {
         $table->id();
-        $table->foreignId('user_id')->constrained()->onDelete('cascade');
-        $table->foreignId('election_id')->constrained()->onDelete('cascade');
+        $table->foreignId('user_id')->references('id')->on('users')->constrained()->onDelete('cascade');
+        $table->foreignId('election_id')->references('id')->on('elections')->constrained()->onDelete('cascade');
         $table->string('position');
         $table->string('partylist')->nullable();
         $table->integer('votes_count')->default(0);

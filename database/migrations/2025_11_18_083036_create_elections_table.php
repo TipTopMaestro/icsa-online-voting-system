@@ -12,7 +12,6 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('elections', function (Blueprint $table) {
-        //election id
         $table->id();
         $table->string('title');
         $table->text('description')->nullable();

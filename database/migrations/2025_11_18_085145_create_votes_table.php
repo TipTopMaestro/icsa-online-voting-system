@@ -16,16 +16,18 @@ return new class extends Migration
         $table->id();
 
         // voter who cast the vote
-        $table->foreignId('user_id')->constrained()->onDelete('cascade');
-
+       $table->foreignId('user_id')
+                ->references('id')
+                ->on('users')
+                ->onDelete('cascade');
         // election where the vote belongs
-        $table->foreignId('election_id')->constrained()->onDelete('cascade');
+        $table->foreignId('election_id')->references('id')->on('elections')->constrained()->onDelete('cascade');
 
         // candidate being voted
-        $table->foreignId('candidate_id')->constrained()->onDelete('cascade');
+        $table->foreignId('candidate_id')->references('id')->on('candidates')->constrained()->onDelete('cascade');
 
         // position of the candidate
-        $table->foreignId('position_id')->constrained()->onDelete('cascade');
+        $table->foreignId('position_id')->references('id')->on('positions')->constrained()->onDelete('cascade');
 
         $table->timestamps();
     });
