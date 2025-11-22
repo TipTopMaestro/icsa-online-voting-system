@@ -13,6 +13,7 @@ use Inertia\Inertia;
 use Laravel\Fortify\Features;
 use Laravel\Fortify\Fortify;
 use Laravel\Fortify\Contracts\LoginResponse;
+use Laravel\Fortify\Contracts\LogoutResponse;
 use App\Actions\Fortify\RegisterUser;
 use Illuminate\Support\Facades\Auth;
 
@@ -44,6 +45,16 @@ class FortifyServiceProvider extends ServiceProvider
                     return $request->wantsJson()
                         ? response()->json(['redirect' => $redirectUrl], 200)
                         : redirect()->intended($redirectUrl);
+                }
+            };
+        });
+
+        // Register custom logout response to redirect to blade landing page
+        $this->app->singleton(LogoutResponse::class, function () {
+            return new class implements LogoutResponse {
+                public function toResponse($request)
+                {
+                    return redirect('/');
                 }
             };
         });

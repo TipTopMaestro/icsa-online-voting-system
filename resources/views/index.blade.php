@@ -21,7 +21,7 @@
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-custom fixed-top">
         <div class="container">
-            <a class="navbar-brand" href="index.php">
+            <a class="navbar-brand" href="{{ route('index') }}">
                 <img src="{{ asset('images/icsalogo.png') }}" alt="IC Logo">
                 <span class="syncopate-bold" style="text-shadow: 0 2px 8px rgba(0,0,0,0.5);">ICSA OVS</span>
             </a>

@@ -12,11 +12,7 @@ use App\Http\Controllers\auth\RegisteredUserController;
 use App\Actions\Fortify\RegisterUser;
 
 
-Route::get('/', function () {
-    return Inertia::render('Welcome', [
-        'canRegister' => Features::enabled(Features::registration()),
-    ]);
-})->name('home');
+Route::view('/', 'index')->name('home');
 
 Route::view('/index', 'index')->name('index');
 Route::view('/about', 'about')->name('about');
