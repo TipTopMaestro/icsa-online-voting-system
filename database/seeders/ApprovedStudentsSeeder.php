@@ -18,6 +18,7 @@ class ApprovedStudentsSeeder extends Seeder
             'email' => 'juan@example.com',
             'course' => 'BSIT',
             'year_level' => 3,
+            'section' => 'A',
         ]);
 
         ApprovedStudent::create([
@@ -26,6 +27,7 @@ class ApprovedStudentsSeeder extends Seeder
             'email' => 'maria@example.com',
             'course' => 'BSIS',
             'year_level' => 2,
+            'section' => 'B',
         ]);
     }
 }

@@ -12,5 +12,6 @@ class ApprovedStudent extends Model
         'email',
         'course',
         'year_level',
+        'section',
     ];
 }

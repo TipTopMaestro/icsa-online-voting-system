@@ -11,9 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('voter_profiles', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
+        Schema::table('approved_students', function (Blueprint $table) {
+            $table->string('section')->nullable()->after('year_level');
         });
     }
 
@@ -22,6 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('voter_profiles');
+        Schema::table('approved_students', function (Blueprint $table) {
+            $table->dropColumn('section');
+        });
     }
 };

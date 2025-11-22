@@ -12,6 +12,12 @@ use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
 use Laravel\Fortify\Fortify;
+use Laravel\Fortify\Contracts\LoginResponse;
+use App\Actions\Fortify\RegisterUser;
+use Illuminate\Support\Facades\Auth;
+
+
+
 
 class FortifyServiceProvider extends ServiceProvider
 {
@@ -20,7 +26,27 @@ class FortifyServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Register custom login response for role-based redirects
+        $this->app->singleton(LoginResponse::class, function () {
+            return new class implements LoginResponse {
+                public function toResponse($request)
+                {
+                    
+                    $user = Auth::user();
+                    
+                    $redirectUrl = match($user->role) {
+                        'admin' => '/admin/dashboard',
+                        'voter' => '/voter/dashboard',
+                        'candidate' => '/candidate/dashboard',
+                        default => '/dashboard',
+                    };
+
+                    return $request->wantsJson()
+                        ? response()->json(['redirect' => $redirectUrl], 200)
+                        : redirect()->intended($redirectUrl);
+                }
+            };
+        });
     }
 
     /**
@@ -39,7 +65,7 @@ class FortifyServiceProvider extends ServiceProvider
     private function configureActions(): void
     {
         Fortify::resetUserPasswordsUsing(ResetUserPassword::class);
-        Fortify::createUsersUsing(CreateNewUser::class);
+        Fortify::createUsersUsing(RegisterUser::class);
     }
 
     /**
