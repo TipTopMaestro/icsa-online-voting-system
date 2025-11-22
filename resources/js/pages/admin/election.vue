@@ -15,7 +15,7 @@ const open = ref(false)
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Election',
-        href: '/election',
+        href: '/admin/election',
     },
 ];
 </script>

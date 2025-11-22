@@ -12,6 +12,7 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
+import admin from '@/routes/admin';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/vue3';
 import { BookOpen, Folder, LayoutGrid, ChartColumnBig, Network, Users, User, Bell  } from 'lucide-vue-next';
@@ -20,32 +21,32 @@ import AppLogo from './AppLogo.vue';
 const mainNavItems: NavItem[] = [
     {
         title: 'Dashboard',
-        href: '/dashboard',
+        href: admin.dashboard.url(),
         icon: LayoutGrid,
     },
     {
         title: 'Result',
-        href: '/result',
+        href: admin.result.url(),
         icon: ChartColumnBig,
     },
     {
         title: 'Election',
-        href: '/election',
+        href: admin.election.url(),
         icon: Network,
     },
      {
         title: 'Voters',
-        href: '/voters',
+        href: admin.voters.url(),
         icon: Users,
     },
     {
         title: 'Candidates',
-        href: '/candidates',
+        href: admin.candidates.url(),
         icon: User,
     },
     {
         title: 'Announcement',
-        href: '/announcement',
+        href: admin.announcement.url(),
         icon: Bell,
     },
     
