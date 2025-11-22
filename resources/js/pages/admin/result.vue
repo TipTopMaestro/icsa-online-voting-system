@@ -1,23 +1,23 @@
 <script setup lang="ts">
-import AppLayout from '@/layouts/AppLayout.vue';
-import { type BreadcrumbItem } from '@/types';
-import { Head } from '@inertiajs/vue3';
+ import Breadcrumbs from '@/components/Breadcrumbs.vue';
+ import AppLayout from '@/layouts/AppLayout.vue';
+ import { type BreadcrumbItem } from '@/types';
+ import { Head } from '@inertiajs/vue3';
 
-const breadcrumbs: BreadcrumbItem[] = [
+ const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Result',
-        href: '/admin/result',
+      title: 'Results', 
+      href: '/admin/results',
     },
-];
+  ];
 </script>
 
 <template>
-    <Head title="Dashboard" />
+  <Head title="Dashboard" />
 
-    <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="p-4">
-            Result Page
-            
-        </div>
-    </AppLayout>
+  <AppLayout :breadcrumbs="breadcrumbs">
+    <div class="p-4">
+      Result Page
+    </div>
+  </AppLayout>
 </template>

@@ -23,12 +23,18 @@ const breadcrumbs: BreadcrumbItem[] = [
 <template>
     <Head title="Dashboard" />
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="p-4">
+        <div class="p-6">
             <ModalTrigger v-model="open">
-                <button class="inline-flex items-center gap-2 rounded-lg border bg-card px-4 py-2 text-sm font-medium hover:bg-accent transition-colors">
-                    <Icon name="plus" class="h-4 w-4" />
-                    New Election
-                </button>
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h1 class="text-2xl sm:text-3xl font-semibold text-gray-800 dark:text-gray-100">Elections</h1>
+                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Monitor and manage ongoing elections</p>
+                    </div>
+                    <button class="inline-flex items-center gap-2 px-4 py-2 bg-card hover:bg-accent transition-colors text-sm font-medium border rounded-md focus:outline-none">
+                        <Icon name="plus" class="h-4 w-4" />
+                        New Election
+                    </button>
+                </div>
             </ModalTrigger>
             <Modal v-model="open">
             <h2 class="text-xl font-semibold">Create Election</h2>
@@ -61,7 +67,7 @@ const breadcrumbs: BreadcrumbItem[] = [
             </div>
 
             <div class="mt-6 flex justify-end gap-3">
-            <Button variant="ghost" @click="open = false">Cancel</Button>
+            <Button variant="ghost" @click="open = false" class="items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors">Cancel</Button>
             <Button variant="default">Start Election</Button>
             </div>
         </Modal>
