@@ -9,9 +9,9 @@ type Candidate = {
   id: string;
   name: string;
   party?: string;
-  platform?: string;
-  department?: string;
+  program?: string; // Program
   position?: string;
+  photo?: string | null; // data URL (UI-only)
 };
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -23,14 +23,32 @@ const search = ref('');
 const filterPosition = ref<string | null>(null);
 
 const sampleCandidates = ref<Candidate[]>([
-  { id: 'C-001', name: 'Ava Santos', party: 'Unity', platform: 'Student Welfare', department: 'Computer Science', position: 'President' },
-  { id: 'C-002', name: 'Liam Reyes', party: 'Progress', platform: 'Academic Reform', department: 'Engineering', position: 'Vice President' },
-  { id: 'C-003', name: 'Maya Lopez', party: 'Forward', platform: 'Green Campus', department: 'Business', position: 'Secretary' },
-  { id: 'C-004', name: 'Noah Cruz', party: 'Unity', platform: 'Transparency', department: 'Computer Science', position: 'Treasurer' },
-  { id: 'C-005', name: 'Zoe Ramirez', party: 'Progress', platform: 'Student Activities', department: 'Engineering', position: 'Auditor' },
+  { id: 'C-001', name: 'Ava Santos', party: 'Unity', program: 'BSIT', position: 'Governor', photo: null },
+  { id: 'C-002', name: 'Liam Reyes', party: 'Progress', program: 'BSIS', position: 'Vice Governor', photo: null },
+  { id: 'C-003', name: 'Maya Lopez', party: 'Forward', program: 'BSIT', position: 'Secretary', photo: null },
+  { id: 'C-004', name: 'Noah Cruz', party: 'Unity', program: 'BSIS', position: 'Treasurer', photo: null },
+  { id: 'C-005', name: 'Zoe Ramirez', party: 'Progress', program: 'BSIT', position: 'Auditor', photo: null },
 ]);
 
-const positions = computed(() => Array.from(new Set(sampleCandidates.value.map(c => c.position).filter(Boolean))) as string[]);
+/* Fixed list of positions for the dropdown */
+const positionOptions = [
+  'Governor',
+  'Vice Governor',
+  'Secretary',
+  'Treasurer',
+  'PIO',
+  'Business Manager',
+  '1st Year Representative',
+  '2nd Year Representative',
+  '3rd Year Representative',
+  '4th Year Representative',
+];
+
+/* keep `positions` variable used elsewhere pointing to the fixed options */
+const positions = positionOptions;
+
+/* Program choices fixed to BSIT and BSIS */
+const programs = ['BSIT', 'BSIS'];
 
 /* Pagination (UI-only) */
 const currentPage = ref(1);
@@ -64,9 +82,9 @@ const activeCandidate = reactive<Candidate>({
   id: '',
   name: '',
   party: '',
-  platform: '',
-  department: '',
+  program: '',
   position: '',
+  photo: null,
 });
 
 function initials(name = '') {
@@ -75,7 +93,7 @@ function initials(name = '') {
 
 function openCreate() {
   modalMode.value = 'create';
-  Object.assign(activeCandidate, { id: '', name: '', party: '', platform: '', department: '', position: '' });
+  Object.assign(activeCandidate, { id: '', name: '', party: '', program: programs[0] || '', position: '', photo: null });
   showModal.value = true;
 }
 
@@ -93,6 +111,21 @@ function openEdit(c: Candidate) {
 
 function closeModal() {
   showModal.value = false;
+}
+
+/* Image handling (UI-only preview) */
+function handlePhotoChange(e: Event) {
+  const input = e.target as HTMLInputElement;
+  const file = input.files?.[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    activeCandidate.photo = reader.result as string;
+  };
+  reader.readAsDataURL(file);
+}
+function removePhoto() {
+  activeCandidate.photo = null;
 }
 
 /* UI-only save (updates local list) */
@@ -160,9 +193,8 @@ function deleteCandidate(id: string) {
               <tr class="text-left text-sm text-slate-600">
                 <th class="py-3 pr-4 font-semibold">Candidate</th>
                 <th class="py-3 pr-4 font-semibold">Position</th>
-                <th class="py-3 pr-4 font-semibold">Department</th>
+                <th class="py-3 pr-4 font-semibold">Program</th>
                 <th class="py-3 pr-4 font-semibold">Partylist</th>
-                <th class="py-3 pr-4 font-semibold">Platform</th>
                 <th class="py-3 pr-4 font-semibold">Actions</th>
               </tr>
             </thead>
@@ -170,8 +202,11 @@ function deleteCandidate(id: string) {
             <tbody class="divide-y divide-slate-100 text-sm text-slate-700">
               <tr v-for="c in pageCandidates" :key="c.id" class="hover:bg-slate-50 transition">
                 <td class="py-3 pr-4 flex items-center gap-3">
-                  <div class="w-10 h-10 flex items-center justify-center rounded-full bg-slate-100 text-slate-700 font-medium">
-                    {{ initials(c.name) }}
+                  <div class="w-10 h-10 flex items-center justify-center rounded-full bg-slate-100 text-slate-700 font-medium overflow-hidden">
+                    <template v-if="c.photo">
+                      <img :src="c.photo" alt="avatar" class="w-full h-full object-cover" />
+                    </template>
+                    <template v-else>{{ initials(c.name) }}</template>
                   </div>
                   <div class="min-w-0">
                     <div class="font-medium text-slate-800 truncate max-w-xs">{{ c.name }}</div>
@@ -180,9 +215,8 @@ function deleteCandidate(id: string) {
                 </td>
 
                 <td class="py-3 pr-4">{{ c.position }}</td>
-                <td class="py-3 pr-4 max-w-xs truncate">{{ c.department }}</td>
+                <td class="py-3 pr-4 max-w-xs truncate">{{ c.program }}</td>
                 <td class="py-3 pr-4 max-w-xs truncate">{{ c.party }}</td>
-                <td class="py-3 pr-4 max-w-xs truncate">{{ c.platform }}</td>
 
                 <td class="py-3 pr-4">
                   <div class="flex gap-2">
@@ -208,7 +242,7 @@ function deleteCandidate(id: string) {
               </tr>
 
               <tr v-if="filteredSource.length === 0">
-                <td class="py-10 text-center text-slate-500" colspan="6">
+                <td class="py-10 text-center text-slate-500" colspan="5">
                   <div class="space-y-2">
                     <div class="text-lg font-medium">No candidates yet</div>
                     <div class="text-sm text-slate-500">Add candidates using the "Add Candidate" button</div>
@@ -220,7 +254,7 @@ function deleteCandidate(id: string) {
         </div>
 
         <!-- Pagination -->
-        <div v-if="totalPages > 1" class="mt-4 flex items-center justify-end gap-2">
+        <div v-if="totalPages > 1" class="mt-4 flex items-center justify-end gap-1">
           <nav class="inline-flex items-center gap-1" role="navigation" aria-label="Pagination">
             <button @click="prevPage" :disabled="currentPage === 1" class="px-3 py-1 rounded-md text-sm border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 disabled:opacity-50">Previous</button>
 
@@ -249,7 +283,7 @@ function deleteCandidate(id: string) {
             <h3 class="text-lg font-semibold text-slate-900">
               {{ modalMode === 'create' ? 'Add Candidate' : modalMode === 'edit' ? 'Edit Candidate' : 'Candidate Details' }}
             </h3>
-            <p class="text-sm text-gray-600 mt-1">Candidate information (UI only).</p>
+            <p class="text-sm text-gray-600 mt-1">Candidate information.</p>
           </div>
 
           <button @click="closeModal" class="text-slate-400 hover:text-slate-600">
@@ -260,9 +294,52 @@ function deleteCandidate(id: string) {
         </div>
 
         <form @submit.prevent="saveCandidate" class="mt-4 grid grid-cols-1 gap-3">
-          <div>
-            <label class="block text-sm font-medium text-slate-700 mb-1">Name</label>
-            <input v-model="activeCandidate.name" :disabled="modalMode === 'view'" type="text" class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" />
+          <div class="flex items-center gap-4">
+            <div class="w-20 h-20 rounded-full bg-slate-100 flex items-center justify-center overflow-hidden">
+              <template v-if="activeCandidate.photo">
+                <img :src="activeCandidate.photo" alt="candidate" class="w-full h-full object-cover" />
+              </template>
+              <template v-else>
+                <div class="text-slate-700 font-medium">{{ initials(activeCandidate.name || '') }}</div>
+              </template>
+            </div>
+
+            <div class="flex-1 grid grid-cols-1 gap-2">
+              <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1">Name</label>
+                <input v-model="activeCandidate.name" :disabled="modalMode === 'view'" type="text" class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" />
+              </div>
+
+              <div class="flex gap-2 items-center">
+            <label class="block text-sm font-medium text-slate-700">Photo</label>
+
+            <!-- changed code: hidden file input + underlined label "CHOOSE FILE" -->
+            <input
+              v-if="modalMode !== 'view'"
+              id="candidate-photo"
+              @change="handlePhotoChange"
+              type="file"
+              accept="image/*"
+              class="sr-only"
+            />
+            <label
+              v-if="modalMode !== 'view'"
+              for="candidate-photo"
+              class="ml-2 text-sm text-slate-700 underline cursor-pointer hover:text-slate-900"
+            >
+              choose file
+            </label>
+
+            <button
+              v-if="activeCandidate.photo && modalMode !== 'view'"
+              type="button"
+              @click="removePhoto"
+              class="ml-auto text-xs text-red-600 hover:underline"
+            >
+              Remove
+            </button>
+          </div>
+            </div>
           </div>
 
           <div>
@@ -272,24 +349,25 @@ function deleteCandidate(id: string) {
 
           <div class="grid grid-cols-2 gap-3">
             <div>
-              <label class="block text-sm font-medium text-slate-700 mb-1">Department</label>
-              <input v-model="activeCandidate.department" :disabled="modalMode === 'view'" type="text" class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" />
+              <label class="block text-sm font-medium text-slate-700 mb-1">Program</label>
+              <select v-model="activeCandidate.program" :disabled="modalMode === 'view'" class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm">
+                <option value="" disabled>Select program</option>
+                <option v-for="p in programs" :key="p" :value="p">{{ p }}</option>
+              </select>
             </div>
 
             <div>
               <label class="block text-sm font-medium text-slate-700 mb-1">Position</label>
-              <input v-model="activeCandidate.position" :disabled="modalMode === 'view'" type="text" class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" />
+              <select v-model="activeCandidate.position" :disabled="modalMode === 'view'" class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm">
+                <option value="" disabled>Select position</option>
+                <option v-for="pos in positionOptions" :key="pos" :value="pos">{{ pos }}</option>
+              </select>
             </div>
           </div>
-
+          
           <div>
             <label class="block text-sm font-medium text-slate-700 mb-1">Partylist</label>
             <input v-model="activeCandidate.party" :disabled="modalMode === 'view'" type="text" class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" />
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium text-slate-700 mb-1">Platform</label>
-            <input v-model="activeCandidate.platform" :disabled="modalMode === 'view'" type="text" class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" />
           </div>
 
           <div class="mt-4 flex justify-end gap-2">

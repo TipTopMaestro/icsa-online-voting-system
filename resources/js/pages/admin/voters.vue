@@ -128,15 +128,6 @@ function saveVoter() {
               <option value="4">4</option>
             </select>
           </div>
-
-          <div class="ml-auto md:ml-0">
-            <button @click="openCreate" type="button" class="inline-flex items-center gap-2 bg-slate-800 text-white px-4 py-2 rounded-lg text-sm hover:bg-slate-700 transition">
-              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-              </svg>
-              Add Voter
-            </button>
-          </div>
         </div>
       </section>
 
@@ -193,14 +184,7 @@ function saveVoter() {
                 </td>
               </tr>
 
-              <tr v-if="filteredSource.length === 0">
-                <td class="py-12 text-center text-slate-500" colspan="5">
-                  <div class="space-y-2">
-                    <div class="text-lg font-medium">No voters found.</div>
-                    <div class="text-sm text-slate-500">Use the "Add Voter" button to register new voters.</div>
-                  </div>
-                </td>
-              </tr>
+             
             </tbody>
           </table>
         </div>
