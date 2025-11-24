@@ -84,8 +84,8 @@ const breadcrumbs: BreadcrumbItem[] = [
                         startDate: '01 Jan 2025 - 07 Jan 2025',
                         votes: 450,
                         totalVoters: 1000,
-                        positions: 5,
-                        candidates: 20,
+                        positions: 3,
+                        candidates: 7,
                     }
                     
                 ]"
@@ -123,7 +123,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                             </div>
                             <div class="h-2 w-full rounded-full bg-muted overflow-hidden">
                                 <div 
-                                    class="h-full rounded-full bg-gradient-to-r from-green-500 to-green-600 transition-all duration-500"
+                                    class="h-full rounded-full bg-purple-500 bg-purple-800 dark:bg-purple-900 transition-all duration-500"
                                     :style="{ width: `${(election.votes / election.totalVoters) * 100}%` }"
                                 />
                                 </div>

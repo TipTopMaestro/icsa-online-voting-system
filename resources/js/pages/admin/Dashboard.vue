@@ -29,27 +29,27 @@ const stats = ref({
 const elections = ref([
     {
         id: 1,
-        title: 'Student Council Election 2025',
-        description: 'University-wide election for student council positions',
-        startDate: 'Jan 20, 2025',
-        endDate: 'Jan 22, 2025',
-        votes: 586,
-        totalVoters: 1247,
+        title: 'ICSA Election 2025',
+        description: 'Election for the new ICSA officer for the year 2025.',
+        startDate: 'Jan 01, 2025',
+        endDate: 'Jan 07, 2025',
+        votes: 450,
+        totalVoters: 1000,
         status: 'active',
-        positions: 8,
-        candidates: 16
+        positions: 3,
+        candidates: 7
     },
     {
         id: 2,
-        title: 'Department Representatives 2025',
-        description: 'Election for department representative positions',
-        startDate: 'Jan 18, 2025',
-        endDate: 'Jan 19, 2025',
-        votes: 270,
-        totalVoters: 1247,
+        title: 'IC Class Representative Election',
+        description: 'IC Class Representative Election for the year 2025.',
+        startDate: 'Jan 01, 2025',
+        endDate: 'Jan 07, 2025',
+        votes: 380,
+        totalVoters: 950,
         status: 'active',
-        positions: 5,
-        candidates: 8
+        positions: 2,
+        candidates: 5
     },
     {
         id: 3,
@@ -223,7 +223,7 @@ const turnoutPercentage = computed(() => {
                                         </div>
                                         <div class="h-2 w-full rounded-full bg-muted overflow-hidden">
                                             <div 
-                                                class="h-full rounded-full bg-gradient-to-r from-green-500 to-green-600 transition-all duration-500"
+                                                class="h-full rounded-full bg-purple-500 bg-purple-800 dark:bg-purple-900 transition-all duration-500"
                                                 :style="{ width: `${(election.votes / election.totalVoters) * 100}%` }"
                                             />
                                         </div>
@@ -267,9 +267,9 @@ const turnoutPercentage = computed(() => {
                                     <Icon name="barChart" class="h-4 w-4" />
                                     View Results
                                 </button>
-                                <button class="inline-flex items-center justify-center gap-2 rounded-lg border bg-card px-4 py-2 text-sm font-medium hover:bg-accent transition-colors">
-                                    <Icon name="settings" class="h-4 w-4" />
-                                    Manage
+                                <button class="inline-flex items-center justify-center gap-2 rounded-lg border bg-red-500 text-white px-4 py-2 text-sm font-medium hover:bg-red-400 transition-colors">
+                                    <Icon name="CircleStop" class="h-4 w-4" />
+                                    End Election
                                 </button>
                             </div>
                         </div>

@@ -29,7 +29,7 @@ onUnmounted(() => window.removeEventListener("keydown", onEsc))
 
       <!-- Modal panel -->
       <div
-        class="relative z-50 bg-white dark:bg-neutral-900 rounded-xl shadow-lg p-6 w-full max-w-md 
+        class="relative z-50 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-xl shadow-lg p-6 w-full max-w-md 
                transition-all duration-200 scale-95 opacity-0"
         :class="open ? 'opacity-100 scale-100' : ''"
       >

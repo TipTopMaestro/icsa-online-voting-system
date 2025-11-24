@@ -23,8 +23,8 @@
         startDate: '01 Jan 2025 - 07 Jan 2025',
         votes: 450,
         totalVoters: 1000,
-        positions: 5,
-        candidates: 20,
+        positions: 3,
+        candidates: 7,
       },
       {
         id: 2,
@@ -34,8 +34,8 @@
         startDate: '01 Jan 2025 - 07 Jan 2025',
         votes: 380,
         totalVoters: 950,
-        positions: 5,
-        candidates: 18,
+        positions: 2,
+        candidates: 5,
       },
     ])
 
@@ -58,17 +58,17 @@
     // DUMMY RESULTS (per election)
     const results = ref({
     "Governor": [
-        { id: 1, name: "Juan Dela Cruz", photo: "https://via.placeholder.com/80", votes: 320, percentage: 45 },
-        { id: 2, name: "Maria Santos",  photo: "https://via.placeholder.com/80", votes: 280, percentage: 40 },
-        { id: 3, name: "Jose Ramirez",  photo: "https://via.placeholder.com/80", votes: 100, percentage: 15 },
+      { id: 1, name: "Juan Dela Cruz", photo: "/images/profile.png", votes: 320, percentage: 45 },
+        { id: 2, name: "Maria Santos",  photo: "/images/profile.png", votes: 280, percentage: 40 },
+        { id: 3, name: "Jose Ramirez",  photo: "/images/profile.png", votes: 100, percentage: 15 },
     ],
     "Vice Governor": [
-        { id: 4, name: "Anna Reyes", photo: "https://via.placeholder.com/80", votes: 450, percentage: 60 },
-        { id: 5, name: "Carlo Gomez", photo: "https://via.placeholder.com/80", votes: 300, percentage: 40 },
+        { id: 4, name: "Anna Reyes", photo: "/images/profile.png", votes: 450, percentage: 60 },
+        { id: 5, name: "Carlo Gomez", photo: "/images/profile.png", votes: 300, percentage: 40 },
     ],
     "Executive Secretary": [
-        { id: 6, name: "Louise Tiongson", photo: "https://via.placeholder.com/80", votes: 500, percentage: 70 },
-        { id: 7, name: "Rico Garcia",   photo: "https://via.placeholder.com/80", votes: 210, percentage: 30 },
+        { id: 6, name: "Louise Tiongson", photo: "/images/profile.png", votes: 500, percentage: 70 },
+        { id: 7, name: "Rico Garcia",   photo: "/images/profile.png", votes: 210, percentage: 30 },
     ],
     })
 
@@ -77,13 +77,13 @@
       1: results.value,
       2: {
         "Mayor": [
-          { id: 8, name: "A. PastCandidate", photo: "https://via.placeholder.com/80", votes: 200, percentage: 50 },
-          { id: 9, name: "B. PastCandidate", photo: "https://via.placeholder.com/80", votes: 120, percentage: 30 },
-          { id: 10, name: "C. PastCandidate", photo: "https://via.placeholder.com/80", votes: 80, percentage: 20 },
+          { id: 8, name: "A. PastCandidate", photo: "/images/profile.png", votes: 200, percentage: 50 },
+          { id: 9, name: "B. PastCandidate", photo: "/images/profile.png", votes: 120, percentage: 30 },
+          { id: 10, name: "C. PastCandidate", photo: "/images/profile.png", votes: 80, percentage: 20 },
         ],
         "Treasurer": [
-          { id: 11, name: "D. PastCandidate", photo: "https://via.placeholder.com/80", votes: 300, percentage: 60 },
-          { id: 12, name: "E. PastCandidate", photo: "https://via.placeholder.com/80", votes: 200, percentage: 40 },
+          { id: 11, name: "D. PastCandidate", photo: "/images/profile.png", votes: 300, percentage: 60 },
+          { id: 12, name: "E. PastCandidate", photo: "/images/profile.png", votes: 200, percentage: 40 },
         ],
       }
     })
@@ -138,7 +138,7 @@
             <button
               type="button"
               :aria-expanded="showPastModal"
-              class="inline-flex items-center px-4 py-2 bg-card hover:bg-card text-black dark:text-white text-sm font-medium border rounded-lg transition-colors"
+              class="inline-flex items-center px-4 py-2 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-100 text-sm font-medium border border-gray-300 dark:border-gray-700 rounded-lg transition-colors hover:bg-gray-50 dark:hover:bg-gray-800"
             >
               <Icon name="calendar" class="w-4 h-4 mr-2" />
               Select Election
@@ -148,7 +148,7 @@
 
           <button
             @click="window.print()"
-            class="inline-flex items-center px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium rounded-lg transition-colors"
+            class="inline-flex items-center px-4 py-2 bg-purple-800 hover:bg-purple-950 dark:bg-purple-900 text-white text-sm font-medium rounded-lg transition-colors"
           >
             <Icon name="printer" class="w-4 h-4 mr-2" />
             Print Results
@@ -164,18 +164,20 @@
             </button>
           </div>
 
-          <ul class="space-y-2 max-h-64 overflow-auto">
-            <li v-for="e in pastElections" :key="e.id">
-              <button @click="selectPastElection(e)" class="w-full text-left px-3 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center justify-between">
-                <div>
-                  <div class="font-medium text-gray-800 dark:text-gray-100">{{ e.title }}</div>
-                  <div class="text-xs text-gray-500 dark:text-gray-400">{{ e.startDate }}</div>
-                </div>
-                <Icon name="chevron-right" class="w-4 h-4 text-gray-400" />
-              </button>
-            </li>
-            <li v-if="pastElections.length === 0" class="text-sm text-gray-500 dark:text-gray-400 p-2">No elections found.</li>
-          </ul>
+          <div class="bg-white dark:bg-gray-900 rounded-l">
+            <ul class="space-y-2 max-h-64 overflow-auto">
+              <li v-for="e in pastElections" :key="e.id">
+                <button @click="selectPastElection(e)" class="w-full text-left px-3 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 flex items-center justify-between">
+                  <div>
+                    <div class="font-medium text-gray-800 dark:text-gray-100">{{ e.title }}</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400">{{ e.startDate }}</div>
+                  </div>
+                  <Icon name="chevron-right" class="w-4 h-4 text-gray-400" />
+                </button>
+              </li>
+              <li v-if="pastElections.length === 0" class="text-sm text-gray-500 dark:text-gray-400 p-2">No elections found.</li>
+            </ul>
+          </div>
         </Modal>
 
       <!-- FILTER BAR -->
@@ -199,11 +201,11 @@
       <!-- RESULTS -->
       <div class="space-y-8">
         <template v-for="(candidates, position) in filteredResults" :key="position">
-          <div class="rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-800 shadow-sm">
+          <div class="rounded-2xl overflow-hidden border border-gray-300 dark:border-gray-800 shadow-sm">
             <!-- POSITION HEADER -->
-            <div class="items-center justify-center gap-2 bg-primary px-4 py-2 text-sm font-medium transition-colors">
-              <h2 class="text-lg text-white dark:text-black">{{ position }}</h2>
-            </div>
+              <div class="items-center justify-center p-2 gap-2 border-b-gray-300 dark:bg-gray-900 px-4 py-1 text-sm font-medium transition-colors border-b border-transparent dark:border-gray-700 bg-gray-200">
+                <h2 class="text-lg text-black dark:text-gray-100">{{ position }}</h2>
+              </div>
 
             <!-- CONTENT -->
             <div class="p-6">
@@ -213,11 +215,11 @@
 
               <div v-else class="space-y-5">
                 <div v-for="cand in candidates" :key="cand.id" class="flex items-center gap-4">
-                  <img :src="cand.photo" class="w-12 h-12 rounded-full object-cover border border-gray-300 dark:border-gray-700" />
+                  <img :src="cand.photo" @error="e => e.target.src = '/images/candidatefox.png'" class="w-12 h-12 rounded-full object-cover border border-gray-300 dark:border-gray-700" />
                   <div class="w-full">
                     <p class="text-gray-800 dark:text-gray-100 font-medium">{{ cand.name }}</p>
-                    <div class="w-full bg-gray-200 dark:bg-gray-700 h-2.5 rounded-full mt-2">
-                      <div class="h-2.5 rounded-full bg-purple-500 transition-all duration-700" :style="{ width: cand.percentage + '%' }"></div>
+                    <div class="w-full bg-muted h-2.5 rounded-full mt-2">
+                      <div class="h-2.5 rounded-full bg-purple-800 dark:bg-purple-900 transition-all duration-700" :style="{ width: cand.percentage + '%' }"></div>
                     </div>
                     <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">{{ cand.votes }} votes • {{ cand.percentage }}%</p>
                   </div>
