@@ -15,7 +15,7 @@ import { dashboard } from '@/routes';
 import admin from '@/routes/admin';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/vue3';
-import { BookOpen, Folder, LayoutGrid, ChartColumnBig, Network, Users, User, Bell  } from 'lucide-vue-next';
+import { BookOpen, Folder, LayoutGrid, ChartColumnBig, Network, Users, User, Bell, Briefcase  } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 
 const mainNavItems: NavItem[] = [
@@ -33,6 +33,11 @@ const mainNavItems: NavItem[] = [
         title: 'Election',
         href: admin.election.url(),
         icon: Network,
+    },
+    {
+        title: 'Positions',
+        href: admin.position.url(),
+        icon: Briefcase,
     },
      {
         title: 'Voters',
