@@ -10,6 +10,7 @@ use App\Http\Controllers\CandidatesController;
 use App\Http\Controllers\AnnouncementController;
 use App\Http\Controllers\auth\RegisteredUserController;
 use App\Actions\Fortify\RegisterUser;
+use App\Http\Controllers\ProfileController;
 
 
 Route::view('/', 'index')->name('home');
@@ -43,6 +44,9 @@ Route::prefix('voter')->middleware(['auth', 'verified', 'voter'])->group(functio
     Route::get('dashboard', function () {
         return Inertia::render('voter/Dashboard');
     })->name('voter.dashboard');
+
+    Route::get('profile', [ProfileController::class, 'profile'])->name('voter.profile');
+
 });
 
 // Candidate Routes
