@@ -9,7 +9,6 @@ import ModalTrigger from "@/components/ModalTrigger.vue"
 import Icon from '@/components/Icon.vue';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { route } from 'ziggy-js';
 
 
 
@@ -74,7 +73,7 @@ const openDeleteConfirm = (position: Position) => {
 
 const submitForm = () => {
     if (editMode.value && selectedPosition.value) {
-        form.put(route('admin.position.update', selectedPosition.value.id), {
+        form.put(`/admin/position/${selectedPosition.value.id}`, {
             preserveScroll: true,
             onSuccess: () => {
                 open.value = false;
@@ -82,7 +81,7 @@ const submitForm = () => {
             }
         });
     } else {
-        form.post(route('admin.position.store'), {
+        form.post('/admin/position', {
             preserveScroll: true,
             onSuccess: () => {
                 open.value = false;
@@ -94,7 +93,7 @@ const submitForm = () => {
 
 const deletePosition = () => {
     if (selectedPosition.value) {
-        router.delete(route('admin.position.destroy', selectedPosition.value.id), {
+        router.delete(`/admin/position/${selectedPosition.value.id}`, {
             preserveScroll: true,
             onSuccess: () => {
                 deleteConfirmOpen.value = false;
