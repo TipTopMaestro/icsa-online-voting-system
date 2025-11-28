@@ -33,7 +33,15 @@ Route::prefix('admin')->middleware(['auth', 'verified', 'admin'])->group(functio
     })->name('admin.dashboard');
 
     Route::get('result',[ResultController::class, 'result'])->name('admin.result');
+    
+    // Election Routes
     Route::get('election',[ElectionController::class, 'election'])->name('admin.election');
+    Route::post('election',[ElectionController::class, 'store'])->name('admin.election.store');
+    Route::put('election/{election}',[ElectionController::class, 'update'])->name('admin.election.update');
+    Route::delete('election/{election}',[ElectionController::class, 'destroy'])->name('admin.election.destroy');
+    Route::post('election/{election}/activate',[ElectionController::class, 'activate'])->name('admin.election.activate');
+    Route::post('election/{election}/deactivate',[ElectionController::class, 'deactivate'])->name('admin.election.deactivate');
+    
     Route::get('voters',[VotersController::class, 'voters'])->name('admin.voters');
     Route::get('candidates',[CandidatesController::class, 'candidates'])->name('admin.candidates');
     Route::get('announcement',[AnnouncementController::class, 'announcement'])->name('admin.announcement');
