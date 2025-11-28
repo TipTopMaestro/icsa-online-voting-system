@@ -8,6 +8,7 @@ use App\Http\Controllers\ResultController;
 use App\Http\Controllers\VotersController;
 use App\Http\Controllers\CandidatesController;
 use App\Http\Controllers\AnnouncementController;
+use App\Http\Controllers\PositionController;
 use App\Http\Controllers\auth\RegisteredUserController;
 use App\Actions\Fortify\RegisterUser;
 use App\Http\Controllers\ProfileController;
@@ -37,6 +38,11 @@ Route::prefix('admin')->middleware(['auth', 'verified', 'admin'])->group(functio
     Route::get('voters',[VotersController::class, 'voters'])->name('admin.voters');
     Route::get('candidates',[CandidatesController::class, 'candidates'])->name('admin.candidates');
     Route::get('announcement',[AnnouncementController::class, 'announcement'])->name('admin.announcement');
+    
+    Route::get('position',[PositionController::class, 'position'])->name('admin.position');
+    Route::post('position',[PositionController::class, 'store'])->name('admin.position.store');
+    Route::put('position/{position}',[PositionController::class, 'update'])->name('admin.position.update');
+    Route::delete('position/{position}',[PositionController::class, 'destroy'])->name('admin.position.destroy');
 });
 
 // Voter Routes
