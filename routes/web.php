@@ -11,7 +11,6 @@ use App\Http\Controllers\AnnouncementController;
 use App\Http\Controllers\PositionController;
 use App\Http\Controllers\auth\RegisteredUserController;
 use App\Actions\Fortify\RegisterUser;
-use App\Http\Controllers\ProfileController;
 
 
 Route::view('/', 'index')->name('home');
@@ -34,7 +33,15 @@ Route::prefix('admin')->middleware(['auth', 'verified', 'admin'])->group(functio
     })->name('admin.dashboard');
 
     Route::get('result',[ResultController::class, 'result'])->name('admin.result');
+    
+    // Election Routes
     Route::get('election',[ElectionController::class, 'election'])->name('admin.election');
+    Route::post('election',[ElectionController::class, 'store'])->name('admin.election.store');
+    Route::put('election/{election}',[ElectionController::class, 'update'])->name('admin.election.update');
+    Route::delete('election/{election}',[ElectionController::class, 'destroy'])->name('admin.election.destroy');
+    Route::post('election/{election}/activate',[ElectionController::class, 'activate'])->name('admin.election.activate');
+    Route::post('election/{election}/deactivate',[ElectionController::class, 'deactivate'])->name('admin.election.deactivate');
+    
     Route::get('voters',[VotersController::class, 'voters'])->name('admin.voters');
     Route::get('candidates',[CandidatesController::class, 'candidates'])->name('admin.candidates');
     Route::get('announcement',[AnnouncementController::class, 'announcement'])->name('admin.announcement');
@@ -51,8 +58,7 @@ Route::prefix('voter')->middleware(['auth', 'verified', 'voter'])->group(functio
         return Inertia::render('voter/Dashboard');
     })->name('voter.dashboard');
 
-    Route::get('profile', [ProfileController::class, 'profile'])->name('voter.profile');
-
+    
 });
 
 // Candidate Routes

@@ -7,6 +7,7 @@ use Inertia\Inertia;
 use App\Models\Position;
 use App\Models\Election;
 
+
 class PositionController extends Controller
 {
     public function position() {

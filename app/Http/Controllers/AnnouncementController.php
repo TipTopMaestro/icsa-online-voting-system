@@ -7,7 +7,7 @@ use Inertia\Inertia;
 class AnnouncementController extends Controller
 {
         
-        public function announcement() {
+    public function announcement() {
         return Inertia::render('admin/announcement', []);
     }
 }

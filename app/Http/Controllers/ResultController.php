@@ -7,7 +7,7 @@ use Inertia\Inertia;
 class ResultController extends Controller
 {
         
-        public function result() {
+    public function result() {
         return Inertia::render('admin/result', []);
     }
 }

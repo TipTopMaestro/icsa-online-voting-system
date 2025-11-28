@@ -155,7 +155,7 @@ const filtered = computed(() => {
                         </div>
 
                         <div class="hidden sm:flex items-center gap-2">
-                            <button @click.prevent="openCreateModal('draft')" type="button" class="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 dark:bg-purple-500 dark:hover:bg-purple-600 text-white text-sm font-medium rounded-md shadow-sm focus:outline-none">
+                            <button @click.prevent="openCreateModal('draft')" type="button" class="inline-flex items-center gap-2 px-4 py-2 bg-purple-800 hover:bg-purple-900 dark:bg-purple-800 dark:hover:bg-purple-900 text-white text-sm font-medium rounded-md shadow-sm focus:outline-none">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                                 </svg>
@@ -222,7 +222,7 @@ const filtered = computed(() => {
                                 <h3 class="mt-4 text-lg font-semibold text-gray-800 dark:text-gray-100">No announcements yet</h3>
                                 <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">Create a new announcement to share updates with your community.</p>
                                 <div class="mt-4">
-                                    <button @click.prevent="openCreateModal('draft')" type="button" class="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 dark:bg-purple-500 dark:hover:bg-purple-600 text-white text-sm font-medium rounded-md">Create Announcement</button>
+                                    <button @click.prevent="openCreateModal('draft')" type="button" class="inline-flex items-center gap-2 px-4 py-2 bg-purple-800 hover:bg-purple-900 dark:bg-purple-500 dark:hover:bg-purple-600 text-white text-sm font-medium rounded-md">Create Announcement</button>
                                 </div>
                             </div>
                         </template>
