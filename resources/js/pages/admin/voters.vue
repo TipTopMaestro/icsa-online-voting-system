@@ -15,7 +15,7 @@ type Voter = {
 };
 
 const breadcrumbs: BreadcrumbItem[] = [
-  { title: 'Dashboard', href: '/' },
+  
   { title: 'Voters', href: '/admin/voters' },
 ];
 

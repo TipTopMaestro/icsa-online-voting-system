@@ -15,7 +15,7 @@ type Candidate = {
 };
 
 const breadcrumbs: BreadcrumbItem[] = [
-  { title: 'Dashboard', href: '/' },
+  
   { title: 'Candidates', href: '/admin/candidates' },
 ];
 

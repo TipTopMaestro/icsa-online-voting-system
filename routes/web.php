@@ -43,7 +43,7 @@ Route::prefix('admin')->middleware(['auth', 'verified', 'admin'])->group(functio
     Route::post('election/{election}/deactivate',[ElectionController::class, 'deactivate'])->name('admin.election.deactivate');
     
     Route::get('voters',[VotersController::class, 'voters'])->name('admin.voters');
-    Route::get('candidates',[CandidatesController::class, 'candidates'])->name('admin.candidates');
+    Route::get('candidates',[CandidatesController::class, 'index'])->name('admin.candidates');
     Route::get('announcement',[AnnouncementController::class, 'announcement'])->name('admin.announcement');
     
     Route::get('position',[PositionController::class, 'position'])->name('admin.position');
