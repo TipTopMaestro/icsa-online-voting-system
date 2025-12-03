@@ -74,18 +74,13 @@ const navClass = (href: string) => urlIsActive(href, page.url) ? 'text-purple-70
         <Head title="Candidate Dashboard" />
 
         <div class="min-h-screen bg-gray-100">
-
+            <!-- NAVIGATION BAR -->
             <nav class="bg-white shadow-sm">
-               
                 <div class="w-full px-3 sm:px-4 lg:px-6">
                     <div class="flex h-16 justify-between items-center">
-
-                        <!-- LEFT SECTION -->
                         <div class="flex items-center space-x-4">
                             <img src="/images/icsalogo.png" alt="ICSA" class="w-8 h-8 object-contain" />
                             <h1 class="text-xl font-bold">ICSA Voting System</h1>
-
-                            <!-- DESKTOP NAV -->
                             <div class="hidden sm:flex items-center space-x-6">
                                 <Link href="/candidate/dashboard" :class="navClass('/candidate/dashboard')">
                                     Profile
@@ -95,30 +90,24 @@ const navClass = (href: string) => urlIsActive(href, page.url) ? 'text-purple-70
                                     Announcement
                                 </Link>
 
-                                <Link href="/candidate/results" :class="navClass('/candidate/results')">
+                                <Link href="/candidate/results" :class="navClass('/candidate/result')">
                                     Result
                                 </Link>
                             </div>
                         </div>
 
-                        <!-- RIGHT SECTION (Desktop) -->
                         <div class="relative">
                             <button 
                                 @click="profileOpen = !profileOpen"
                                 class="flex items-center space-x-2 focus:outline-none"
                             >
-                                <!-- Name first -->
                                 <span class="text-sm text-gray-700">{{ user.name }}</span>
-
-                                <!-- Profile Image -->
                                 <img 
                                     :src="avatarPreview || user.avatar"
                                     class="w-9 h-9 rounded-full object-cover"
                                     alt="Profile"
                                 >
                             </button>
-
-                            <!-- Dropdown Menu -->
                             <div 
                                 v-if="profileOpen"
                                 class="absolute right-0 mt-2 w-40 bg-white border rounded-md shadow-lg py-2 z-50"
@@ -153,25 +142,20 @@ const navClass = (href: string) => urlIsActive(href, page.url) ? 'text-purple-70
                         </Button>
                     </div>
                 </div>
-
             </nav>
 
             <!-- PAGE CONTENT -->
             <div class="py-8">
-                <div class="mx-auto max-w-7xl px-6 sm:px-8 lg:px-12">
+                <div class="mx-auto max-w-[1500px] px-8 lg:px-16">
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
                         <!-- LEFT CONTAINER -->
-                        <div class="bg-white shadow-sm rounded-lg p-6 flex flex-col items-center">
-                            
-                                <!-- Profile Image -->
-                                <img 
-                                    :src="avatarPreview || user.avatar"
-                                class="w-40 h-40 rounded-full object-cover border"
+                        <div class="bg-white shadow-sm rounded-lg p-10 flex flex-col items-center min-h-[500px]">
+                            <img 
+                                :src="avatarPreview || user.avatar"
+                                class="w-45 h-45 rounded-full object-cover border mt-4"
                                 alt="Candidate Photo"
                             />
-
-                            <!-- Change Photo Button -->
                             <button 
                                 @click="photoModal = true"
                                 class="mt-4 inline-flex items-center gap-2 text-sm text-purple-700 hover:text-purple-800 bg-purple-50 border border-purple-100 px-3 py-1 rounded-lg shadow-sm"
@@ -179,44 +163,35 @@ const navClass = (href: string) => urlIsActive(href, page.url) ? 'text-purple-70
                                 <Icon name="camera" class="w-4 h-4 text-purple-700" />
                                 <span>Change Photo</span>
                             </button>
-
-                            <!-- User Info -->
-                            <div class="mt-6 w-full space-y-2">
+                            <div class="mt-12 w-full space-y-4">
                                 <p><span class="font-semibold">Name:</span> {{ user.name }}</p>
                                 <p><span class="font-semibold">Email:</span> {{ user.email }}</p>
-                                <p><span class="font-semibold">Program:</span> BSIT</p>
+                                <p><span class="font-semibold">Program:</span> {{ user.program }}</p>
                             </div>
                         </div>
 
                         <!-- RIGHT CONTAINER -->
-                        <div class="lg:col-span-2 bg-white shadow-sm rounded-lg p-6">
-                            
-                            <!-- Candidate Position and Partylist -->
-                            <div>
+                        <div class="lg:col-span-2 bg-white shadow-sm rounded-lg p-10 min-h-[500px]">
+                            <div class="space-y-2">
                                 <p class="text-lg font-semibold">Position: {{ user.position }}</p>
                                 <p class="text-lg font-semibold mt-1">Partylist: {{ user.partylist }}</p>
                             </div>
+                            <hr class="my-8">
 
-                            <hr class="my-4">
-
-                            <!-- Platform Section -->
                             <div>
-                                <h3 class="text-xl font-semibold mb-2">Platform</h3>
+                                <h3 class="text-xl font-semibold mb-3">Platform</h3>
 
-                                <!-- Display Saved Platform -->
                                 <div v-if="savedPlatform && !editingPlatform">
                                     <p class="bg-gray-100 p-4 rounded border">{{ savedPlatform }}</p>
-
                                     <button 
                                         @click="openEditPlatform()"
-                                        class="mt-3 inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
+                                        class="mt-3 inline-flex items-center gap-2 px-4 py-2 bg-purple-700 text-white rounded hover:bg-purple-800"
                                     >
-                                        <Icon name="edit-2" class="w-4 h-4" />
+                                        <Icon name="PencilLine" class="w-4 h-4" />
                                         Edit Platform
                                     </button>
                                 </div>
 
-                                <!-- If no platform saved yet -->
                                 <div v-else-if="!savedPlatform">
                                     <textarea 
                                         v-model="platformInput"
@@ -224,7 +199,6 @@ const navClass = (href: string) => urlIsActive(href, page.url) ? 'text-purple-70
                                         class="w-full border rounded p-3"
                                         rows="4"
                                     ></textarea>
-
                                     <button 
                                         @click="savePlatform"
                                         class="mt-3 inline-flex items-center gap-2 px-4 py-2 bg-purple-700 text-white rounded hover:bg-purple-800"
@@ -234,14 +208,12 @@ const navClass = (href: string) => urlIsActive(href, page.url) ? 'text-purple-70
                                     </button>
                                 </div>
 
-                                <!-- Editable Textarea When Editing -->
                                 <div v-if="editingPlatform">
                                     <textarea 
                                         v-model="platformInput"
                                         class="w-full border rounded p-3"
                                         rows="4"
                                     ></textarea>
-
                                     <button 
                                         @click="savePlatform"
                                         class="mt-3 inline-flex items-center gap-2 px-4 py-2 bg-purple-700 text-white rounded hover:bg-purple-800"
@@ -256,6 +228,7 @@ const navClass = (href: string) => urlIsActive(href, page.url) ? 'text-purple-70
                     </div>
                 </div>
             </div>
+
 
             <!-- PHOTO CHANGE MODAL: subtle overlay + blur, stronger panel shadow -->
             <div
