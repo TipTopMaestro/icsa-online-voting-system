@@ -43,8 +43,16 @@ Route::prefix('admin')->middleware(['auth', 'verified', 'admin'])->group(functio
     Route::post('election/{election}/activate',[ElectionController::class, 'activate'])->name('admin.election.activate');
     Route::post('election/{election}/deactivate',[ElectionController::class, 'deactivate'])->name('admin.election.deactivate');
     
-    Route::get('voters',[VotersController::class, 'voters'])->name('admin.voters');
+    // Voters Routes (Read-only)
+    Route::get('voters',[VotersController::class, 'index'])->name('admin.voters');
+    
+    // Candidates Routes
     Route::get('candidates',[CandidatesController::class, 'index'])->name('admin.candidates');
+    Route::post('candidates',[CandidatesController::class, 'store'])->name('admin.candidates.store');
+    Route::put('candidates/{candidate}',[CandidatesController::class, 'update'])->name('admin.candidates.update');
+    Route::delete('candidates/{candidate}',[CandidatesController::class, 'destroy'])->name('admin.candidates.destroy');
+    
+    // Announcement Routes
     Route::get('announcement',[AnnouncementController::class, 'announcement'])->name('admin.announcement');
     
     Route::get('position',[PositionController::class, 'position'])->name('admin.position');
@@ -70,5 +78,10 @@ Route::prefix('candidate')->middleware(['auth', 'verified', 'candidate'])->group
 });
 
 require __DIR__.'/settings.php';
+
+// Test route for voter search
+if (config('app.env') !== 'production') {
+    require __DIR__.'/test.php';
+}
 
 

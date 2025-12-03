@@ -30,12 +30,12 @@ class Election extends Model
 
     public function candidates()
     {
-        return $this->hasManyThrough(Candidate::class, Position::class, 'election_id', 'position_id', 'id', 'id');
+        return $this->hasMany(Candidate::class);
     }
 
     public function votes()
     {
-        return $this->hasManyThrough(Vote::class, Position::class);
+        return $this->hasManyThrough(Vote::class, Candidate::class);
     }
 
     public function totalVotersCount()

@@ -1,0 +1,478 @@
+<script setup lang="ts">
+import { ref, computed } from 'vue';
+import { router, useForm } from '@inertiajs/vue3';
+import { route } from 'ziggy-js';
+import AppLayout from '@/layouts/AppLayout.vue';
+import { Head } from '@inertiajs/vue3';
+import { type BreadcrumbItem } from '@/types';
+
+// Interfaces
+interface User {
+  id: number;
+  name: string;
+  email: string;
+  email_verified_at: string | null;
+  role: string;
+}
+
+interface VoterProfile {
+  id: number;
+  user_id: number;
+  student_id: string;
+  course: string;
+  year_level: string;
+  section: string;
+  has_voted: boolean;
+  created_at: string;
+  updated_at: string;
+  user: User;
+}
+
+interface ApprovedStudent {
+  id: number;
+  student_id: string;
+  name: string;
+  email: string;
+  course: 'BSIT' | 'BSIS';
+  year_level: number;
+  section: string | null;
+}
+
+interface Stats {
+  total: number;
+  voted: number;
+  not_voted: number;
+  verified: number;
+}
+
+interface PaginatedVoters {
+  data: VoterProfile[];
+  current_page: number;
+  last_page: number;
+  per_page: number;
+  total: number;
+  from: number;
+  to: number;
+}
+
+interface Filters {
+  search?: string;
+  course?: string;
+  year_level?: string;
+  has_voted?: boolean | null;
+}
+
+// Props
+const props = defineProps<{
+  voters: PaginatedVoters;
+  stats: Stats;
+  approvedStudents: ApprovedStudent[];
+  filters: Filters;
+}>();
+
+const breadcrumbs: BreadcrumbItem[] = [
+  { title: 'Voters', href: '/admin/voters' },
+];
+
+// State
+const search = ref(props.filters.search || '');
+const filterCourse = ref<string | null>(props.filters.course || null);
+const filterYear = ref<string | null>(props.filters.year_level || null);
+const filterVoted = ref<boolean | null>(props.filters.has_voted ?? null);
+
+// Modals
+const showCreateModal = ref(false);
+const showImportModal = ref(false);
+const showBulkCreateModal = ref(false);
+const showEditModal = ref(false);
+const showDeleteModal = ref(false);
+const selectedVoter = ref<VoterProfile | null>(null);
+const selectedApprovedStudents = ref<number[]>([]);
+
+// Forms
+const createForm = useForm({
+  approved_student_id: null as number | null,
+});
+
+const editForm = useForm({
+  course: '',
+  year_level: '',
+  section: '',
+});
+
+const importForm = useForm({
+  students: [] as Array<{
+    student_id: string;
+    name: string;
+    email: string;
+    course: 'BSIT' | 'BSIS';
+    year_level: number;
+    section: string;
+  }>,
+});
+
+// Methods
+function applyFilters() {
+  router.get(route('admin.voters'), {
+    search: search.value || undefined,
+    course: filterCourse.value || undefined,
+    year_level: filterYear.value || undefined,
+    has_voted: filterVoted.value,
+  }, {
+    preserveState: true,
+    preserveScroll: true,
+  });
+}
+
+function clearFilters() {
+  search.value = '';
+  filterCourse.value = null;
+  filterYear.value = null;
+  filterVoted.value = null;
+  router.get(route('admin.voters'));
+}
+
+function openCreateModal(student: ApprovedStudent) {
+  createForm.approved_student_id = student.id;
+  showCreateModal.value = true;
+}
+
+function closeCreateModal() {
+  showCreateModal.value = false;
+  createForm.reset();
+  createForm.clearErrors();
+}
+
+function submitCreate() {
+  createForm.post(route('admin.voters.store'), {
+    preserveScroll: true,
+    onSuccess: () => {
+      closeCreateModal();
+    },
+  });
+}
+
+function openEditModal(voter: VoterProfile) {
+  selectedVoter.value = voter;
+  editForm.course = voter.course;
+  editForm.year_level = voter.year_level;
+  editForm.section = voter.section;
+  showEditModal.value = true;
+}
+
+function closeEditModal() {
+  showEditModal.value = false;
+  selectedVoter.value = null;
+  editForm.reset();
+  editForm.clearErrors();
+}
+
+function submitEdit() {
+  if (!selectedVoter.value) return;
+  
+  editForm.put(route('admin.voters.update', selectedVoter.value.id), {
+    preserveScroll: true,
+    onSuccess: () => {
+      closeEditModal();
+    },
+  });
+}
+
+function openDeleteModal(voter: VoterProfile) {
+  selectedVoter.value = voter;
+  showDeleteModal.value = true;
+}
+
+function closeDeleteModal() {
+  showDeleteModal.value = false;
+  selectedVoter.value = null;
+}
+
+function confirmDelete() {
+  if (!selectedVoter.value) return;
+  
+  router.delete(route('admin.voters.destroy', selectedVoter.value.id), {
+    preserveScroll: true,
+    onSuccess: () => {
+      closeDeleteModal();
+    },
+  });
+}
+
+function resetPassword(voter: VoterProfile) {
+  if (confirm('Reset password for ' + voter.user.name + '?')) {
+    router.post(route('admin.voters.reset-password', voter.id), {}, {
+      preserveScroll: true,
+    });
+  }
+}
+
+function toggleStudentSelection(studentId: number) {
+  const index = selectedApprovedStudents.value.indexOf(studentId);
+  if (index > -1) {
+    selectedApprovedStudents.value.splice(index, 1);
+  } else {
+    selectedApprovedStudents.value.push(studentId);
+  }
+}
+
+function openBulkCreateModal() {
+  selectedApprovedStudents.value = [];
+  showBulkCreateModal.value = true;
+}
+
+function closeBulkCreateModal() {
+  showBulkCreateModal.value = false;
+  selectedApprovedStudents.value = [];
+}
+
+function submitBulkCreate() {
+  router.post(route('admin.voters.bulk-create'), {
+    approved_student_ids: selectedApprovedStudents.value,
+  }, {
+    preserveScroll: true,
+    onSuccess: () => {
+      closeBulkCreateModal();
+    },
+  });
+}
+
+function addImportRow() {
+  importForm.students.push({
+    student_id: '',
+    name: '',
+    email: '',
+    course: 'BSIT',
+    year_level: 1,
+    section: '',
+  });
+}
+
+function removeImportRow(index: number) {
+  importForm.students.splice(index, 1);
+}
+
+function openImportModal() {
+  importForm.students = [];
+  addImportRow();
+  showImportModal.value = true;
+}
+
+function closeImportModal() {
+  showImportModal.value = false;
+  importForm.reset();
+  importForm.clearErrors();
+}
+
+function submitImport() {
+  importForm.post(route('admin.voters.import-approved'), {
+    preserveScroll: true,
+    onSuccess: () => {
+      closeImportModal();
+    },
+  });
+}
+
+function goToPage(page: number) {
+  router.get(route('admin.voters'), {
+    ...props.filters,
+    page,
+  }, {
+    preserveState: true,
+    preserveScroll: true,
+  });
+}
+</script>
+
+<template>
+  <Head title="Voter Management" />
+
+  <AppLayout :breadcrumbs="breadcrumbs">
+    <div class="p-4">
+      <!-- Header -->
+      <div class="mb-6">
+        <h1 class="text-2xl font-semibold text-slate-900">Voter Management</h1>
+        <p class="text-gray-600 mt-1">Manage all registered voters in the system.</p>
+      </div>
+
+      <!-- Search & Filters -->
+      <section class="bg-white rounded-xl shadow-sm p-4 mb-6 border border-slate-200">
+        <div class="flex flex-col md:flex-row md:items-center gap-4">
+          <div class="flex items-center flex-1 bg-slate-50 rounded-lg px-3 py-2 gap-2">
+            <svg class="w-5 h-5 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M10.5 18a7.5 7.5 0 100-15 7.5 7.5 0 000 15z"/>
+            </svg>
+            <input v-model="search" type="search" placeholder="Search voter by name, email or ID" class="bg-transparent w-full text-sm placeholder:text-gray-400 focus:outline-none" />
+          </div>
+
+          <div class="flex gap-2 items-center">
+            <select v-model="filterCourse" class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700">
+              <option :value="null">All Courses</option>
+              <option value="BSIT">BSIT</option>
+              <option value="BSIS">BSIS</option>
+            </select>
+
+            <select v-model="filterYear" class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700">
+              <option :value="null">All Year Levels</option>
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+            </select>
+          </div>
+        </div>
+      </section>
+
+      <!-- Table -->
+      <section class="bg-white rounded-xl shadow-md p-4 border border-slate-200">
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-slate-100">
+            <thead>
+              <tr class="text-left text-sm text-slate-600">
+                <th class="py-3 px-4 font-semibold">SchoolID</th>
+                <th class="py-3 px-4 font-semibold">Name</th>
+                <th class="py-3 px-4 font-semibold">Email</th>
+                <th class="py-3 px-4 font-semibold">Course / Year</th>
+                <th class="py-3 px-4 font-semibold">Status</th>
+              </tr>
+            </thead>
+
+            <tbody class="divide-y divide-slate-100 text-sm text-slate-700">
+              <tr v-for="v in pageVoters" :key="v.id" class="hover:bg-slate-50 transition">
+                <td class="py-3 px-4 font-medium text-slate-800">{{ v.id }}</td>
+
+                <td class="py-3 px-4">
+                  <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 flex items-center justify-center rounded-full bg-slate-100 text-slate-700 font-medium">
+                      {{ v.name.split(' ').map(n=>n[0]).slice(0,2).join('').toUpperCase() }}
+                    </div>
+                    <div class="min-w-0">
+                      <div class="font-medium text-slate-800 truncate max-w-xs">{{ v.name }}</div>
+                      <div class="text-xs text-slate-500">Student</div>
+                    </div>
+                  </div>
+                </td>
+
+                <td class="py-3 px-4 max-w-xs truncate">{{ v.email }}</td>
+
+                <td class="py-3 px-4 max-w-xs truncate">{{ v.course }} / {{ v.year }}</td>
+
+                <td class="py-3 px-4">
+                  <span
+                    v-if="v.status === 'Active'"
+                    class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800"
+                  >
+                    <span class="w-2 h-2 rounded-full mr-2 bg-green-500"></span>
+                    Active
+                  </span>
+
+                  <span
+                    v-else
+                    class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-700"
+                  >
+                    <span class="w-2 h-2 rounded-full mr-2 bg-slate-400"></span>
+                    Inactive
+                  </span>
+                </td>
+              </tr>
+
+             
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination (UI-only) -->
+        <div class="mt-4 flex items-center justify-end gap-2">
+          <nav class="inline-flex items-center gap-2" role="navigation" aria-label="Pagination">
+            <button @click="prevPage" type="button" class="px-3 py-1 rounded-md text-sm border border-slate-300 bg-white text-slate-700 hover:bg-slate-100">Previous</button>
+
+            <button
+              v-for="p in totalPages"
+              :key="p"
+              @click="goToPage(p)"
+              :class="['px-3 py-1 rounded-md text-sm border', currentPage === p ? 'bg-slate-800 text-white border-transparent' : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-100']"
+            >
+              {{ p }}
+            </button>
+
+            <button @click="nextPage" type="button" class="px-3 py-1 rounded-md text-sm border border-slate-300 bg-white text-slate-700 hover:bg-slate-100">Next</button>
+          </nav>
+        </div>
+      </section>
+    </div>
+
+    <!-- Modal (UI only) -->
+    <div v-if="showModal" class="fixed inset-0 z-40 flex items-center justify-center">
+      <div class="fixed inset-0 bg-black/40" @click="closeModal"></div>
+
+      <div class="relative bg-white rounded-xl shadow-lg w-full max-w-lg mx-4 p-6 z-50">
+        <div class="flex items-start justify-between">
+          <div>
+            <h3 class="text-lg font-semibold text-slate-900">
+              {{ modalMode === 'create' ? 'Add Voter' : modalMode === 'edit' ? 'Edit Voter' : 'Voter Details' }}
+            </h3>
+            <p class="text-sm text-gray-600 mt-1">Voter information (UI only).</p>
+          </div>
+
+          <button @click="closeModal" class="text-slate-400 hover:text-slate-600">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+
+        <form @submit.prevent="saveVoter" class="mt-4 grid grid-cols-1 gap-3">
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">Name</label>
+            <input v-model="activeVoter.name" :disabled="modalMode === 'view'" type="text" class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">School ID</label>
+            <input v-model="activeVoter.id" :disabled="modalMode === 'view'" type="text" class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">Email</label>
+            <input v-model="activeVoter.email" :disabled="modalMode === 'view'" type="email" class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" />
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-1">Course</label>
+              <select v-model="activeVoter.course" :disabled="modalMode === 'view'" class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm">
+                <option value="">Select course</option>
+                <option value="BSIT">BSIT</option>
+                <option value="BSIS">BSIS</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-1">Year</label>
+              <select v-model="activeVoter.year" :disabled="modalMode === 'view'" class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm">
+                <option value="">Select year</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">Status</label>
+            <select v-model="activeVoter.status" :disabled="modalMode === 'view'" class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm">
+              <option value="Active">Active</option>
+              <option value="Inactive">Inactive</option>
+            </select>
+          </div>
+
+          <div class="mt-4 flex justify-end gap-2">
+            <button type="button" @click="closeModal" class="px-4 py-2 rounded-md bg-slate-100 text-slate-700 text-sm hover:bg-slate-200">Close</button>
+            <button v-if="modalMode !== 'view'" type="submit" class="px-4 py-2 rounded-md bg-slate-800 text-white text-sm hover:bg-slate-700">Save</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </AppLayout>
+</template>
