@@ -81,13 +81,31 @@ const filterPosition = ref<number | null>(props.filters.position_id || null);
 const filterPartylist = ref(props.filters.partylist || '');
 const filterCourse = ref<string | null>(props.filters.course || null);
 const filterYear = ref<string | null>(props.filters.year_level || null);
+const showFilters = ref(false);
+
+// Computed
+const activeFiltersCount = computed(() => {
+  let count = 0;
+  if (filterElection.value) count++;
+  if (filterPosition.value) count++;
+  if (filterPartylist.value) count++;
+  if (filterCourse.value) count++;
+  if (filterYear.value) count++;
+  return count;
+});
+
+const hasActiveFilters = computed(() => {
+  return search.value || activeFiltersCount.value > 0;
+});
 
 // Modals
 const showCreateModal = ref(false);
 const showEditModal = ref(false);
 const showDeleteModal = ref(false);
 const showViewModal = ref(false);
+const showPasswordModal = ref(false);
 const selectedCandidate = ref<Candidate | null>(null);
+const generatedPassword = ref<string>('');
 
 // Forms - simplified without Inertia useForm
 const createFormData = ref({
@@ -253,9 +271,16 @@ function submitCreate() {
       }
       return response.json();
     })
-    .then(() => {
+    .then((data) => {
       createFormProcessing.value = false;
       closeCreateModal();
+      
+      // Show password modal with generated password
+      if (data.generated_password) {
+        generatedPassword.value = data.generated_password;
+        showPasswordModal.value = true;
+      }
+      
       // Reload the page to show new candidate
       router.reload();
     })
@@ -422,6 +447,16 @@ function goToPage(page: number) {
 function getPhotoUrl(photo: string): string {
   return `/storage/candidates/${photo}`;
 }
+
+function closePasswordModal() {
+  showPasswordModal.value = false;
+  generatedPassword.value = '';
+}
+
+function copyPassword() {
+  navigator.clipboard.writeText(generatedPassword.value);
+  alert('Password copied to clipboard!');
+}
 </script>
 
 <template>
@@ -432,105 +467,249 @@ function getPhotoUrl(photo: string): string {
       <!-- Header -->
       <div class="mb-6 flex items-center justify-between">
         <div>
-          <h1 class="text-2xl font-semibold text-slate-900">Candidate Management</h1>
-          <p class="text-gray-600 mt-1">Manage election candidates in the system.</p>
+          <h1 class="text-2xl font-semibold text-gray-800 dark:text-gray-100">Candidate Management</h1>
+          <p class="text-gray-600 dark:text-gray-400 mt-1">Manage election candidates in the system.</p>
         </div>
         <button 
           @click="openCreateModal"
-          class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium"
+          class="px-4 py-2 bg-card hover:bg-accent transition-colors text-sm font-medium border rounded-md focus:outline-none"
         >
           + Add Candidate
         </button>
       </div>
 
-      <!-- Search & Filters -->
-      <section class="bg-white rounded-xl shadow-sm p-4 mb-6 border border-slate-200">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <div class="lg:col-span-3">
-            <div class="flex items-center bg-slate-50 rounded-lg px-3 py-2 gap-2">
-              <svg class="w-5 h-5 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M10.5 18a7.5 7.5 0 100-15 7.5 7.5 0 000 15z"/>
-              </svg>
+      <!-- Modern Search & Filters -->
+      <section class="bg-card rounded-xl shadow-sm border overflow-hidden mb-6">
+        <!-- Search Bar -->
+        <div class="p-4">
+          <div class="flex items-center gap-3">
+            <!-- Search Input -->
+            <div class="flex-1 relative">
+              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <svg class="w-5 h-5 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                </svg>
+              </div>
               <input 
                 v-model="search" 
                 @keyup.enter="applyFilters"
                 type="search" 
-                placeholder="Search by name or partylist" 
-                class="bg-transparent w-full text-sm placeholder:text-gray-400 focus:outline-none" 
+                placeholder="Search candidates by name, email, or partylist..." 
+                class="w-full pl-10 pr-4 py-2.5 text-sm bg-background border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary transition-all"
               />
             </div>
-          </div>
 
-          <select v-model="filterElection" @change="applyFilters" class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm">
-            <option :value="null">All Elections</option>
-            <option v-for="election in props.elections" :key="election.id" :value="election.id">
-              {{ election.title }}
-            </option>
-          </select>
-
-          <select v-model="filterPosition" @change="applyFilters" class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm">
-            <option :value="null">All Positions</option>
-            <option v-for="position in props.positions" :key="position.id" :value="position.id">
-              {{ position.name }}
-            </option>
-          </select>
-
-          <input 
-            v-model="filterPartylist" 
-            @keyup.enter="applyFilters"
-            type="text" 
-            placeholder="Filter by partylist"
-            class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm"
-          />
-
-          <select v-model="filterCourse" @change="applyFilters" class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm">
-            <option :value="null">All Courses</option>
-            <option value="BSIT">BSIT</option>
-            <option value="BSIS">BSIS</option>
-          </select>
-
-          <select v-model="filterYear" @change="applyFilters" class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm">
-            <option :value="null">All Years</option>
-            <option value="1">1st Year</option>
-            <option value="2">2nd Year</option>
-            <option value="3">3rd Year</option>
-            <option value="4">4th Year</option>
-          </select>
-
-          <div class="flex gap-2">
-            <button @click="applyFilters" class="flex-1 px-4 py-2 bg-slate-800 text-white rounded-lg hover:bg-slate-700 text-sm">
-              Search
+            <!-- Filter Toggle Button -->
+            <button 
+              @click="showFilters = !showFilters"
+              :class="[
+                'relative flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all',
+                hasActiveFilters 
+                  ? 'bg-primary text-primary-foreground hover:bg-primary/90' 
+                  : 'bg-muted text-foreground hover:bg-muted/80'
+              ]"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+              </svg>
+              <span>Filters</span>
+              <span 
+                v-if="activeFiltersCount > 0" 
+                class="absolute -top-1 -right-1 flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-blue-600 dark:bg-blue-500 rounded-full"
+              >
+                {{ activeFiltersCount }}
+              </span>
+              <svg 
+                :class="['w-4 h-4 transition-transform', showFilters ? 'rotate-180' : '']" 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+              </svg>
             </button>
-            <button @click="clearFilters" class="px-4 py-2 text-sm text-slate-600 hover:text-slate-900 border border-slate-300 rounded-lg">
+
+            <!-- Quick Actions -->
+            
+
+            <button 
+              v-if="hasActiveFilters"
+              @click="clearFilters" 
+              class="px-4 py-2.5 border bg-card hover:bg-accent rounded-lg text-sm font-medium transition-all flex items-center gap-2"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+              </svg>
               Clear
             </button>
           </div>
+
+          <!-- Active Filters Tags -->
+          <div v-if="hasActiveFilters" class="flex flex-wrap gap-2 mt-3">
+            <span v-if="search" class="inline-flex items-center gap-1 px-3 py-1 bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400 text-xs font-medium rounded-full">
+              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+              </svg>
+              Search: "{{ search }}"
+            </span>
+            <span v-if="filterElection" class="inline-flex items-center gap-1 px-3 py-1 bg-purple-50 text-purple-700 dark:bg-purple-500/10 dark:text-purple-400 text-xs font-medium rounded-full">
+              Election: {{ props.elections.find(e => e.id === filterElection)?.title }}
+            </span>
+            <span v-if="filterPosition" class="inline-flex items-center gap-1 px-3 py-1 bg-green-50 text-green-700 dark:bg-green-500/10 dark:text-green-400 text-xs font-medium rounded-full">
+              Position: {{ props.positions.find(p => p.id === filterPosition)?.name }}
+            </span>
+            <span v-if="filterPartylist" class="inline-flex items-center gap-1 px-3 py-1 bg-orange-50 text-orange-700 dark:bg-orange-500/10 dark:text-orange-400 text-xs font-medium rounded-full">
+              Partylist: "{{ filterPartylist }}"
+            </span>
+            <span v-if="filterCourse" class="inline-flex items-center gap-1 px-3 py-1 bg-pink-50 text-pink-700 dark:bg-pink-500/10 dark:text-pink-400 text-xs font-medium rounded-full">
+              Course: {{ filterCourse }}
+            </span>
+            <span v-if="filterYear" class="inline-flex items-center gap-1 px-3 py-1 bg-indigo-50 text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-400 text-xs font-medium rounded-full">
+              Year: {{ filterYear }}{{ ['st', 'nd', 'rd', 'th'][parseInt(filterYear) - 1] }}
+            </span>
+          </div>
         </div>
+
+        <!-- Expandable Filters -->
+        <transition
+          enter-active-class="transition-all duration-300 ease-out"
+          enter-from-class="opacity-0 max-h-0"
+          enter-to-class="opacity-100 max-h-96"
+          leave-active-class="transition-all duration-200 ease-in"
+          leave-from-class="opacity-100 max-h-96"
+          leave-to-class="opacity-0 max-h-0"
+        >
+          <div v-show="showFilters" class="border-t bg-muted/50">
+            <div class="p-4">
+              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- Election Filter -->
+                <div>
+                  <label class="block text-xs font-medium text-muted-foreground mb-1.5">Election</label>
+                  <div class="relative">
+                    <select 
+                      v-model="filterElection" 
+                      @change="applyFilters" 
+                      class="w-full appearance-none px-3 py-2 pr-10 text-sm bg-background border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                    >
+                      <option :value="null">All Elections</option>
+                      <option v-for="election in props.elections" :key="election.id" :value="election.id">
+                        {{ election.title }}
+                      </option>
+                    </select>
+                    <div class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                      <svg class="w-4 h-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Position Filter -->
+                <div>
+                  <label class="block text-xs font-medium text-muted-foreground mb-1.5">Position</label>
+                  <div class="relative">
+                    <select 
+                      v-model="filterPosition" 
+                      @change="applyFilters" 
+                      class="w-full appearance-none px-3 py-2 pr-10 text-sm bg-background border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                    >
+                      <option :value="null">All Positions</option>
+                      <option v-for="position in props.positions" :key="position.id" :value="position.id">
+                        {{ position.name }}
+                      </option>
+                    </select>
+                    <div class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                      <svg class="w-4 h-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Partylist Filter -->
+                <div>
+                  <label class="block text-xs font-medium text-muted-foreground mb-1.5">Partylist</label>
+                  <input 
+                    v-model="filterPartylist" 
+                    @keyup.enter="applyFilters"
+                    type="text" 
+                    placeholder="Enter partylist name..."
+                    class="w-full px-3 py-2 text-sm bg-background border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                  />
+                </div>
+
+                <!-- Course Filter -->
+                <div>
+                  <label class="block text-xs font-medium text-muted-foreground mb-1.5">Course</label>
+                  <div class="relative">
+                    <select 
+                      v-model="filterCourse" 
+                      @change="applyFilters" 
+                      class="w-full appearance-none px-3 py-2 pr-10 text-sm bg-background border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                    >
+                      <option :value="null">All Courses</option>
+                      <option value="BSIT">BSIT</option>
+                      <option value="BSIS">BSIS</option>
+                    </select>
+                    <div class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                      <svg class="w-4 h-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Year Level Filter -->
+                <div>
+                  <label class="block text-xs font-medium text-muted-foreground mb-1.5">Year Level</label>
+                  <div class="relative">
+                    <select 
+                      v-model="filterYear" 
+                      @change="applyFilters" 
+                      class="w-full appearance-none px-3 py-2 pr-10 text-sm bg-background border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                    >
+                      <option :value="null">All Years</option>
+                      <option value="1">1st Year</option>
+                      <option value="2">2nd Year</option>
+                      <option value="3">3rd Year</option>
+                      <option value="4">4th Year</option>
+                    </select>
+                    <div class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                      <svg class="w-4 h-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </transition>
       </section>
 
       <!-- Empty State -->
-      <section v-if="props.candidates.data.length === 0" class="bg-white rounded-xl shadow-sm p-12 text-center border border-slate-200">
-        <div class="text-slate-400 mb-4">
+      <section v-if="props.candidates.data.length === 0" class="bg-card rounded-xl shadow-sm p-12 text-center border">
+        <div class="text-muted-foreground mb-4">
           <svg class="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
           </svg>
         </div>
-        <h3 class="text-lg font-semibold text-slate-900 mb-2">No candidates found</h3>
-        <p class="text-slate-600 mb-4">Start by adding candidates for your elections.</p>
+        <h3 class="text-lg font-semibold mb-2">No candidates found</h3>
+        <p class="text-muted-foreground mb-4">Start by adding candidates for your elections.</p>
         <button 
           @click="openCreateModal"
-          class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+          class="px-4 py-2 bg-card hover:bg-accent transition-colors text-sm font-medium border rounded-md focus:outline-none"
         >
           + Add Candidate
         </button>
       </section>
 
       <!-- Table -->
-      <section v-else class="bg-white rounded-xl shadow-md p-4 border border-slate-200">
+      <section v-else class="bg-card rounded-xl shadow-md p-4 border">
         <div class="overflow-x-auto">
-          <table class="min-w-full divide-y divide-slate-200">
+          <table class="min-w-full divide-y divide-border">
             <thead>
-              <tr class="text-left text-sm text-slate-600">
+              <tr class="text-left text-sm text-muted-foreground">
                 <th class="py-3 px-4 font-semibold">Photo</th>
                 <th class="py-3 px-4 font-semibold">Name</th>
                 <th class="py-3 px-4 font-semibold">Position</th>
@@ -542,19 +721,19 @@ function getPhotoUrl(photo: string): string {
               </tr>
             </thead>
 
-            <tbody class="divide-y divide-slate-100 text-sm text-slate-700">
-              <tr v-for="candidate in props.candidates.data" :key="candidate.id" class="hover:bg-slate-50 transition">
+            <tbody class="divide-y divide-border text-sm">
+              <tr v-for="candidate in props.candidates.data" :key="candidate.id" class="hover:bg-muted/50 transition">
                 <td class="py-3 px-4">
                   <img 
                     :src="getPhotoUrl(candidate.photo)" 
                     :alt="candidate.user.name"
-                    class="w-12 h-12 rounded-full object-cover border-2 border-slate-200"
+                    class="w-12 h-12 rounded-full object-cover border-2"
                   />
                 </td>
 
                 <td class="py-3 px-4">
-                  <div class="font-medium text-slate-800">{{ candidate.user.name }}</div>
-                  <div class="text-xs text-slate-500">{{ candidate.user.email }}</div>
+                  <div class="font-medium">{{ candidate.user.name }}</div>
+                  <div class="text-xs text-muted-foreground">{{ candidate.user.email }}</div>
                 </td>
 
                 <td class="py-3 px-4">{{ candidate.position.name }}</td>
@@ -564,7 +743,7 @@ function getPhotoUrl(photo: string): string {
                 </td>
 
                 <td class="py-3 px-4">
-                  <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                  <span class="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-muted">
                     {{ candidate.partylist }}
                   </span>
                 </td>
@@ -574,14 +753,15 @@ function getPhotoUrl(photo: string): string {
                 </td>
 
                 <td class="py-3 px-4">
-                  <span class="font-semibold text-slate-900">{{ candidate.votes_count }}</span>
+                  <span class="font-semibold">{{ candidate.votes_count }}</span>
                 </td>
 
                 <td class="py-3 px-4">
                   <div class="flex gap-2">
                     <button 
                       @click="openViewModal(candidate)"
-                      class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-md transition"
+                      class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-emerald-700 dark:text-emerald-400 transition"
+                      style="cursor: pointer;"
                       title="View details"
                     >
                       <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -592,7 +772,8 @@ function getPhotoUrl(photo: string): string {
                     </button>
                     <button 
                       @click="openEditModal(candidate)"
-                      class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-md transition"
+                      class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-blue-700 dark:text-blue-400 transition"
+                      style="cursor: pointer;"
                       title="Edit"
                     >
                       <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -602,7 +783,8 @@ function getPhotoUrl(photo: string): string {
                     </button>
                     <button 
                       @click="openDeleteModal(candidate)"
-                      class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-red-700 bg-red-50 hover:bg-red-100 border border-red-200 rounded-md transition"
+                      class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-red-700 dark:text-red-400 transition"
+                      style="cursor: pointer;"
                       title="Delete"
                     >
                       <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -619,14 +801,14 @@ function getPhotoUrl(photo: string): string {
 
         <!-- Pagination -->
         <div class="mt-4 flex items-center justify-between">
-          <div class="text-sm text-slate-600">
+          <div class="text-sm text-muted-foreground">
             Showing {{ props.candidates.from ?? 0 }} to {{ props.candidates.to ?? 0 }} of {{ props.candidates.total }} candidates
           </div>
           <nav class="inline-flex items-center gap-2">
             <button 
               @click="goToPage(props.candidates.current_page - 1)"
               :disabled="props.candidates.current_page === 1"
-              class="px-3 py-1 rounded-md text-sm border border-slate-300 bg-white text-slate-700 hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed"
+              class="px-3 py-1 rounded-md text-sm border bg-card hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Previous
             </button>
@@ -639,8 +821,8 @@ function getPhotoUrl(photo: string): string {
               :class="[
                 'px-3 py-1 rounded-md text-sm border',
                 page === props.candidates.current_page
-                  ? 'bg-slate-800 text-white border-transparent'
-                  : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-100'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-card hover:bg-accent'
               ]"
             >
               {{ page }}
@@ -649,7 +831,7 @@ function getPhotoUrl(photo: string): string {
             <button 
               @click="goToPage(props.candidates.current_page + 1)"
               :disabled="props.candidates.current_page === props.candidates.last_page"
-              class="px-3 py-1 rounded-md text-sm border border-slate-300 bg-white text-slate-700 hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed"
+              class="px-3 py-1 rounded-md text-sm border bg-card hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Next
             </button>
@@ -662,13 +844,13 @@ function getPhotoUrl(photo: string): string {
     <div v-if="showCreateModal" class="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div class="fixed inset-0 bg-black/40" @click="closeCreateModal"></div>
 
-      <div class="relative bg-white rounded-xl shadow-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 z-50">
+      <div class="relative bg-card rounded-xl shadow-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 z-50">
         <div class="flex items-start justify-between mb-4">
           <div>
-            <h3 class="text-lg font-semibold text-slate-900">Add New Candidate</h3>
-            <p class="text-sm text-gray-600 mt-1">Fill in the candidate information</p>
+            <h3 class="text-lg font-semibold">Add New Candidate</h3>
+            <p class="text-sm text-muted-foreground mt-1">Fill in the candidate information</p>
           </div>
-          <button @click="closeCreateModal" class="text-slate-400 hover:text-slate-600">
+          <button @click="closeCreateModal" class="text-muted-foreground hover:text-foreground">
             <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
             </svg>
@@ -678,106 +860,106 @@ function getPhotoUrl(photo: string): string {
         <form @submit.prevent="submitCreate" class="space-y-4">
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm font-medium text-slate-700 mb-1">Name *</label>
+              <label class="block text-sm font-medium mb-1">Name *</label>
               <input 
                 v-model="createFormData.name" 
                 type="text" 
                 required
-                class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                class="w-full rounded-lg border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
               />
-              <div v-if="createFormErrors.name" class="text-red-600 text-xs mt-1">{{ createFormErrors.name }}</div>
+              <div v-if="createFormErrors.name" class="text-red-600 dark:text-red-400 text-xs mt-1">{{ createFormErrors.name }}</div>
             </div>
 
             <div>
-              <label class="block text-sm font-medium text-slate-700 mb-1">Email *</label>
+              <label class="block text-sm font-medium mb-1">Email *</label>
               <input 
                 v-model="createFormData.email" 
                 type="email" 
                 required
-                class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                class="w-full rounded-lg border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
               />
-              <div v-if="createFormErrors.email" class="text-red-600 text-xs mt-1">{{ createFormErrors.email }}</div>
+              <div v-if="createFormErrors.email" class="text-red-600 dark:text-red-400 text-xs mt-1">{{ createFormErrors.email }}</div>
             </div>
           </div>
 
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm font-medium text-slate-700 mb-1">Election *</label>
+              <label class="block text-sm font-medium mb-1">Election *</label>
               <select 
                 v-model="createFormData.election_id" 
                 required
-                class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                class="w-full rounded-lg border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
               >
                 <option :value="null">Select election</option>
                 <option v-for="election in props.elections" :key="election.id" :value="election.id">
                   {{ election.title }}
                 </option>
               </select>
-              <div v-if="createFormErrors.election_id" class="text-red-600 text-xs mt-1">{{ createFormErrors.election_id }}</div>
+              <div v-if="createFormErrors.election_id" class="text-red-600 dark:text-red-400 text-xs mt-1">{{ createFormErrors.election_id }}</div>
             </div>
 
             <div>
-              <label class="block text-sm font-medium text-slate-700 mb-1">Position *</label>
+              <label class="block text-sm font-medium mb-1">Position *</label>
               <select 
                 v-model="createFormData.position_id" 
                 required
                 :disabled="!createFormData.election_id"
-                class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm disabled:bg-gray-100 disabled:cursor-not-allowed"
+                class="w-full rounded-lg border bg-background px-3 py-2 text-sm disabled:bg-muted disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-primary"
               >
                 <option :value="null">{{ createFormData.election_id ? 'Select position' : 'Select election first' }}</option>
                 <option v-for="position in availablePositionsForCreate" :key="position.id" :value="position.id">
                   {{ position.name }}
                 </option>
               </select>
-              <div v-if="createFormErrors.position_id" class="text-red-600 text-xs mt-1">{{ createFormErrors.position_id }}</div>
-              <p v-if="createFormData.election_id && availablePositionsForCreate.length === 0" class="text-amber-600 text-xs mt-1">
+              <div v-if="createFormErrors.position_id" class="text-red-600 dark:text-red-400 text-xs mt-1">{{ createFormErrors.position_id }}</div>
+              <p v-if="createFormData.election_id && availablePositionsForCreate.length === 0" class="text-amber-600 dark:text-amber-400 text-xs mt-1">
                  No positions available for this election. Please add positions first.
               </p>
             </div>
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-slate-700 mb-1">Partylist *</label>
+            <label class="block text-sm font-medium mb-1">Partylist *</label>
             <input 
               v-model="createFormData.partylist" 
               type="text" 
               required
-              class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+              class="w-full rounded-lg border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
             />
-            <div v-if="createFormErrors.partylist" class="text-red-600 text-xs mt-1">{{ createFormErrors.partylist }}</div>
+            <div v-if="createFormErrors.partylist" class="text-red-600 dark:text-red-400 text-xs mt-1">{{ createFormErrors.partylist }}</div>
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-slate-700 mb-1">Platform *</label>
+            <label class="block text-sm font-medium mb-1">Platform *</label>
             <textarea 
               v-model="createFormData.platform" 
               required
               rows="4"
               placeholder="Minimum 50 characters"
-              class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+              class="w-full rounded-lg border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
             ></textarea>
-            <div v-if="createFormErrors.platform" class="text-red-600 text-xs mt-1">{{ createFormErrors.platform }}</div>
+            <div v-if="createFormErrors.platform" class="text-red-600 dark:text-red-400 text-xs mt-1">{{ createFormErrors.platform }}</div>
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-slate-700 mb-1">Photo * (JPG/PNG, max 2MB)</label>
+            <label class="block text-sm font-medium mb-1">Photo * (JPG/PNG, max 2MB)</label>
             <input 
               @change="handlePhotoCreate"
               type="file" 
               accept="image/jpeg,image/png"
               required
-              class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+              class="w-full rounded-lg border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
             />
-            <div v-if="createFormErrors.photo" class="text-red-600 text-xs mt-1">{{ createFormErrors.photo }}</div>
+            <div v-if="createFormErrors.photo" class="text-red-600 dark:text-red-400 text-xs mt-1">{{ createFormErrors.photo }}</div>
           </div>
 
           <div class="grid grid-cols-3 gap-4">
             <div>
-              <label class="block text-sm font-medium text-slate-700 mb-1">Course *</label>
+              <label class="block text-sm font-medium mb-1">Course *</label>
               <select 
                 v-model="createFormData.course" 
                 required
-                class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                class="w-full rounded-lg border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
               >
                 <option value="BSIT">BSIT</option>
                 <option value="BSIS">BSIS</option>
@@ -785,11 +967,11 @@ function getPhotoUrl(photo: string): string {
             </div>
 
             <div>
-              <label class="block text-sm font-medium text-slate-700 mb-1">Year *</label>
+              <label class="block text-sm font-medium mb-1">Year *</label>
               <select 
                 v-model="createFormData.year_level" 
                 required
-                class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                class="w-full rounded-lg border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
               >
                 <option value="1">1st Year</option>
                 <option value="2">2nd Year</option>
@@ -799,12 +981,12 @@ function getPhotoUrl(photo: string): string {
             </div>
 
             <div>
-              <label class="block text-sm font-medium text-slate-700 mb-1">Section</label>
+              <label class="block text-sm font-medium mb-1">Section</label>
               <input 
                 v-model="createFormData.section" 
                 type="text" 
                 placeholder="e.g., A"
-                class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                class="w-full rounded-lg border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
               />
             </div>
           </div>
@@ -813,14 +995,14 @@ function getPhotoUrl(photo: string): string {
             <button 
               type="button" 
               @click="closeCreateModal" 
-              class="px-4 py-2 rounded-md bg-slate-100 text-slate-700 text-sm hover:bg-slate-200"
+              class="px-4 py-2 rounded-md bg-muted hover:bg-muted/80 text-sm"
             >
               Cancel
             </button>
             <button 
               type="submit"
               :disabled="createFormProcessing"
-              class="px-4 py-2 rounded-md bg-green-600 text-white text-sm hover:bg-green-700 disabled:opacity-50"
+              class="px-4 py-2 bg-primary text-primary-foreground hover:bg-primary/90 text-sm font-medium rounded-md transition"
             >
               {{ createFormProcessing ? 'Creating...' : 'Create Candidate' }}
             </button>
@@ -833,13 +1015,13 @@ function getPhotoUrl(photo: string): string {
     <div v-if="showEditModal && selectedCandidate" class="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div class="fixed inset-0 bg-black/40" @click="closeEditModal"></div>
 
-      <div class="relative bg-white rounded-xl shadow-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 z-50">
+      <div class="relative bg-card rounded-xl shadow-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 z-50">
         <div class="flex items-start justify-between mb-4">
           <div>
-            <h3 class="text-lg font-semibold text-slate-900">Edit Candidate</h3>
-            <p class="text-sm text-gray-600 mt-1">Update candidate information</p>
+            <h3 class="text-lg font-semibold">Edit Candidate</h3>
+            <p class="text-sm text-muted-foreground mt-1">Update candidate information</p>
           </div>
-          <button @click="closeEditModal" class="text-slate-400 hover:text-slate-600">
+          <button @click="closeEditModal" class="text-muted-foreground hover:text-foreground">
             <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
             </svg>
@@ -849,11 +1031,11 @@ function getPhotoUrl(photo: string): string {
         <form @submit.prevent="submitEdit" class="space-y-4">
           <!-- Current Photo -->
           <div>
-            <label class="block text-sm font-medium text-slate-700 mb-2">Current Photo</label>
+            <label class="block text-sm font-medium mb-2">Current Photo</label>
             <img 
               :src="getPhotoUrl(selectedCandidate.photo)" 
               :alt="selectedCandidate.user.name"
-              class="w-24 h-24 rounded-lg object-cover border-2 border-slate-200"
+              class="w-24 h-24 rounded-lg object-cover border-2"
             />
           </div>
 
@@ -982,14 +1164,14 @@ function getPhotoUrl(photo: string): string {
             <button 
               type="button" 
               @click="closeEditModal" 
-              class="px-4 py-2 rounded-md bg-slate-100 text-slate-700 text-sm hover:bg-slate-200"
+              class="px-4 py-2 rounded-md bg-muted hover:bg-muted/80 text-sm"
             >
               Cancel
             </button>
             <button 
               type="submit"
               :disabled="editForm.processing"
-              class="px-4 py-2 rounded-md bg-blue-600 text-white text-sm hover:bg-blue-700 disabled:opacity-50"
+              class="px-4 py-2 rounded-md bg-blue-600 dark:bg-blue-500 text-white text-sm hover:bg-blue-700 dark:hover:bg-blue-600 disabled:opacity-50"
             >
               {{ editForm.processing ? 'Updating...' : 'Update Candidate' }}
             </button>
@@ -1002,10 +1184,10 @@ function getPhotoUrl(photo: string): string {
     <div v-if="showViewModal && selectedCandidate" class="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div class="fixed inset-0 bg-black/40" @click="closeViewModal"></div>
 
-      <div class="relative bg-white rounded-xl shadow-lg w-full max-w-3xl max-h-[90vh] overflow-y-auto p-6 z-50">
+      <div class="relative bg-card rounded-xl shadow-lg w-full max-w-3xl max-h-[90vh] overflow-y-auto p-6 z-50">
         <div class="flex items-start justify-between mb-6">
-          <h3 class="text-xl font-semibold text-slate-900">Candidate Details</h3>
-          <button @click="closeViewModal" class="text-slate-400 hover:text-slate-600">
+          <h3 class="text-xl font-semibold">Candidate Details</h3>
+          <button @click="closeViewModal" class="text-muted-foreground hover:text-foreground">
             <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
             </svg>
@@ -1018,16 +1200,16 @@ function getPhotoUrl(photo: string): string {
             <img 
               :src="getPhotoUrl(selectedCandidate.photo)" 
               :alt="selectedCandidate.user.name"
-              class="w-32 h-32 rounded-lg object-cover border-2 border-slate-200"
+              class="w-32 h-32 rounded-lg object-cover border-2"
             />
             <div class="flex-1">
-              <h4 class="text-2xl font-bold text-slate-900">{{ selectedCandidate.user.name }}</h4>
-              <p class="text-slate-600 mt-1">{{ selectedCandidate.user.email }}</p>
+              <h4 class="text-2xl font-bold">{{ selectedCandidate.user.name }}</h4>
+              <p class="text-muted-foreground mt-1">{{ selectedCandidate.user.email }}</p>
               <div class="flex gap-2 mt-3">
-                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                <span class="inline-flex items-center px-3 py-1 rounded-md text-sm font-medium bg-blue-50 text-blue-800 dark:bg-blue-500/10 dark:text-blue-400">
                   {{ selectedCandidate.partylist }}
                 </span>
-                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800">
+                <span class="inline-flex items-center px-3 py-1 rounded-md text-sm font-medium bg-purple-50 text-purple-800 dark:bg-purple-500/10 dark:text-purple-400">
                   {{ selectedCandidate.course }} {{ selectedCandidate.year_level }}{{ selectedCandidate.section }}
                 </span>
               </div>
@@ -1035,33 +1217,33 @@ function getPhotoUrl(photo: string): string {
           </div>
 
           <!-- Divider -->
-          <div class="border-t border-slate-200"></div>
+          <div class="border-t"></div>
 
           <!-- Election & Position Info -->
           <div class="grid grid-cols-2 gap-6">
             <div>
-              <label class="block text-sm font-medium text-slate-500 mb-1">Election</label>
-              <p class="text-lg font-semibold text-slate-900">{{ selectedCandidate.election.title }}</p>
+              <label class="block text-sm font-medium text-muted-foreground mb-1">Election</label>
+              <p class="text-lg font-semibold">{{ selectedCandidate.election.title }}</p>
             </div>
             <div>
-              <label class="block text-sm font-medium text-slate-500 mb-1">Position</label>
-              <p class="text-lg font-semibold text-slate-900">{{ selectedCandidate.position.name }}</p>
+              <label class="block text-sm font-medium text-muted-foreground mb-1">Position</label>
+              <p class="text-lg font-semibold">{{ selectedCandidate.position.name }}</p>
             </div>
           </div>
 
           <!-- Platform -->
           <div>
-            <label class="block text-sm font-medium text-slate-700 mb-2">Platform / Agenda</label>
-            <div class="bg-slate-50 rounded-lg p-4 text-slate-700 text-sm leading-relaxed">
+            <label class="block text-sm font-medium mb-2">Platform / Agenda</label>
+            <div class="bg-muted/50 rounded-lg p-4 text-sm leading-relaxed">
               {{ selectedCandidate.platform }}
             </div>
           </div>
 
           <!-- Stats -->
-          <div class="bg-green-50 rounded-lg p-4">
+          <div class="bg-green-50 dark:bg-green-500/10 rounded-lg p-4">
             <div class="flex items-center justify-between">
-              <span class="text-sm font-medium text-green-800">Total Votes Received</span>
-              <span class="text-3xl font-bold text-green-900">{{ selectedCandidate.votes_count }}</span>
+              <span class="text-sm font-medium text-green-800 dark:text-green-400">Total Votes Received</span>
+              <span class="text-3xl font-bold text-green-900 dark:text-green-400">{{ selectedCandidate.votes_count }}</span>
             </div>
           </div>
         </div>
@@ -1069,7 +1251,7 @@ function getPhotoUrl(photo: string): string {
         <div class="flex justify-end gap-2 mt-6 pt-4 border-t">
           <button 
             @click="closeViewModal" 
-            class="px-4 py-2 rounded-md bg-slate-100 text-slate-700 text-sm hover:bg-slate-200"
+            class="px-4 py-2 rounded-md bg-muted hover:bg-muted/80 text-sm"
           >
             Close
           </button>
@@ -1081,27 +1263,27 @@ function getPhotoUrl(photo: string): string {
     <div v-if="showDeleteModal" class="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div class="fixed inset-0 bg-black/40" @click="closeDeleteModal"></div>
 
-      <div class="relative bg-white rounded-xl shadow-lg w-full max-w-md p-6 z-50">
-        <h3 class="text-lg font-semibold text-slate-900 mb-4">Delete Candidate</h3>
+      <div class="relative bg-card rounded-xl shadow-lg w-full max-w-md p-6 z-50">
+        <h3 class="text-lg font-semibold mb-4">Delete Candidate</h3>
         
         <div v-if="selectedCandidate">
-          <p class="text-sm text-slate-600 mb-4">Are you sure you want to delete this candidate?</p>
-          <div class="bg-slate-50 rounded-lg p-3 mb-4">
+          <p class="text-sm text-muted-foreground mb-4">Are you sure you want to delete this candidate?</p>
+          <div class="bg-muted/50 rounded-lg p-3 mb-4">
             <div class="font-medium">{{ selectedCandidate.user.name }}</div>
-            <div class="text-sm text-slate-600">{{ selectedCandidate.position.name }} - {{ selectedCandidate.election.title }}</div>
+            <div class="text-sm text-muted-foreground">{{ selectedCandidate.position.name }} - {{ selectedCandidate.election.title }}</div>
           </div>
         </div>
 
         <div class="flex justify-end gap-2">
           <button 
             @click="closeDeleteModal" 
-            class="px-4 py-2 rounded-md bg-slate-100 text-slate-700 text-sm hover:bg-slate-200"
+            class="px-4 py-2 rounded-md bg-muted hover:bg-muted/80 text-sm"
           >
             Cancel
           </button>
           <button 
             @click="confirmDelete"
-            class="px-4 py-2 rounded-md bg-red-600 text-white text-sm hover:bg-red-700"
+            class="px-4 py-2 rounded-md bg-red-600 dark:bg-red-500 text-white text-sm hover:bg-red-700 dark:hover:bg-red-600"
           >
             Delete
           </button>
@@ -1109,7 +1291,60 @@ function getPhotoUrl(photo: string): string {
       </div>
     </div>
 
-    <!-- View Modal (can be added similarly) -->
+    <!-- Password Display Modal -->
+    <div v-if="showPasswordModal" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div class="fixed inset-0 bg-black/40" @click="closePasswordModal"></div>
+
+      <div class="relative bg-card rounded-xl shadow-lg w-full max-w-md p-6 z-50">
+        <div class="text-center">
+          <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 dark:bg-green-500/10 mb-4">
+            <svg class="h-6 w-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+            </svg>
+          </div>
+          
+          <h3 class="text-lg font-semibold mb-2">Candidate Created Successfully!</h3>
+          <p class="text-sm text-muted-foreground mb-4">The candidate account has been created and login credentials have been sent to their email.</p>
+          
+          <div class="bg-muted/50 rounded-lg p-4 mb-4">
+            <div class="text-sm text-muted-foreground mb-2">Email sent to:</div>
+            <div class="text-base font-medium mb-3">{{ generatedPassword ? '✓ Credentials sent successfully' : '' }}</div>
+            
+            <div class="text-sm text-muted-foreground mb-2">Generated Password (for reference):</div>
+            <div class="flex items-center justify-between bg-background rounded-md p-3 border">
+              <code class="text-lg font-mono font-bold">{{ generatedPassword }}</code>
+              <button 
+                @click="copyPassword"
+                class="ml-2 p-2 hover:bg-accent rounded transition"
+                title="Copy password"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/20 rounded-lg p-3 mb-4">
+            <div class="flex items-start gap-2">
+              <svg class="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+              </svg>
+              <p class="text-xs text-blue-800 dark:text-blue-400">
+                <strong>Email sent!</strong> The candidate will receive their login credentials at their registered email address. You can also share this password manually if needed.
+              </p>
+            </div>
+          </div>
+
+          <button 
+            @click="closePasswordModal"
+            class="w-full px-4 py-2 rounded-md bg-green-600 dark:bg-green-500 text-white text-sm hover:bg-green-700 dark:hover:bg-green-600"
+          >
+            Got it!
+          </button>
+        </div>
+      </div>
+    </div>
 
   </AppLayout>
 </template>

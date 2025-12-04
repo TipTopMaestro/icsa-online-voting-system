@@ -6,15 +6,36 @@ use App\Models\Candidate;
 use App\Models\User;
 use App\Models\Election;
 use App\Models\Position;
+use App\Mail\CandidateCredentialsMail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 
 class CandidatesController extends Controller 
 {
+    /**
+     * Generate a unique password for a candidate
+     * Format: firstname + 4 random alphanumeric characters
+     */
+    private function generateUniquePassword(string $name): string
+    {
+        $firstName = strtolower(explode(' ', trim($name))[0]);
+        $firstName = preg_replace('/[^a-z0-9]/', '', $firstName);
+        
+        do {
+            $randomChars = Str::upper(Str::random(4));
+            $password = $firstName . $randomChars;
+            $exists = User::where('password', Hash::make($password))->exists();
+        } while ($exists);
+        
+        return $password;
+    }
+
     public function index(Request $request)
     {
         $query = Candidate::with(['user', 'election', 'position'])
@@ -114,15 +135,18 @@ class CandidatesController extends Controller
 
             \Log::info('Starting candidate creation transaction');
 
+            // Generate unique password
+            $generatedPassword = $this->generateUniquePassword($validated['name']);
+
             // Create user account
             $user = User::create([
                 'name' => $validated['name'],
                 'email' => $validated['email'],
-                'password' => Hash::make('password123'), // Default password
+                'password' => Hash::make($generatedPassword),
                 'role' => 'candidate',
             ]);
 
-            \Log::info('User created', ['user_id' => $user->id]);
+            \Log::info('User created', ['user_id' => $user->id, 'password_generated' => true]);
 
             // Handle photo upload
             $photoName = time() . '_' . $request->file('photo')->getClientOriginalName();
@@ -156,10 +180,30 @@ class CandidatesController extends Controller
                 'candidate_photo' => $photoName,
             ]);
 
+            // Send email with credentials
+            try {
+                Mail::to($user->email)->send(new CandidateCredentialsMail(
+                    $user->name,
+                    $user->email,
+                    $generatedPassword,
+                    $candidate->election->title,
+                    $candidate->position->name
+                ));
+
+                \Log::info('Credentials email sent', ['email' => $user->email]);
+            } catch (\Exception $mailException) {
+                \Log::error('Failed to send credentials email', [
+                    'email' => $user->email,
+                    'error' => $mailException->getMessage(),
+                ]);
+                // Don't fail the entire request if email fails
+            }
+
             return response()->json([
                 'success' => true,
-                'message' => 'Candidate created successfully.',
+                'message' => 'Candidate created successfully. Login credentials have been sent to their email.',
                 'candidate' => $candidate->load(['user', 'election', 'position']),
+                'generated_password' => $generatedPassword,
             ]);
         } catch (\Exception $e) {
             DB::rollBack();

@@ -11,7 +11,10 @@ use App\Models\Election;
 class PositionController extends Controller
 {
     public function position() {
-        $positions = Position::with('election')->latest()->get();
+        $positions = Position::with('election')
+            ->withCount('candidates')
+            ->latest()
+            ->get();
         $elections = Election::all();
         
         return Inertia::render('admin/position', [

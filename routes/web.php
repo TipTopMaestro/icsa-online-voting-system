@@ -7,7 +7,7 @@ use App\Http\Controllers\ElectionController;
 use App\Http\Controllers\ResultController;
 use App\Http\Controllers\VotersController;
 use App\Http\Controllers\CandidatesController;
-use App\Http\Controllers\AnnouncementController;
+use App\Http\Controllers\AnnouncementsController;
 use App\Http\Controllers\PositionController;
 use App\Http\Controllers\auth\RegisteredUserController;
 use App\Actions\Fortify\RegisterUser;
@@ -52,9 +52,16 @@ Route::prefix('admin')->middleware(['auth', 'verified', 'admin'])->group(functio
     Route::put('candidates/{candidate}',[CandidatesController::class, 'update'])->name('admin.candidates.update');
     Route::delete('candidates/{candidate}',[CandidatesController::class, 'destroy'])->name('admin.candidates.destroy');
     
-    // Announcement Routes
-    Route::get('announcement',[AnnouncementController::class, 'announcement'])->name('admin.announcement');
+    // Announcements Routes (Updated)
+    Route::get('announcement',[AnnouncementsController::class, 'index'])->name('admin.announcement'); // Redirect old route
+    Route::get('announcements',[AnnouncementsController::class, 'index'])->name('admin.announcements');
+    Route::post('announcements',[AnnouncementsController::class, 'store'])->name('admin.announcements.store');
+    Route::put('announcements/{announcement}',[AnnouncementsController::class, 'update'])->name('admin.announcements.update');
+    Route::delete('announcements/{announcement}',[AnnouncementsController::class, 'destroy'])->name('admin.announcements.destroy');
+    Route::post('announcements/{announcement}/publish',[AnnouncementsController::class, 'publish'])->name('admin.announcements.publish');
+    Route::post('announcements/{announcement}/unpublish',[AnnouncementsController::class, 'unpublish'])->name('admin.announcements.unpublish');
     
+    // Position Routes
     Route::get('position',[PositionController::class, 'position'])->name('admin.position');
     Route::post('position',[PositionController::class, 'store'])->name('admin.position.store');
     Route::put('position/{position}',[PositionController::class, 'update'])->name('admin.position.update');
