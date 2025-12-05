@@ -350,33 +350,7 @@ const turnoutPercentage = computed(() => {
                         </div>
                     </div>
 
-                    <!-- System Status -->
-                    <div class="rounded-xl border bg-card p-6">
-                        <h3 class="font-semibold mb-4">System Status</h3>
-                        <div class="space-y-3">
-                            <div class="flex items-center justify-between">
-                                <span class="text-sm text-muted-foreground">Voting System</span>
-                                <div class="flex items-center gap-2">
-                                    <span class="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
-                                    <span class="text-sm font-medium text-green-600 dark:text-green-400">Operational</span>
-                                </div>
-                            </div>
-                            <div class="flex items-center justify-between">
-                                <span class="text-sm text-muted-foreground">Database</span>
-                                <div class="flex items-center gap-2">
-                                    <span class="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
-                                    <span class="text-sm font-medium text-green-600 dark:text-green-400">Connected</span>
-                                </div>
-                            </div>
-                            <div class="flex items-center justify-between">
-                                <span class="text-sm text-muted-foreground">API Status</span>
-                                <div class="flex items-center gap-2">
-                                    <span class="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
-                                    <span class="text-sm font-medium text-green-600 dark:text-green-400">Active</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    
                 </div>
             </div>
         </div>
