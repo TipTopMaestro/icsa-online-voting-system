@@ -13,6 +13,7 @@ use App\Http\Controllers\auth\RegisteredUserController;
 use App\Actions\Fortify\RegisterUser;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\VotingController;
+use App\Http\Controllers\DashboardController;
 
 
 Route::view('/', 'index')->name('home');
@@ -71,16 +72,25 @@ Route::prefix('admin')->middleware(['auth', 'verified', 'admin'])->group(functio
 
 // Voter Routes
 Route::prefix('voter')->middleware(['auth', 'verified', 'voter'])->group(function(){
-    Route::get('dashboard', function () {
-        return Inertia::render('voter/Dashboard');
-    })->name('voter.dashboard');
+    Route::get('dashboard', [DashboardController::class, 'voterDashboard'])->name('voter.dashboard');
 
     Route::get('profile', [ProfileController::class, 'profile'])->name('voter.profile');
+    Route::post('profile/photo', [ProfileController::class, 'updatePhoto'])->name('voter.profile.photo');
+    Route::put('profile', [ProfileController::class, 'updateInfo'])->name('voter.profile.update');
     
     // Voting Routes
     Route::get('vote', [VotingController::class, 'index'])->name('voter.vote');
     Route::post('vote', [VotingController::class, 'store'])->name('voter.vote.store');
     Route::get('receipt', [VotingController::class, 'receipt'])->name('voter.receipt');
+    
+    // View Candidates
+    Route::get('candidates', [VotingController::class, 'viewCandidates'])->name('voter.candidates');
+    
+    // View Announcements
+    Route::get('announcements', [AnnouncementsController::class, 'voterIndex'])->name('voter.announcements');
+    
+    // View Results
+    Route::get('result', [ResultController::class, 'voterResult'])->name('voter.result');
 });
 
 // Candidate Routes

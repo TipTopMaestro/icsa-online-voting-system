@@ -72,4 +72,18 @@ class AnnouncementsController extends Controller
 
         return redirect()->back();
     }
+
+    public function voterIndex()
+    {
+        // Get published announcements for voters (audience: all or voters)
+        $announcements = Announcement::with('creator')
+            ->where('is_published', true)
+            ->whereIn('audience', ['all', 'voters'])
+            ->latest()
+            ->get();
+
+        return Inertia::render('voter/announcement', [
+            'announcements' => $announcements,
+        ]);
+    }
 }

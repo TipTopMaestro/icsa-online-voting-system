@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
-import { Head, router, Link } from '@inertiajs/vue3';
+import { Head, router, Link, usePage } from '@inertiajs/vue3';
 import VoterLayout from '@/layouts/VoterLayout.vue';
 import { Button } from '@/components/ui/button';
 
@@ -52,8 +52,16 @@ const props = defineProps<{
 const selectedVotes = ref<Record<number, number[]>>({});
 const showReviewModal = ref(false);
 const showConfirmModal = ref(false);
+const showViewModal = ref(false);
+const selectedCandidate = ref<Candidate | null>(null);
 const timeRemaining = ref('');
+const highlightedCandidateId = ref<number | null>(null);
 let countdownInterval: number | null = null;
+
+// Get URL query parameters
+const page = usePage();
+const urlParams = new URLSearchParams(window.location.search);
+const highlightParam = urlParams.get('highlight');
 
 // Initialize selections
 onMounted(() => {
@@ -63,6 +71,25 @@ onMounted(() => {
     
     if (props.election) {
         startCountdown();
+    }
+    
+    // Handle highlight parameter
+    if (highlightParam) {
+        const candidateId = parseInt(highlightParam);
+        highlightedCandidateId.value = candidateId;
+        
+        // Scroll to candidate after a short delay
+        setTimeout(() => {
+            const candidateRow = document.querySelector(`[data-candidate-id="${candidateId}"]`);
+            if (candidateRow) {
+                candidateRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }, 300);
+        
+        // Remove highlight after 2 seconds
+        setTimeout(() => {
+            highlightedCandidateId.value = null;
+        }, 2300);
     }
 });
 
@@ -115,7 +142,7 @@ function toggleCandidate(positionId: number, candidateId: number, maxSelection: 
     const index = currentSelections.indexOf(candidateId);
     
     if (index > -1) {
-        // Remove selection
+        // Remove selection (unselect)
         currentSelections.splice(index, 1);
     } else {
         // Add selection
@@ -124,13 +151,18 @@ function toggleCandidate(positionId: number, candidateId: number, maxSelection: 
         } else {
             // Max reached
             if (maxSelection === 1) {
-                // Radio behavior - replace
+                // Radio behavior - replace (allow re-click to unselect)
                 selectedVotes.value[positionId] = [candidateId];
             } else {
                 alert(`You can only select up to ${maxSelection} candidates for this position.`);
             }
         }
     }
+}
+
+// Handle row click to select/unselect
+function handleRowClick(positionId: number, candidateId: number, maxSelection: number) {
+    toggleCandidate(positionId, candidateId, maxSelection);
 }
 
 // Check if candidate is selected
@@ -144,6 +176,17 @@ function getCandidatePhoto(photo: string | null) {
         return 'https://ui-avatars.com/api/?name=Candidate&background=random';
     }
     return `/storage/candidates/${photo}`;
+}
+
+// View candidate details
+function openViewModal(candidate: Candidate) {
+    selectedCandidate.value = candidate;
+    showViewModal.value = true;
+}
+
+function closeViewModal() {
+    showViewModal.value = false;
+    selectedCandidate.value = null;
 }
 
 // Computed
@@ -254,25 +297,78 @@ function getSelectedCandidates(positionId: number) {
                         </div>
                         <div class="text-left md:text-right">
                             <div class="text-sm text-gray-600 dark:text-muted-foreground mb-1">Time Remaining</div>
-                            <div class="text-xl md:text-2xl font-bold text-purple-600 dark:text-primary">{{ timeRemaining }}</div>
+                            <div class="text-xl md:text-2xl font-bold" style="color: #5A2D6F;">{{ timeRemaining }}</div>
                         </div>
                     </div>
 
                     <!-- Instructions -->
-                    <div class="bg-gray-50 dark:bg-muted/50 rounded-lg p-4 mt-4">
-                        <h3 class="font-semibold mb-2 flex items-center gap-2 dark:text-foreground">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                            </svg>
-                            Voting Instructions
-                        </h3>
-                        <ul class="text-sm text-gray-600 dark:text-muted-foreground space-y-1 ml-7">
-                            <li>• Select your preferred candidate(s) for each position</li>
-                            <li>• You can skip positions if you wish to abstain</li>
-                            <li>• You must select at least 1 candidate to submit your ballot</li>
-                            <li>• Review your selections before submitting</li>
-                            <li>• Once submitted, votes cannot be changed</li>
-                        </ul>
+                    <div class="mt-6 p-6 border">
+                        <div class="flex items-center gap-2 mb-4">
+                            
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-foreground">Voting Instructions</h3>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                            <!-- Step 1 -->
+                            <div class="flex items-start gap-3">
+                                <div class="flex-shrink-0 w-8 h-8 rounded-full text-white flex items-center justify-center text-sm font-bold" style="background-color: #5A2D6F;">
+                                    1
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                                        Select your preferred candidate(s) for each position
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <!-- Step 2 -->
+                            <div class="flex items-start gap-3">
+                                <div class="flex-shrink-0 w-8 h-8 rounded-full text-white flex items-center justify-center text-sm font-bold" style="background-color: #5A2D6F;">
+                                    2
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                                        You can skip positions if you wish to abstain
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <!-- Step 3 -->
+                            <div class="flex items-start gap-3">
+                                <div class="flex-shrink-0 w-8 h-8 rounded-full text-white flex items-center justify-center text-sm font-bold" style="background-color: #5A2D6F;">
+                                    3
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                                        You must select at least 1 candidate to submit
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <!-- Step 4 -->
+                            <div class="flex items-start gap-3">
+                                <div class="flex-shrink-0 w-8 h-8 rounded-full text-white flex items-center justify-center text-sm font-bold" style="background-color: #5A2D6F;">
+                                    4
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                                        Review your selections before submitting
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <!-- Step 5 -->
+                            <div class="flex items-start gap-3">
+                                <div class="flex-shrink-0 w-8 h-8 rounded-full text-white flex items-center justify-center text-sm font-bold" style="background-color: #5A2D6F;">
+                                    5
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                                        Once submitted, your vote cannot be changed
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -296,70 +392,176 @@ function getSelectedCandidates(positionId: number) {
                             <p class="text-gray-600 dark:text-muted-foreground">No candidates available for this position</p>
                         </div>
 
-                        <!-- Candidates Grid -->
-                        <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <!-- Candidates Table (Desktop Only) -->
+                        <div v-else-if="position.candidates.length > 0" class="hidden md:block overflow-x-auto">
+                            <table class="min-w-full divide-y divide-border">
+                                <thead>
+                                    <tr class="text-left text-sm text-muted-foreground bg-muted/30">
+                                        <th class="py-3 px-4 font-semibold w-12">Select</th>
+                                        <th class="py-3 px-4 font-semibold w-16">Photo</th>
+                                        <th class="py-3 px-4 font-semibold">Name</th>
+                                        <th class="py-3 px-4 font-semibold">Partylist</th>
+                                        <th class="py-3 px-4 font-semibold">Course/Year</th>
+                                        <th class="py-3 px-4 font-semibold w-24 text-center">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-border text-sm">
+                                    <tr 
+                                        v-for="candidate in position.candidates" 
+                                        :key="candidate.id"
+                                        :data-candidate-id="candidate.id"
+                                        @click="handleRowClick(position.id, candidate.id, position.max_selection)"
+                                        :class="[
+                                            'transition-all duration-500 cursor-pointer',
+                                            isSelected(position.id, candidate.id)
+                                                ? 'bg-purple-50 dark:bg-primary/10 hover:bg-purple-100 dark:hover:bg-primary/20'
+                                                : 'hover:bg-muted/50',
+                                            highlightedCandidateId === candidate.id ? 'bg-purple-200 dark:bg-purple-900/50' : ''
+                                        ]"
+                                    >
+                                        <!-- Select Radio/Checkbox -->
+                                        <td class="py-3 px-4" @click.stop>
+                                            <div class="flex items-center justify-center">
+                                                <!-- Radio for max_selection = 1 -->
+                                                <input 
+                                                    v-if="position.max_selection === 1"
+                                                    type="radio"
+                                                    :name="`position-${position.id}`"
+                                                    :checked="isSelected(position.id, candidate.id)"
+                                                    @change="toggleCandidate(position.id, candidate.id, position.max_selection)"
+                                                    class="w-4 h-4 text-purple-600 focus:ring-purple-500 cursor-pointer"
+                                                />
+                                                <!-- Checkbox for max_selection > 1 -->
+                                                <input 
+                                                    v-else
+                                                    type="checkbox"
+                                                    :checked="isSelected(position.id, candidate.id)"
+                                                    @change="toggleCandidate(position.id, candidate.id, position.max_selection)"
+                                                    :disabled="!isSelected(position.id, candidate.id) && (selectedVotes[position.id]?.length || 0) >= position.max_selection"
+                                                    class="w-4 h-4 text-purple-600 focus:ring-purple-500 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                                                />
+                                            </div>
+                                        </td>
+
+                                        <!-- Photo -->
+                                        <td class="py-3 px-4">
+                                            <div class="w-12 h-12 rounded-full overflow-hidden border-2 border-gray-200 dark:border-muted flex-shrink-0">
+                                                <img 
+                                                    :src="getCandidatePhoto(candidate.photo)" 
+                                                    :alt="candidate.user.name"
+                                                    class="w-full h-full object-cover"
+                                                />
+                                            </div>
+                                        </td>
+
+                                        <!-- Name Only (No Email) -->
+                                        <td class="py-3 px-4">
+                                            <div class="font-medium dark:text-foreground">{{ candidate.user.name }}</div>
+                                        </td>
+
+                                        <!-- Partylist -->
+                                        <td class="py-3 px-4">
+                                            <span class="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-gray-100 dark:bg-primary/10  dark:text-primary">
+                                                {{ candidate.partylist || 'Independent' }}
+                                            </span>
+                                        </td>
+
+                                        <!-- Course/Year/Section -->
+                                        <td class="py-3 px-4 text-muted-foreground">
+                                            {{ candidate.course }} {{ candidate.year_level }}{{ candidate.section }}
+                                        </td>
+
+                                        <!-- Actions -->
+                                        <td class="py-3 px-4 text-center" @click.stop>
+                                            <button 
+                                                @click="openViewModal(candidate)"
+                                                class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-blue-700 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition"
+                                                title="View candidate details"
+                                            >
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                                </svg>
+                                                View
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Mobile Cards (Mobile Only) -->
+                        <div v-if="position.candidates.length > 0" class="md:hidden space-y-3">
                             <div 
                                 v-for="candidate in position.candidates" 
-                                :key="candidate.id"
-                                @click="toggleCandidate(position.id, candidate.id, position.max_selection)"
+                                :key="`mobile-${candidate.id}`"
+                                :data-candidate-id="candidate.id"
+                                @click="handleRowClick(position.id, candidate.id, position.max_selection)"
                                 :class="[
-                                    'cursor-pointer rounded-lg border-2 p-4 transition-all hover:shadow-md',
-                                    isSelected(position.id, candidate.id) 
-                                        ? 'border-purple-500 dark:border-primary bg-purple-50 dark:bg-primary/5' 
-                                        : 'border-gray-200 dark:border-border hover:border-purple-300 dark:hover:border-primary/50'
+                                    'border-2 rounded-xl p-4 transition-all duration-500 cursor-pointer shadow-sm',
+                                    isSelected(position.id, candidate.id)
+                                        ? 'border-purple-500 bg-purple-50 dark:border-primary dark:bg-primary/10 shadow-md'
+                                        : 'border-gray-200 dark:border-border hover:shadow-md',
+                                    highlightedCandidateId === candidate.id ? 'bg-yellow-200 border-yellow-400 dark:bg-yellow-900/50 dark:border-yellow-600' : ''
                                 ]"
                             >
-                                <div class="flex items-start gap-3">
-                                    <!-- Selection Indicator -->
-                                    <div class="flex-shrink-0 mt-1">
-                                        <div 
-                                            :class="[
-                                                'w-5 h-5 rounded-full border-2 flex items-center justify-center transition',
-                                                isSelected(position.id, candidate.id) 
-                                                    ? 'border-purple-500 dark:border-primary bg-purple-500 dark:bg-primary' 
-                                                    : 'border-gray-400 dark:border-muted-foreground'
-                                            ]"
-                                        >
-                                            <svg 
-                                                v-if="isSelected(position.id, candidate.id)" 
-                                                class="w-3 h-3 text-white" 
-                                                fill="currentColor" 
-                                                viewBox="0 0 20 20"
-                                            >
-                                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-                                            </svg>
-                                        </div>
+                                <!-- Top Section: Radio/Checkbox + Photo + Name -->
+                                <div class="flex items-start gap-4 mb-3">
+                                    <!-- Select Radio/Checkbox -->
+                                    <div class="flex-shrink-0 pt-1" @click.stop>
+                                        <input 
+                                            v-if="position.max_selection === 1"
+                                            type="radio"
+                                            :name="`mobile-position-${position.id}`"
+                                            :checked="isSelected(position.id, candidate.id)"
+                                            @change="toggleCandidate(position.id, candidate.id, position.max_selection)"
+                                            class="w-5 h-5 text-purple-600 focus:ring-purple-500 cursor-pointer"
+                                        />
+                                        <input 
+                                            v-else
+                                            type="checkbox"
+                                            :checked="isSelected(position.id, candidate.id)"
+                                            @change="toggleCandidate(position.id, candidate.id, position.max_selection)"
+                                            :disabled="!isSelected(position.id, candidate.id) && (selectedVotes[position.id]?.length || 0) >= position.max_selection"
+                                            class="w-5 h-5 text-purple-600 focus:ring-purple-500 cursor-pointer disabled:opacity-50"
+                                        />
                                     </div>
 
-                                    <!-- Candidate Info -->
+                                    <!-- Photo -->
+                                    <div class="w-16 h-16 rounded-full overflow-hidden border-3 border-purple-200 dark:border-primary/30 flex-shrink-0">
+                                        <img 
+                                            :src="getCandidatePhoto(candidate.photo)" 
+                                            :alt="candidate.user.name"
+                                            class="w-full h-full object-cover"
+                                        />
+                                    </div>
+
+                                    <!-- Name & Basic Info -->
                                     <div class="flex-1 min-w-0">
-                                        <div class="flex items-center gap-3 mb-2">
-                                            <!-- Photo -->
-                                            <img 
-                                                :src="getCandidatePhoto(candidate.photo)" 
-                                                :alt="candidate.user.name"
-                                                class="w-12 h-12 rounded-full object-cover border-2 border-gray-200 dark:border-muted"
-                                            />
-                                            <div class="flex-1 min-w-0">
-                                                <h3 class="font-semibold truncate dark:text-foreground">{{ candidate.user.name }}</h3>
-                                                <p class="text-xs text-gray-600 dark:text-muted-foreground">
-                                                    {{ candidate.course }} {{ candidate.year_level }}{{ candidate.section }}
-                                                </p>
-                                            </div>
-                                        </div>
-
-                                        <!-- Party -->
-                                        <div v-if="candidate.partylist" class="mb-2">
-                                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 dark:bg-primary/10 text-purple-700 dark:text-primary">
-                                                {{ candidate.partylist }}
-                                            </span>
-                                        </div>
-
-                                        <!-- Platform -->
-                                        <p v-if="candidate.platform" class="text-sm text-gray-600 dark:text-muted-foreground line-clamp-3">
-                                            {{ candidate.platform }}
+                                        <h3 class="font-bold text-base dark:text-foreground mb-1 truncate">
+                                            {{ candidate.user.name }}
+                                        </h3>
+                                        <p class="text-xs text-muted-foreground mb-2">
+                                            {{ candidate.course }} {{ candidate.year_level }}{{ candidate.section }}
                                         </p>
+                                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-purple-100 dark:bg-primary/10 text-purple-700 dark:text-primary">
+                                            {{ candidate.partylist || 'Independent' }}
+                                        </span>
                                     </div>
+                                </div>
+
+                                <!-- Bottom Section: View Button -->
+                                <div class="pt-3 border-t border-gray-200 dark:border-border">
+                                    <button 
+                                        @click.stop="openViewModal(candidate)"
+                                        class="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-blue-700 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-500/10 rounded-lg transition"
+                                    >
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                        </svg>
+                                        View Full Details
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -481,5 +683,82 @@ function getSelectedCandidates(positionId: number) {
                 </div>
             </div>
         </div>
+
+        <!-- View Candidate Modal -->
+        <div v-if="showViewModal && selectedCandidate" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div class="fixed inset-0 bg-black/40" @click="closeViewModal"></div>
+
+            <div class="relative bg-white dark:bg-card rounded-xl shadow-lg w-full max-w-3xl max-h-[90vh] overflow-y-auto p-6 z-50 border dark:border-border">
+                <!-- Header -->
+                <div class="flex items-start justify-between mb-6">
+                    <h3 class="text-xl font-semibold dark:text-foreground">Candidate Details</h3>
+                    <button @click="closeViewModal" class="text-muted-foreground hover:text-foreground transition">
+                        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Content -->
+                <div class="space-y-6">
+                    <!-- Photo and Basic Info -->
+                    <div class="flex flex-col sm:flex-row items-center sm:items-start gap-6">
+                        <img 
+                            :src="getCandidatePhoto(selectedCandidate.photo)" 
+                            :alt="selectedCandidate.user.name"
+                            class="w-32 h-32 rounded-full object-cover border-4 border-purple-100 dark:border-primary/20"
+                        />
+                        <div class="flex-1 text-center sm:text-left">
+                            <h4 class="text-2xl font-bold mb-2 dark:text-foreground">{{ selectedCandidate.user.name }}</h4>
+                            <p class="text-muted-foreground mb-3">{{ selectedCandidate.user.email }}</p>
+                            <div class="flex flex-wrap gap-2 justify-center sm:justify-start">
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 dark:bg-primary/10 text-purple-700 dark:text-primary">
+                                    {{ selectedCandidate.partylist || 'Independent' }}
+                                </span>
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 dark:bg-muted text-gray-700 dark:text-muted-foreground">
+                                    {{ selectedCandidate.course }} {{ selectedCandidate.year_level }}{{ selectedCandidate.section }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Details Grid -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t dark:border-border">
+                        <div>
+                            <label class="block text-sm font-medium text-muted-foreground mb-1">Position</label>
+                            <p class="font-semibold dark:text-foreground">
+                                {{ positions.find(p => p.id === selectedCandidate?.position_id)?.name || 'N/A' }}
+                            </p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-muted-foreground mb-1">Election</label>
+                            <p class="font-semibold dark:text-foreground">{{ election?.title || 'N/A' }}</p>
+                        </div>
+                    </div>
+
+                    <!-- Platform -->
+                    <div class="pt-4 border-t dark:border-border">
+                        <label class="block text-sm font-medium text-muted-foreground mb-2">Platform</label>
+                        <div class="bg-gray-50 dark:bg-muted/30 rounded-lg p-4">
+                            <p class="text-sm leading-relaxed dark:text-foreground whitespace-pre-wrap">
+                                {{ selectedCandidate?.platform || 'No platform provided' }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer -->
+                <div class="mt-6 pt-4 border-t dark:border-border">
+                    <Button 
+                        @click="closeViewModal"
+                        variant="outline"
+                        class="w-full"
+                    >
+                        Close
+                    </Button>
+                </div>
+            </div>
+        </div>
     </VoterLayout>
 </template>
+

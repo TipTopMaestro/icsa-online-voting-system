@@ -192,4 +192,65 @@ class VotingController extends Controller
             'votedAt' => $votes->first()->created_at
         ]);
     }
+
+    /**
+     * Show all candidates for the active election
+     */
+    public function viewCandidates()
+    {
+        // Get active election
+        $election = Election::where('is_active', true)
+            ->where('start_datetime', '<=', now())
+            ->where('end_datetime', '>=', now())
+            ->first();
+
+        // No active election
+        if (!$election) {
+            return Inertia::render('voter/viewCandidates', [
+                'election' => null,
+                'candidates' => [],
+                'positions' => [],
+                'message' => 'No active election at the moment. Please check back later.'
+            ]);
+        }
+
+        // Get all candidates for this election with their position and user info
+        $candidates = Candidate::whereHas('position', function($query) use ($election) {
+                $query->where('election_id', $election->id);
+            })
+            ->with(['position', 'user'])
+            ->get()
+            ->map(function($candidate) {
+                return [
+                    'id' => $candidate->id,
+                    'name' => $candidate->user->name,
+                    'email' => $candidate->user->email,
+                    'position' => $candidate->position->name,
+                    'position_id' => $candidate->position_id,
+                    'party' => $candidate->party_affiliation,
+                    'platform' => $candidate->platform,
+                    'image' => $candidate->photo ? '/storage/candidates/' . $candidate->photo : null,
+                    'course' => $candidate->program . ' ' . $candidate->year . $candidate->section,
+                    'quote' => $candidate->quote,
+                ];
+            });
+
+        // Get unique positions for filter
+        $positions = Position::where('election_id', $election->id)
+            ->orderBy('id')
+            ->get()
+            ->map(function($position) {
+                return [
+                    'value' => $position->name,
+                    'label' => $position->name
+                ];
+            });
+
+        return Inertia::render('voter/viewCandidates', [
+            'election' => $election,
+            'candidates' => $candidates,
+            'positions' => $positions,
+            'message' => null
+        ]);
+    }
 }

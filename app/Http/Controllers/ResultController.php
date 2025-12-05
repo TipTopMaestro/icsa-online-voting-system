@@ -10,4 +10,8 @@ class ResultController extends Controller
     public function result() {
         return Inertia::render('admin/result', []);
     }
+
+    public function voterResult() {
+        return Inertia::render('voter/result', []);
+    }
 }
