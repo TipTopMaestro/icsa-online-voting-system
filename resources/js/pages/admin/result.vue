@@ -86,7 +86,7 @@ const sortedResults = computed(() => {
 
 // Select different election
 function selectElection(election) {
-    router.get(route('admin.result'), { election_id: election.id }, {
+    router.get('/admin/result', { election_id: election.id }, {
         preserveState: false,
         preserveScroll: false
     })

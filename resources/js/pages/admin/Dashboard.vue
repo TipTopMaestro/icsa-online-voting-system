@@ -6,7 +6,6 @@ import { Head, router } from '@inertiajs/vue3';
 import Icon from '@/components/Icon.vue';
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { createChart } from '@/composables/useChart';
-import { route } from 'ziggy-js';
 
 interface Activity {
     type: string;
@@ -372,19 +371,19 @@ onUnmounted(() => {
 });
 
 const navigateToElection = () => {
-    router.visit(route('admin.election'));
+    router.visit('/admin/election');
 };
 
 const navigateToCandidates = () => {
-    router.visit(route('admin.candidates'));
+    router.visit('/admin/candidates');
 };
 
 const navigateToAnnouncements = () => {
-    router.visit(route('admin.announcements'));
+    router.visit('/admin/announcements');
 };
 
 const navigateToResults = () => {
-    router.visit(route('admin.result'));
+    router.visit('/admin/result');
 };
 </script>
 
