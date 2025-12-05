@@ -145,9 +145,7 @@ function goToPage(page: number) {
               <option :value="false">Not Voted</option>
             </select>
 
-            <button @click="applyFilters" class="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 text-sm">
-              Search
-            </button>
+            
 
             <button @click="clearFilters" class="px-3 py-2 text-sm hover:bg-accent rounded-lg transition">
               Clear
