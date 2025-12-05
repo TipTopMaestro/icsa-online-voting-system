@@ -21,6 +21,7 @@ interface Election {
     positions_count: number;
     candidates_count: number;
     votes_count: number;
+    voted_count: number; // Unique voters who voted
     total_voters: number;
     created_at: string;
     updated_at: string;
@@ -161,7 +162,10 @@ const formatDateRange = (start: string, end: string) => {
 
 const getVoterTurnout = (election: Election) => {
     if (election.total_voters === 0) return 0;
-    return ((election.votes_count / election.total_voters) * 100).toFixed(1);
+    // Use voted_count (unique voters) instead of votes_count (all votes)
+    const turnout = (election.voted_count / election.total_voters) * 100;
+    // Cap at 100% to prevent exceeding
+    return Math.min(turnout, 100).toFixed(1);
 };
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -365,7 +369,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                         <div class="mb-4" v-if="election.status === 'active'">
                             <div class="flex items-center justify-between text-xs mb-2">
                                 <span class="text-muted-foreground">Voter Turnout</span>
-                                <span class="font-medium">{{ getVoterTurnout(election) }}%</span>
+                                <span class="font-medium">{{ election.voted_count }}/{{ election.total_voters }} ({{ getVoterTurnout(election) }}%)</span>
                             </div>
                             <div class="h-2 w-full rounded-full bg-muted overflow-hidden">
                                 <div 

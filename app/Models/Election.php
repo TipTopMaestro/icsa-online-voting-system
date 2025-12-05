@@ -58,4 +58,34 @@ class Election extends Model
     {
         return $this->end_datetime && now()->greaterThan($this->end_datetime);
     }
+
+    // Additional helper methods for voting system
+    public function getTimeRemainingAttribute()
+    {
+        if ($this->hasEnded()) {
+            return null;
+        }
+        
+        return $this->end_datetime->diffForHumans();
+    }
+
+    public function getTotalVotersAttribute()
+    {
+        return VoterProfile::count();
+    }
+
+    public function getVotedCountAttribute()
+    {
+        return Vote::where('election_id', $this->id)
+            ->distinct('user_id')
+            ->count('user_id');
+    }
+
+    public function getTurnoutPercentageAttribute()
+    {
+        $total = $this->total_voters;
+        if ($total == 0) return 0;
+        
+        return round(($this->voted_count / $total) * 100, 2);
+    }
 }

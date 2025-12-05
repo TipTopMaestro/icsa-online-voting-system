@@ -10,13 +10,11 @@ class VotersController extends Controller
 {
     public function index(Request $request)
     {
-        // Debug logging
-        \Log::info('Voter Search Request', [
-            'search' => $request->search,
-            'course' => $request->course,
-            'year_level' => $request->year_level,
-            'has_voted' => $request->has_voted,
-        ]);
+        // Get active election
+        $activeElection = \App\Models\Election::where('is_active', true)
+            ->where('start_datetime', '<=', now())
+            ->where('end_datetime', '>=', now())
+            ->first();
 
         $query = VoterProfile::with('user')
             ->orderBy('created_at', 'desc');
@@ -44,21 +42,57 @@ class VotersController extends Controller
             $query->where('year_level', $request->year_level);
         }
 
-        // Filter by voting status
-        if ($request->has('has_voted') && $request->has_voted !== null) {
-            $query->where('has_voted', $request->has_voted === 'true' || $request->has_voted === true);
+        // Filter by voting status (for active election)
+        if ($request->has('has_voted') && $request->has_voted !== null && $activeElection) {
+            $hasVotedValue = $request->has_voted === 'true' || $request->has_voted === true;
+            
+            if ($hasVotedValue) {
+                // Show only voters who voted in active election
+                $query->whereHas('user', function($q) use ($activeElection) {
+                    $q->whereHas('votes', function($vq) use ($activeElection) {
+                        $vq->where('election_id', $activeElection->id);
+                    });
+                });
+            } else {
+                // Show only voters who haven't voted in active election
+                $query->whereHas('user', function($q) use ($activeElection) {
+                    $q->whereDoesntHave('votes', function($vq) use ($activeElection) {
+                        $vq->where('election_id', $activeElection->id);
+                    });
+                });
+            }
         }
 
-        $voters = $query->paginate(15);
-
-        \Log::info('Voter Query Result', [
-            'total' => $voters->total(),
-            'count' => $voters->count(),
-        ]);
+        $voters = $query->paginate(15)->through(function ($voter) use ($activeElection) {
+            // Check if voter has voted in active election
+            $hasVotedInActiveElection = false;
+            if ($activeElection) {
+                $hasVotedInActiveElection = \App\Models\Vote::where('user_id', $voter->user_id)
+                    ->where('election_id', $activeElection->id)
+                    ->exists();
+            }
+            
+            return [
+                'id' => $voter->id,
+                'user_id' => $voter->user_id,
+                'student_id' => $voter->student_id,
+                'course' => $voter->course,
+                'year_level' => $voter->year_level,
+                'section' => $voter->section,
+                'has_voted' => $hasVotedInActiveElection, // Per active election
+                'created_at' => $voter->created_at,
+                'updated_at' => $voter->updated_at,
+                'user' => $voter->user,
+            ];
+        });
 
         return Inertia::render('admin/voters', [
             'voters' => $voters,
             'filters' => $request->only(['search', 'course', 'year_level', 'has_voted']),
+            'activeElection' => $activeElection ? [
+                'id' => $activeElection->id,
+                'title' => $activeElection->title,
+            ] : null,
         ]);
     }
 }

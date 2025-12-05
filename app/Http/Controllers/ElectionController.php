@@ -15,6 +15,11 @@ class ElectionController extends Controller
             ->latest()
             ->get()
             ->map(function ($election) {
+                // Count unique voters who voted in this election
+                $uniqueVoters = \App\Models\Vote::where('election_id', $election->id)
+                    ->distinct('user_id')
+                    ->count('user_id');
+                
                 return [
                     'id' => $election->id,
                     'title' => $election->title,
@@ -26,6 +31,7 @@ class ElectionController extends Controller
                     'positions_count' => $election->positions_count,
                     'candidates_count' => $election->candidates_count,
                     'votes_count' => $election->votes_count,
+                    'voted_count' => $uniqueVoters, // Unique voters who voted
                     'total_voters' => $election->totalVotersCount(),
                     'created_at' => $election->created_at,
                     'updated_at' => $election->updated_at,

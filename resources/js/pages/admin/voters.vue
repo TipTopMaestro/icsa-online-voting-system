@@ -44,10 +44,16 @@ interface Filters {
   has_voted?: boolean | null;
 }
 
+interface ActiveElection {
+  id: number;
+  title: string;
+}
+
 // Props
 const props = defineProps<{
   voters: PaginatedVoters;
   filters: Filters;
+  activeElection?: ActiveElection | null;
 }>();
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -105,7 +111,12 @@ function goToPage(page: number) {
       <!-- Header -->
       <div class="mb-6">
         <h1 class="text-2xl font-semibold text-gray-800 dark:text-gray-100">Voter Management</h1>
-        <p class="text-gray-600 dark:text-gray-400 mt-1">View and manage all registered voters in the system.</p>
+        <p class="text-gray-600 dark:text-gray-400 mt-1">
+          View and manage all registered voters in the system.
+          <span v-if="activeElection" class="ml-2 text-primary font-medium">
+            (Voting status for: {{ activeElection.title }})
+          </span>
+        </p>
       </div>
 
       <!-- Search & Filters -->

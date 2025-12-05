@@ -12,6 +12,7 @@ use App\Http\Controllers\PositionController;
 use App\Http\Controllers\auth\RegisteredUserController;
 use App\Actions\Fortify\RegisterUser;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\VotingController;
 
 
 Route::view('/', 'index')->name('home');
@@ -75,6 +76,11 @@ Route::prefix('voter')->middleware(['auth', 'verified', 'voter'])->group(functio
     })->name('voter.dashboard');
 
     Route::get('profile', [ProfileController::class, 'profile'])->name('voter.profile');
+    
+    // Voting Routes
+    Route::get('vote', [VotingController::class, 'index'])->name('voter.vote');
+    Route::post('vote', [VotingController::class, 'store'])->name('voter.vote.store');
+    Route::get('receipt', [VotingController::class, 'receipt'])->name('voter.receipt');
 });
 
 // Candidate Routes
