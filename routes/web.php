@@ -31,9 +31,7 @@ Route::post('/register', [RegisteredUserController::class, 'store']);
 
 // Admin Routes
 Route::prefix('admin')->middleware(['auth', 'verified', 'admin'])->group(function(){
-    Route::get('dashboard', function () {
-        return Inertia::render('admin/Dashboard');
-    })->name('admin.dashboard');
+    Route::get('dashboard', [DashboardController::class, 'adminDashboard'])->name('admin.dashboard');
 
     Route::get('result',[ResultController::class, 'result'])->name('admin.result');
     

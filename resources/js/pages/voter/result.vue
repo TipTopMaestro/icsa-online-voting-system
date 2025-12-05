@@ -97,7 +97,7 @@ const sortedResults = computed(() => {
 })
 
 function selectElection(election: Election) {
-    router.get(route('voter.result'), { election_id: election.id }, {
+    router.get('/voter/result', { election_id: election.id }, {
         preserveState: false,
         preserveScroll: false
     })
@@ -137,20 +137,20 @@ function getCandidatePhoto(photo: string) {
                         <!-- Header Section -->
                         <div class="mb-6">
                             <div class="flex items-center justify-between mb-2">
-                                <div class="flex items-center gap-3">
+                                 <div class="flex items-center gap-3">
                                     <h1 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">
-                                        {{ currentElection.title }}
+                                        {{ currentElection?.title }}
                                     </h1>
                                     <span 
                                         :class="[
                                             'inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-md',
-                                            currentElection.is_active 
+                                            currentElection?.is_active 
                                                 ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
                                                 : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
                                         ]"
                                     >
-                                        <span v-if="currentElection.is_active" class="w-1.5 h-1.5 rounded-full bg-green-600 dark:bg-green-400 animate-pulse" />
-                                        {{ currentElection.is_active ? 'Live' : 'Ended' }}
+                                        <span v-if="currentElection?.is_active" class="w-1.5 h-1.5 rounded-full bg-green-600 dark:bg-green-400 animate-pulse" />
+                                        {{ currentElection?.is_active ? 'Live' : 'Ended' }}
                                     </span>
                                 </div>
 
@@ -198,7 +198,7 @@ function getCandidatePhoto(photo: string) {
 
                             <div class="flex items-center justify-between">
                                 <p class="text-sm text-gray-500 dark:text-gray-400">
-                                    {{ currentElection.description }}
+                                    {{ currentElection?.description }}
                                 </p>
                                 <p class="text-xs text-gray-400 dark:text-gray-500">
                                     Last updated: {{ lastUpdated }}
@@ -223,7 +223,7 @@ function getCandidatePhoto(photo: string) {
                             <div v-for="[positionName, candidates] in sortedResults" :key="positionName" class="bg-white dark:bg-gray-900 rounded-lg shadow-sm border border-gray-200 dark:border-gray-800 overflow-hidden">
                                 <!-- Position Header -->
                                 <div class="px-6 py-4 bg-gray-50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-800">
-                                    <h3 class="text-2xl font-bold text-gray-900 dark:text-gray-100 uppercase">{{ positionName }}</h3>
+                                    <h3 class="text-1xl font-bold text-gray-900 dark:text-gray-100 uppercase">{{ positionName }}</h3>
                                 </div>
 
                                 <!-- Candidates List -->
@@ -253,7 +253,7 @@ function getCandidatePhoto(photo: string) {
                                           <!-- Rank Number -->
                                           <div 
                                             :class="[
-                                              'flex-shrink-0 w-14 h-14 flex items-center justify-center font-bold text-xl',
+                                              'flex-shrink-0 w-10 h-15 flex items-center justify-center font-bold text-xl',
                                               index === 0 ? 'bg-purple-600 text-white' : 'bg-gray-300 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
                                             ]"
                                           >

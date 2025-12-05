@@ -88,4 +88,19 @@ class Election extends Model
         
         return round(($this->voted_count / $total) * 100, 2);
     }
+
+    public function getStatusAttribute()
+    {
+        if ($this->hasEnded()) {
+            return 'ended';
+        } elseif ($this->hasStarted() && $this->is_active) {
+            return 'active';
+        } elseif ($this->hasStarted()) {
+            return 'ended';
+        } else {
+            return 'scheduled';
+        }
+    }
+
+    protected $appends = ['status'];
 }
