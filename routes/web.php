@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
 use App\Http\Controllers\ElectionController;
@@ -14,6 +15,7 @@ use App\Actions\Fortify\RegisterUser;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\VotingController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\CandidateController;
 
 
 Route::view('/', 'index')->name('home');
@@ -22,9 +24,18 @@ Route::view('/index', 'index')->name('index');
 Route::view('/about', 'about')->name('about');
 Route::view('/contact', 'contact')->name('contact');
 
-
 Route::get('dashboard', function () {
-    return Inertia::render('admin/Dashboard', []);
+    $user = Auth::user();
+    
+    // Redirect to role-specific dashboard
+    $redirectUrl = match($user->role) {
+        'admin' => '/admin/dashboard',
+        'voter' => '/voter/dashboard',
+        'candidate' => '/candidate/dashboard',
+        default => '/admin/dashboard',
+    };
+    
+    return redirect($redirectUrl);
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::post('/register', [RegisteredUserController::class, 'store']);
@@ -93,9 +104,15 @@ Route::prefix('voter')->middleware(['auth', 'verified', 'voter'])->group(functio
 
 // Candidate Routes
 Route::prefix('candidate')->middleware(['auth', 'verified', 'candidate'])->group(function(){
-    Route::get('dashboard', function () {
-        return Inertia::render('candidate/Dashboard');
-    })->name('candidate.dashboard');
+    Route::get('dashboard', [CandidateController::class, 'dashboard'])->name('candidate.dashboard');
+    Route::get('profile', [CandidateController::class, 'profile'])->name('candidate.profile');
+    Route::post('profile/photo', [CandidateController::class, 'updatePhoto'])->name('candidate.profile.photo');
+    Route::post('profile/platform', [CandidateController::class, 'updatePlatform'])->name('candidate.profile.platform');
+    Route::get('announcements', [CandidateController::class, 'announcements'])->name('candidate.announcements');
+    Route::get('results', [CandidateController::class, 'results'])->name('candidate.results');
+    Route::get('settings', [CandidateController::class, 'settings'])->name('candidate.settings');
+    Route::put('settings/profile', [CandidateController::class, 'updateProfile'])->name('candidate.settings.profile');
+    Route::put('settings/password', [CandidateController::class, 'updatePassword'])->name('candidate.settings.password');
 });
 
 require __DIR__.'/settings.php';

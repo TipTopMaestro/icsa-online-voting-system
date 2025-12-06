@@ -20,11 +20,12 @@ class VotingController extends Controller
     {
         $user = Auth::user();
         
-        // Get active election
+        // Get active election - use isActive() method
         $election = Election::where('is_active', true)
-            ->where('start_datetime', '<=', now())
-            ->where('end_datetime', '>=', now())
-            ->first();
+            ->get()
+            ->first(function ($e) {
+                return $e->isActive();
+            });
 
         // No active election
         if (!$election) {
@@ -198,11 +199,12 @@ class VotingController extends Controller
      */
     public function viewCandidates()
     {
-        // Get active election
+        // Get active election - use isActive() method
         $election = Election::where('is_active', true)
-            ->where('start_datetime', '<=', now())
-            ->where('end_datetime', '>=', now())
-            ->first();
+            ->get()
+            ->first(function ($e) {
+                return $e->isActive();
+            });
 
         // No active election
         if (!$election) {

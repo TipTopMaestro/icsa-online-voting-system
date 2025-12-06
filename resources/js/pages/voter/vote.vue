@@ -277,7 +277,7 @@ function getSelectedCandidates(positionId: number) {
                                 Back to Dashboard
                             </Button>
                         </Link>
-                        <Link href="/voter/results">
+                        <Link href="/voter/result">
                             <Button>
                                 View Results
                             </Button>

@@ -133,7 +133,7 @@ const groupedVotes = props.votes.reduce((acc, vote) => {
                             Back to Dashboard
                         </Button>
                     </Link>
-                    <Link href="/voter/results">
+                    <Link href="/voter/result">
                         <Button class="w-full sm:w-auto">
                             View Live Results
                         </Button>

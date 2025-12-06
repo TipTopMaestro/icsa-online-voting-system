@@ -1,277 +1,212 @@
 <script setup lang="ts">
-import { Head, router, Link } from '@inertiajs/vue3';
-import { Button } from '@/components/ui/button';
-import Icon from '@/components/Icon.vue';
-import { ref, reactive } from 'vue';
-import { usePage } from '@inertiajs/vue3'
-import { urlIsActive } from '@/lib/utils'
-import { email } from '@/routes/password';
+import { Head } from '@inertiajs/vue3';
+import CandidateLayout from '@/layouts/CandidateLayout.vue';
+import { ref, computed } from 'vue';
 
-const handleLogout = () => {
-    router.post('/logout');
-};
-
-// Mobile menu toggle
-const open = ref(false);
-
-// Profile dropdown toggle
-const profileOpen = ref(false);
-
-// Modals
-const photoModal = ref(false);
-const editPlatformModal = ref(false);
-
-// Platform functionality
-const platformInput = ref("");
-const savedPlatform = ref("");
-const editingPlatform = ref(false);
-
-const savePlatform = () => {
-    savedPlatform.value = platformInput.value;
-    editingPlatform.value = false;
-};
-
-const openEditPlatform = () => {
-    editingPlatform.value = true;
-    platformInput.value = savedPlatform.value;
-};
-
-// Reactive mock user data (replace with inertia user prop)
-const user = reactive({
-    name: "Candidate Name",
-    avatar: "/images/profile.png",
-    email: "candidate@email.com",
-    position: "Governor",
-    partylist: "DDS",
-    program: "BSIT",
-});
-
-const avatarPreview = ref('');
-
-function onAvatarChange(e: Event) {
-    const input = e.target as HTMLInputElement;
-    if (!input || !input.files || input.files.length === 0) return;
-    const file = input.files[0];
-
-    // Create a local URL for preview and immediately update the user's avatar
-    const url = URL.createObjectURL(file);
-    avatarPreview.value = url;
-    user.avatar = url;
+interface User {
+    name: string;
+    photo: string | null;
 }
 
-function triggerAvatarInput(id = 'avatar-input') {
-    const el = document.getElementById(id) as HTMLInputElement | null;
-    if (el) el.click();
+interface Election {
+    id: number;
+    name: string;
+    description: string;
+    start_datetime: string;
+    end_datetime: string;
+    is_ongoing: boolean;
 }
 
-// active link helper — keeps hover color when the nav href matches current page URL
-const page = usePage();
-const navClass = (href: string) => urlIsActive(href, page.url) ? 'text-purple-700' : 'text-gray-700 hover:text-purple-600 font-medium'
+interface Position {
+    id: number;
+    name: string;
+}
+
+interface Announcement {
+    id: number;
+    title: string;
+    content: string;
+    created_at: string;
+}
+
+interface Statistics {
+    votesReceived: number;
+    totalVoters: number;
+    votePercentage: number;
+    ranking: number;
+    totalCandidates: number;
+}
+
+const props = defineProps<{
+    user: User;
+    activeElection: Election | null;
+    candidatePosition: Position | null;
+    recentAnnouncements: Announcement[];
+    statistics: Statistics;
+}>();
 </script>
 
 <template>
-    <div>
-        <Head title="Candidate Dashboard" />
-
-        <div class="min-h-screen bg-gray-100">
-            <!-- NAVIGATION BAR -->
-            <nav class="bg-white shadow-sm">
-                <div class="w-full px-3 sm:px-4 lg:px-6">
-                    <div class="flex h-16 justify-between items-center">
-                        <div class="flex items-center space-x-4">
-                            <img src="/images/icsalogo.png" alt="ICSA" class="w-8 h-8 object-contain" />
-                            <h1 class="text-xl font-bold">ICSA Voting System</h1>
-                            <div class="hidden sm:flex items-center space-x-6">
-                                <Link href="/candidate/dashboard" :class="navClass('/candidate/dashboard')">
-                                    Profile
-                                </Link>
-                                
-                                <Link href="/candidate/announcements" :class="navClass('/candidate/announcements')">
-                                    Announcement
-                                </Link>
-
-                                <Link href="/candidate/results" :class="navClass('/candidate/result')">
-                                    Result
-                                </Link>
-                            </div>
-                        </div>
-
-                        <div class="relative">
-                            <button 
-                                @click="profileOpen = !profileOpen"
-                                class="flex items-center space-x-2 focus:outline-none"
-                            >
-                                <span class="text-sm text-gray-700">{{ user.name }}</span>
-                                <img 
-                                    :src="avatarPreview || user.avatar"
-                                    class="w-9 h-9 rounded-full object-cover"
-                                    alt="Profile"
-                                >
-                            </button>
-                            <div 
-                                v-if="profileOpen"
-                                class="absolute right-0 mt-2 w-40 bg-white border rounded-md shadow-lg py-2 z-50"
-                            >
-                                <Link 
-                                     href="/candidate/dashboard"
-                                    :class="navClass('/candidate/dashboard') + ' block px-4 py-2 text-sm'"
-                                    @click="profileOpen = false"
-                                >
-                                    My Profile
-                                </Link>
-
-                                <button 
-                                    @click="handleLogout"
-                                    class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
-                                >
-                                    Logout
-                                </button>
-                            </div>
-                        </div>
-
-                    </div>
+    <Head title="Candidate Dashboard" />
+    
+    <CandidateLayout>
+        <div class="min-h-screen bg-gray-50">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <!-- Header -->
+                <div class="mb-6">
+                    <h1 class="text-2xl font-semibold text-gray-900">Dashboard</h1>
+                    <p class="text-sm text-gray-600 mt-1">Welcome back, {{ user.name }}</p>
                 </div>
 
-                <div v-if="open" class="sm:hidden border-t bg-white px-4 py-3 space-y-3">
-                    <hr class="my-2" />
+                <!-- Main Content -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Main Column -->
+                    <div class="lg:col-span-2 space-y-6">
+                        <!-- Active Election -->
+                        <div class="bg-white border border-gray-200 rounded-lg p-6">
+                            <div class="flex items-start justify-between mb-4">
+                                <div>
+                                    
+                                    <p v-if="activeElection" class="text-md text-gray-600 mt-1">{{ activeElection.name }}</p>
+                                    <p v-if="candidatePosition" class="text-sm text-purple-600 mt-2 font-medium">
+                                        Running for: {{ candidatePosition.name }}
+                                    </p>
+                                </div>
+                                <span v-if="activeElection?.is_ongoing" class="inline-flex items-center px-3 py-1 rounded-md text-xs font-medium bg-green-50 text-green-700 border border-green-200">
+                                    Active
+                                </span>
+                                <span v-if="!activeElection?.is_ongoing" class="inline-flex items-center px-3 py-1 rounded-md text-xs font-medium bg-gray-50 text-gray-700 border border-gray-200">
+                                    Ended
+                                </span>
 
-                    <div class="flex justify-between items-center">
-                        <!--<span class="text-sm text-gray-700">Candidate Dashboard</span>-->
-                        <Button @click="handleLogout" variant="outline" size="sm">
-                            Logout
-                        </Button>
+                            </div>
+
+                            <div v-if="!activeElection" class="text-center py-8 text-gray-500 text-sm">
+                                No active election at the moment
+                            </div>
+                        </div>
+
+                        <!-- Vote Statistics -->
+                        <div class="grid grid-cols-2 gap-6">
+                            <div class="bg-white border border-gray-200 rounded-lg p-6">
+                                <p class="text-sm text-gray-600">Votes Received</p>
+                                <p class="text-3xl font-semibold text-gray-900 mt-2">{{ statistics.votesReceived }}</p>
+                                <p class="text-xs text-gray-500 mt-1">
+                                    {{ statistics.votePercentage }}% of total voters
+                                </p>
+                            </div>
+                            <div class="bg-white border border-gray-200 rounded-lg p-6">
+                                <p class="text-sm text-gray-600">Current Ranking</p>
+                                <p class="text-3xl font-semibold text-gray-900 mt-2">
+                                    {{ statistics.ranking > 0 ? '#' + statistics.ranking : '-' }}
+                                </p>
+                                <p class="text-xs text-gray-500 mt-1">
+                                    Out of {{ statistics.totalCandidates }} candidates
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Performance Overview -->
+                        <div class="bg-white border border-gray-200 rounded-lg p-6">
+                            <h3 class="text-base font-semibold text-gray-900 mb-4">Performance Overview</h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <div class="flex items-center justify-between text-sm mb-2">
+                                        <span class="text-gray-600">Vote Progress</span>
+                                        <span class="font-medium text-gray-900">{{ statistics.votesReceived }} / {{ statistics.totalVoters }}</span>
+                                    </div>
+                                    <div class="w-full bg-gray-200 rounded-full h-2">
+                                        <div 
+                                            class="bg-purple-600 h-2 rounded-full transition-all duration-500"
+                                            :style="{ width: statistics.votePercentage + '%' }"
+                                        ></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Announcements -->
+                        <div class="bg-white border border-gray-200 rounded-lg p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-base font-semibold text-gray-900">Recent Announcements</h3>
+                                <a href="/candidate/announcements" class="text-sm text-purple-600 hover:text-purple-700">
+                                    View all
+                                </a>
+                            </div>
+
+                            <div v-if="recentAnnouncements.length > 0" class="space-y-3">
+                                <div v-for="announcement in recentAnnouncements" :key="announcement.id" 
+                                    class="border-l-2 border-purple-600 pl-4 py-2">
+                                    <h4 class="text-sm font-medium text-gray-900">{{ announcement.title }}</h4>
+                                    <p class="text-sm text-gray-600 mt-1 line-clamp-2">{{ announcement.content }}</p>
+                                    <p class="text-xs text-gray-500 mt-1">{{ announcement.created_at }}</p>
+                                </div>
+                            </div>
+                            <div v-else class="text-center py-8 text-gray-500 text-sm">
+                                No announcements
+                            </div>
+                        </div>
                     </div>
-                </div>
-            </nav>
 
-            <!-- PAGE CONTENT -->
-            <div class="py-8">
-                <div class="mx-auto max-w-[1500px] px-8 lg:px-16">
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-                        <!-- LEFT CONTAINER -->
-                        <div class="bg-white shadow-sm rounded-lg p-10 flex flex-col items-center min-h-[500px]">
-                            <img 
-                                :src="avatarPreview || user.avatar"
-                                class="w-45 h-45 rounded-full object-cover border mt-4"
-                                alt="Candidate Photo"
-                            />
-                            <button 
-                                @click="photoModal = true"
-                                class="mt-4 inline-flex items-center gap-2 text-sm text-purple-700 hover:text-purple-800 bg-purple-50 border border-purple-100 px-3 py-1 rounded-lg shadow-sm"
-                            >
-                                <Icon name="camera" class="w-4 h-4 text-purple-700" />
-                                <span>Change Photo</span>
-                            </button>
-                            <div class="mt-12 w-full space-y-4">
-                                <p><span class="font-semibold">Name:</span> {{ user.name }}</p>
-                                <p><span class="font-semibold">Email:</span> {{ user.email }}</p>
-                                <p><span class="font-semibold">Program:</span> {{ user.program }}</p>
-                            </div>
-                        </div>
-
-                        <!-- RIGHT CONTAINER -->
-                        <div class="lg:col-span-2 bg-white shadow-sm rounded-lg p-10 min-h-[500px]">
-                            <div class="space-y-2">
-                                <p class="text-lg font-semibold">Position: {{ user.position }}</p>
-                                <p class="text-lg font-semibold mt-1">Partylist: {{ user.partylist }}</p>
-                            </div>
-                            <hr class="my-8">
-
-                            <div>
-                                <h3 class="text-xl font-semibold mb-3">Platform</h3>
-
-                                <div v-if="savedPlatform && !editingPlatform">
-                                    <p class="bg-gray-100 p-4 rounded border">{{ savedPlatform }}</p>
-                                    <button 
-                                        @click="openEditPlatform()"
-                                        class="mt-3 inline-flex items-center gap-2 px-4 py-2 bg-purple-700 text-white rounded hover:bg-purple-800"
-                                    >
-                                        <Icon name="PencilLine" class="w-4 h-4" />
-                                        Edit Platform
-                                    </button>
+                    <!-- Sidebar -->
+                    <div class="space-y-6">
+                        <!-- Campaign Status -->
+                        <div class="bg-white border border-gray-200 rounded-lg p-6">
+                            <h3 class="text-base font-semibold text-gray-900 mb-4">Campaign Status</h3>
+                            <div class="space-y-3">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-2 h-2 rounded-full bg-green-500"></div>
+                                    <span class="text-sm text-gray-700">Profile Complete</span>
                                 </div>
-
-                                <div v-else-if="!savedPlatform">
-                                    <textarea 
-                                        v-model="platformInput"
-                                        placeholder="Enter your platform..."
-                                        class="w-full border rounded p-3"
-                                        rows="4"
-                                    ></textarea>
-                                    <button 
-                                        @click="savePlatform"
-                                        class="mt-3 inline-flex items-center gap-2 px-4 py-2 bg-purple-700 text-white rounded hover:bg-purple-800"
-                                    >
-                                        <Icon name="save" class="w-4 h-4" />
-                                        Save
-                                    </button>
-                                </div>
-
-                                <div v-if="editingPlatform">
-                                    <textarea 
-                                        v-model="platformInput"
-                                        class="w-full border rounded p-3"
-                                        rows="4"
-                                    ></textarea>
-                                    <button 
-                                        @click="savePlatform"
-                                        class="mt-3 inline-flex items-center gap-2 px-4 py-2 bg-purple-700 text-white rounded hover:bg-purple-800"
-                                    >
-                                        <Icon name="save" class="w-4 h-4" />
-                                        Save
-                                    </button>
+                                <div class="flex items-center gap-2">
+                                    <div v-if="activeElection?.is_ongoing" class="w-2 h-2 rounded-full bg-green-500"></div>
+                                    <div v-else class="w-2 h-2 rounded-full bg-gray-300"></div>
+                                    <span v-if="activeElection?.is_ongoing" class="text-sm text-gray-700">Election Active</span>
+                                    <span v-else class="text-sm text-gray-700">Election Ended</span>
                                 </div>
                             </div>
                         </div>
 
+                        <!-- Quick Stats -->
+                        <div class="bg-white border border-gray-200 rounded-lg p-6">
+                            <h3 class="text-base font-semibold text-gray-900 mb-4">Quick Stats</h3>
+                            <div class="space-y-3">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm text-gray-600">Total Voters</span>
+                                    <span class="text-sm font-semibold text-gray-900">{{ statistics.totalVoters }}</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm text-gray-600">Your Votes</span>
+                                    <span class="text-sm font-semibold text-gray-900">{{ statistics.votesReceived }}</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm text-gray-600">Vote Rate</span>
+                                    <span class="text-sm font-semibold text-gray-900">{{ statistics.votePercentage }}%</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Quick Actions -->
+                        <div class="bg-white border border-gray-200 rounded-lg p-6">
+                            <h3 class="text-base font-semibold text-gray-900 mb-4">Quick Actions</h3>
+                            <div class="space-y-1">
+                                <a href="/candidate/profile" 
+                                    class="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 rounded-md hover:bg-gray-50">
+                                    View Profile
+                                </a>
+                                <a href="/candidate/results" 
+                                    class="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 rounded-md hover:bg-gray-50">
+                                    View Results
+                                </a>
+                                <a href="/candidate/announcements" 
+                                    class="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 rounded-md hover:bg-gray-50">
+                                    Announcements
+                                </a>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-
-
-            <!-- PHOTO CHANGE MODAL: subtle overlay + blur, stronger panel shadow -->
-            <div
-                v-if="photoModal"
-                class="fixed inset-0 flex items-center justify-center z-50 pointer-events-none"
-            >
-                <!-- subtle overlay + backdrop blur (non-blocking) -->
-                <div class="absolute inset-0 bg-black/10 backdrop-blur-sm pointer-events-none z-40"></div>
-
-                <!-- modal panel: pointer-events enabled and stronger shadow -->
-                <div class="bg-white rounded-lg p-6 w-80 pointer-events-auto shadow-2xl transform transition-all scale-100 z-50">
-                    <h2 class="text-lg font-semibold mb-4">Change Photo</h2>
-
-                    <div class="mb-4 flex items-center gap-3">
-                        <input type="file" class="hidden" id="modal-avatar-input" @change="onAvatarChange" />
-                        <label for="modal-avatar-input" class="inline-flex items-center gap-2 px-3 py-2 rounded-md border border-gray-200 hover:bg-gray-50 cursor-pointer text-sm">
-                            <Icon name="upload" class="w-4 h-4 text-purple-700" />
-                            Choose file
-                        </label>
-                        <div class="text-xs text-gray-500">(JPG, PNG — max 2MB)</div>
-                    </div>
-
-                    <div class="flex justify-end gap-3">
-                        <button 
-                            @click="photoModal = false"
-                            class="px-4 py-2 border rounded inline-flex items-center gap-2"
-                        >
-                            <Icon name="x" class="w-4 h-4" />
-                            Cancel
-                        </button>
-
-                        <button 
-                            @click="photoModal = false"
-                            class="px-4 py-2 bg-purple-600 text-white rounded inline-flex items-center gap-2"
-                        >
-                            <Icon name="save" class="w-4 h-4" />
-                            Save
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-
         </div>
-    </div>
+    </CandidateLayout>
 </template>

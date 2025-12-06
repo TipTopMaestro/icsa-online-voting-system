@@ -10,11 +10,12 @@ class VotersController extends Controller
 {
     public function index(Request $request)
     {
-        // Get active election
+        // Get active election - use isActive() method that checks both is_active and date range
         $activeElection = \App\Models\Election::where('is_active', true)
-            ->where('start_datetime', '<=', now())
-            ->where('end_datetime', '>=', now())
-            ->first();
+            ->get()
+            ->first(function ($election) {
+                return $election->isActive();
+            });
 
         $query = VoterProfile::with('user')
             ->orderBy('created_at', 'desc');

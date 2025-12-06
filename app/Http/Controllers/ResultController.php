@@ -24,9 +24,12 @@ class ResultController extends Controller
         if ($electionId) {
             $election = Election::findOrFail($electionId);
         } else {
-            // Get active election or latest election
-            $election = Election::where('is_active', true)->first() 
-                ?? Election::latest()->first();
+            // Get active election (using isActive()) or latest election
+            $election = Election::where('is_active', true)
+                ->get()
+                ->first(function ($e) {
+                    return $e->isActive();
+                }) ?? Election::latest()->first();
         }
 
         // Get all elections for selector dropdown
@@ -38,9 +41,9 @@ class ResultController extends Controller
                     'id' => $e->id,
                     'title' => $e->title,
                     'description' => $e->description,
-                    'status' => $e->is_active ? 'active' : 'closed',
+                    'status' => $e->isActive() ? 'active' : 'closed',
                     'startDate' => $e->start_datetime->format('d M Y') . ' - ' . $e->end_datetime->format('d M Y'),
-                    'is_active' => $e->is_active,
+                    'is_active' => $e->isActive(),
                 ];
             });
 
@@ -63,9 +66,9 @@ class ResultController extends Controller
                 'id' => $election->id,
                 'title' => $election->title,
                 'description' => $election->description,
-                'status' => $election->is_active ? 'active' : 'closed',
+                'status' => $election->isActive() ? 'active' : 'closed',
                 'startDate' => $election->start_datetime->format('d M Y') . ' - ' . $election->end_datetime->format('d M Y'),
-                'is_active' => $election->is_active,
+                'is_active' => $election->isActive(),
             ],
             'positions' => $resultsData['positions'],
             'results' => $resultsData['results'],
@@ -84,9 +87,12 @@ class ResultController extends Controller
         if ($electionId) {
             $election = Election::findOrFail($electionId);
         } else {
-            // Get active election or latest ended election
-            $election = Election::where('is_active', true)->first() 
-                ?? Election::where('end_datetime', '<', now())->latest('end_datetime')->first();
+            // Get active election (using isActive()) or latest ended election
+            $election = Election::where('is_active', true)
+                ->get()
+                ->first(function ($e) {
+                    return $e->isActive();
+                }) ?? Election::where('end_datetime', '<', now())->latest('end_datetime')->first();
         }
 
         // Get viewable elections for voter (active or ended)
@@ -102,9 +108,9 @@ class ResultController extends Controller
                     'id' => $e->id,
                     'title' => $e->title,
                     'description' => $e->description,
-                    'status' => $e->is_active ? 'active' : 'closed',
+                    'status' => $e->isActive() ? 'active' : 'closed',
                     'startDate' => $e->start_datetime->format('d M Y') . ' - ' . $e->end_datetime->format('d M Y'),
-                    'is_active' => $e->is_active,
+                    'is_active' => $e->isActive(),
                 ];
             });
 
@@ -127,9 +133,9 @@ class ResultController extends Controller
                 'id' => $election->id,
                 'title' => $election->title,
                 'description' => $election->description,
-                'status' => $election->is_active ? 'active' : 'closed',
+                'status' => $election->isActive() ? 'active' : 'closed',
                 'startDate' => $election->start_datetime->format('d M Y') . ' - ' . $election->end_datetime->format('d M Y'),
-                'is_active' => $election->is_active,
+                'is_active' => $election->isActive(),
             ],
             'positions' => $resultsData['positions'],
             'results' => $resultsData['results'],

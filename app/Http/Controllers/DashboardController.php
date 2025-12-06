@@ -17,13 +17,17 @@ class DashboardController extends Controller
     public function adminDashboard() {
         // Get overall statistics
         $totalVoters = User::where('role', 'voter')->count();
-        $activeElectionsCount = Election::where('is_active', 1)->count();
-        $totalCandidates = Candidate::count();
         
-        // Get active election for charts
+        // Get active election - use isActive() method
         $activeElection = Election::where('is_active', 1)
             ->with(['positions.candidates'])
-            ->first();
+            ->get()
+            ->first(function ($e) {
+                return $e->isActive();
+            });
+        
+        $activeElectionsCount = $activeElection ? 1 : 0;
+        $totalCandidates = Candidate::count();
         
         // Calculate accurate turnout for active election
         $totalVotes = 0;
@@ -168,7 +172,13 @@ class DashboardController extends Controller
 
     public function voterDashboard() {
         $user = Auth::user();
-        $activeElection = Election::where('is_active', 1)->first();
+        
+        // Get active election - use isActive() method
+        $activeElection = Election::where('is_active', 1)
+            ->get()
+            ->first(function ($e) {
+                return $e->isActive();
+            });
         
         $dashboardData = [
             'user' => [

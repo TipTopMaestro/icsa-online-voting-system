@@ -4,7 +4,7 @@ import { ref, computed } from 'vue'
 import Icon from '@/components/Icon.vue';
 import Modal from '@/components/Modal.vue'
 import ModalTrigger from '@/components/ModalTrigger.vue'
-import VoterLayout from '@/layouts/VoterLayout.vue'
+import CandidateLayout from '@/layouts/CandidateLayout.vue'
 
 interface Election {
   id: number;
@@ -97,7 +97,7 @@ const sortedResults = computed(() => {
 })
 
 function selectElection(election: Election) {
-    router.get('/voter/result', { election_id: election.id }, {
+    router.get('/candidate/results', { election_id: election.id }, {
         preserveState: false,
         preserveScroll: false
     })
@@ -116,7 +116,7 @@ function getCandidatePhoto(photo: string) {
         <Head title="Voter Results" />
 
         <div class="min-h-screen bg-gray-100">
-            <VoterLayout>
+            <CandidateLayout>
                 <div class="p-6 max-w-7xl mx-auto">
                     
                     <!-- No Election -->
@@ -329,7 +329,7 @@ function getCandidatePhoto(photo: string) {
                         </div>
                     </Modal>
                 </div>
-            </VoterLayout> 
+            </CandidateLayout> 
         </div>
     </div>
 </template>

@@ -7,6 +7,7 @@ use App\Actions\Fortify\ResetUserPassword;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
@@ -84,26 +85,49 @@ class FortifyServiceProvider extends ServiceProvider
      */
     private function configureViews(): void
     {
-        Fortify::loginView(fn (Request $request) => Inertia::render('auth/Login', [
-            'canResetPassword' => Features::enabled(Features::resetPasswords()),
-            'canRegister' => Features::enabled(Features::registration()),
-            'status' => $request->session()->get('status'),
-        ]));
+        Fortify::loginView(function (Request $request) {
+            // Redirect authenticated users
+            if (Auth::check()) {
+                $user = Auth::user();
+                $redirectUrl = match($user->role) {
+                    'admin' => '/admin/dashboard',
+                    'voter' => '/voter/dashboard',
+                    'candidate' => '/candidate/dashboard',
+                    default => '/dashboard',
+                };
+                return redirect($redirectUrl);
+            }
+            
+            return Inertia::render('auth/Login', [
+                'canResetPassword' => Features::enabled(Features::resetPasswords()),
+                'canRegister' => Features::enabled(Features::registration()),
+                'status' => $request->session()->get('status'),
+            ]);
+        });
 
+        Fortify::registerView(function () {
+            if (Auth::check()) {
+                return redirect('/dashboard');
+            }
+            return Inertia::render('auth/Register');
+        });
+
+        Fortify::requestPasswordResetLinkView(function (Request $request) {
+            if (Auth::check()) {
+                return redirect('/dashboard');
+            }
+            return Inertia::render('auth/ForgotPassword', [
+                'status' => $request->session()->get('status'),
+            ]);
+        });
         Fortify::resetPasswordView(fn (Request $request) => Inertia::render('auth/ResetPassword', [
             'email' => $request->email,
             'token' => $request->route('token'),
         ]));
 
-        Fortify::requestPasswordResetLinkView(fn (Request $request) => Inertia::render('auth/ForgotPassword', [
-            'status' => $request->session()->get('status'),
-        ]));
-
         Fortify::verifyEmailView(fn (Request $request) => Inertia::render('auth/VerifyEmail', [
             'status' => $request->session()->get('status'),
         ]));
-
-        Fortify::registerView(fn () => Inertia::render('auth/Register'));
 
         Fortify::twoFactorChallengeView(fn () => Inertia::render('auth/TwoFactorChallenge'));
 

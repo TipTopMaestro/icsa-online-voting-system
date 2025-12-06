@@ -109,6 +109,7 @@ const initDoughnutChart = () => {
     const canvas = document.getElementById('doughnutChart') as HTMLCanvasElement;
     if (!canvas) return;
 
+    // Destroy existing instance
     if (doughnutChartInstance) {
         doughnutChartInstance.destroy();
     }
@@ -139,30 +140,6 @@ const initDoughnutChart = () => {
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            animation: {
-                duration: 2000,
-                easing: 'easeInOutQuart',
-                delay: (context: any) => {
-                    let delay = 0;
-                    if (context.type === 'data') {
-                        delay = context.dataIndex * 150;
-                    }
-                    return delay;
-                },
-            },
-            animations: {
-                rotation: {
-                    duration: 2000,
-                    easing: 'easeOutElastic',
-                    from: 0,
-                    to: 6.283185307179586,
-                },
-                radius: {
-                    duration: 2500,
-                    easing: 'easeOutBounce',
-                    from: 0,
-                },
-            },
             plugins: {
                 legend: {
                     position: 'bottom',
@@ -330,27 +307,30 @@ const initLineChart = () => {
 };
 
 const updateCharts = () => {
-    // Destroy and reinitialize doughnut chart to trigger full animation
+    // Destroy existing charts
     if (doughnutChartInstance) {
         doughnutChartInstance.destroy();
         doughnutChartInstance = null;
     }
-    initDoughnutChart();
-
-    // Destroy and reinitialize line chart to trigger full animation
     if (lineChartInstance) {
         lineChartInstance.destroy();
         lineChartInstance = null;
     }
-    initLineChart();
+    
+    // Reinitialize with slight delay to ensure clean animation
+    setTimeout(() => {
+        initDoughnutChart();
+        initLineChart();
+    }, 100);
 };
 
 onMounted(() => {
     if (props.chartData) {
+        // Wait for DOM to be fully ready
         setTimeout(() => {
             initDoughnutChart();
             initLineChart();
-        }, 100);
+        }, 200);
     }
     
     refreshInterval = window.setInterval(() => {

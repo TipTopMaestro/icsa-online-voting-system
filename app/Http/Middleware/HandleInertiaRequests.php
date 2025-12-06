@@ -38,17 +38,33 @@ class HandleInertiaRequests extends Middleware
     {
         [$message, $author] = str(Inspiring::quotes()->random())->explode('-');
 
+        $user = $request->user();
+        $userPhoto = null;
+        
+        if ($user) {
+            // For candidates, use photo from candidates table
+            if ($user->role === 'candidate') {
+                $candidate = \App\Models\Candidate::where('user_id', $user->id)->first();
+                $userPhoto = $candidate && $candidate->photo 
+                    ? asset('storage/candidates/' . $candidate->photo)
+                    : null;
+            } else {
+                // For other roles, use photo from users table
+                $userPhoto = $user->photo ? asset('storage/' . $user->photo) : null;
+            }
+        }
+
         return [
             ...parent::share($request),
             'name' => config('app.name'),
             'quote' => ['message' => trim($message), 'author' => trim($author)],
             'auth' => [
-                'user' => $request->user() ? [
-                    'id' => $request->user()->id,
-                    'name' => $request->user()->name,
-                    'email' => $request->user()->email,
-                    'photo' => $request->user()->photo ? asset('storage/' . $request->user()->photo) : null,
-                    'role' => $request->user()->role,
+                'user' => $user ? [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'photo' => $userPhoto,
+                    'role' => $user->role,
                 ] : null,
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',

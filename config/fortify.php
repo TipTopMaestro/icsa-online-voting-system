@@ -73,7 +73,7 @@ return [
     |
     */
 
-    'home' => '/dashboard',
+    'home' => '/dashboard', // This will be handled by role-based redirect
 
     /*
     |--------------------------------------------------------------------------
