@@ -137,7 +137,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                     </div>
                     <button 
                         @click="openCreateModal"
-                        class="inline-flex items-center gap-2 px-4 py-2 bg-card hover:bg-accent transition-colors text-sm font-medium border rounded-md focus:outline-none">
+                        class="inline-flex items-center gap-2 px-4 py-2 bg-purple-800 hover:bg-purple-900 dark:bg-purple-800 dark:hover:bg-purple-900 text-white text-sm font-medium rounded-md transition-colors">
                         <Icon name="plus" class="h-4 w-4" />
                         New Position
                     </button>

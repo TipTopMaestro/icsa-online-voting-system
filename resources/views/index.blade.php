@@ -47,13 +47,13 @@
 
     <!-- Hero Section -->
     <section class="hero-section hero-img-bg">
-        <div class="container">
+        <div class="container mt-3">
             <div class="hero-logos">
                 <div class="hero-logo">
-                    <img src="{{ asset('images/iclogo.jpg') }}" alt="IC Logo">
+                    <img src="{{ asset('images/icsalogo.png') }}" alt="ICSA Logo">
                 </div>
                 <div class="hero-logo">
-                    <img src="{{ asset('images/icsalogo.png') }}" alt="ICSA Logo">
+                    <img src="{{ asset('images/iclogo.jpg') }}" alt="IC Logo">
                 </div>
             </div>
             <h1 class="hero-title">

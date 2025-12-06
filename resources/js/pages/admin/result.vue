@@ -186,7 +186,8 @@ function formatPrintDate(date) {
               <!-- Print Button -->
               <button
                 @click="printResults"
-                class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 dark:bg-purple-700 dark:hover:bg-purple-800 rounded-lg transition-colors print:hidden"
+                
+                class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-purple-800 hover:bg-purple-900 dark:bg-purple-800 dark:hover:bg-purple-900 rounded-lg transition-colors print:hidden"
               >
                 <Icon name="printer" class="w-4 h-4" />
                 Print Results

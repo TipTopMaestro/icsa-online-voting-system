@@ -540,10 +540,15 @@ const navigateToResults = () => {
 
                     <!-- Elections List -->
                     <div v-else class="space-y-4">
+                        <!-- if election is ended it should not be hoverable -->
                         <div
                             v-for="election in elections"
                             :key="election.id"
-                            class="group rounded-xl border p-6 transition-all duration-300 bg-card hover:shadow-lg hover:border-primary/50"
+                            
+                            :class="[
+                              'group rounded-xl border p-6 transition-all duration-300 bg-card',
+                              election.status === 'ended' ? '' : 'hover:shadow-lg hover:border-primary/50'
+                            ]"
                         >
                             <div class="flex items-start justify-between gap-4 mb-4">
                                 <div class="flex-1">
@@ -739,3 +744,9 @@ const navigateToResults = () => {
         </div>
     </AppLayout>
 </template>
+
+<style>
+    button:hover {
+        cursor: pointer;
+    }
+</style>

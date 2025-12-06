@@ -188,7 +188,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                     </div>
                     <button 
                         @click="openCreateModal"
-                        class="inline-flex items-center gap-2 px-4 py-2 bg-card hover:bg-accent transition-colors text-sm font-medium border rounded-md focus:outline-none">
+                        class="inline-flex items-center gap-2 px-4 py-2 bg-purple-800 hover:bg-purple-900 dark:bg-purple-800 dark:hover:bg-purple-900 text-white text-sm font-medium rounded-md transition-colors">
                         <Icon name="plus" class="h-4 w-4" />
                         New Election
                     </button>
@@ -373,7 +373,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                             </div>
                             <div class="h-2 w-full rounded-full bg-muted overflow-hidden">
                                 <div 
-                                    class="h-full rounded-full bg-primary transition-all duration-500"
+                                    class="h-full rounded-full bg-purple-600 transition-all duration-500"
                                     :style="{ width: `${getVoterTurnout(election)}%` }"
                                 />
                                 </div>
@@ -417,7 +417,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                     <button 
                         v-if="election.status === 'scheduled' && !election.is_active"
                         @click="openActivateConfirm(election)"
-                        class="flex-1 inline-flex items-center justify-center gap-2 rounded-lg bg-green-500 hover:bg-green-600 text-white px-4 py-2 text-sm font-medium transition-colors">
+                        class="flex-1 inline-flex items-center justify-center gap-2 rounded-lg bg-green-600 hover:bg-green-700 text-primary-foreground px-4 py-2 text-sm font-medium transition-colors">
                         <Icon name="play" class="h-4 w-4" />
                         Activate Election
                     </button>
@@ -425,7 +425,8 @@ const breadcrumbs: BreadcrumbItem[] = [
                     <!-- View Results Button -->
                     <button 
                         v-if="election.status !== 'scheduled'"
-                        class="flex-1 inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors">
+                        @click="router.visit('/admin/result')"
+                        class="flex-1 inline-flex items-center justify-center gap-2 rounded-lg bg-transparent px-4 py-2 text-sm font-medium text-dark-foreground hover:bg-primary/20 transition-colors border-2 border-dark-foreground">
                         <Icon name="barChart" class="h-4 w-4" />
                         View Results
                     </button>

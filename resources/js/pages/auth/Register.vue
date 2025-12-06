@@ -58,14 +58,15 @@ const submit = async () => {
 <style>
     .btn-custom {
         background: #4a1d5f;
-        box-shadow: 0 4px 15px rgba(165, 55, 253, 0.4);
+        box-shadow: 0 4px 15px rgba(165, 55, 253, 0.1);
         transition: background 0.3s ease, box-shadow 0.3s ease;
     }
     .btn-custom:hover {
-        background: rgba(74, 29, 95, 0.9);
-        box-shadow: 0 6px 20px rgba(165, 55, 253, 0.6);
+        background: rgba(74, 29, 95, 0.90);
+        box-shadow: 0 6px 20px rgba(165, 55, 253, 0.4);
         cursor: pointer;
     }
+
 </style>
 
 <template>
@@ -94,7 +95,6 @@ const submit = async () => {
                         v-model="form.name"
                         type="text"
                         required
-                        autofocus
                         :tabindex="1"
                         autocomplete="name"
                         placeholder="Juan Dela Cruz"
