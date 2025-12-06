@@ -116,10 +116,3 @@ Route::prefix('candidate')->middleware(['auth', 'verified', 'candidate'])->group
 });
 
 require __DIR__.'/settings.php';
-
-// Test route for voter search
-if (config('app.env') !== 'production') {
-    require __DIR__.'/test.php';
-}
-
-
