@@ -115,15 +115,15 @@ const groupedVotes = props.votes.reduce((acc, vote) => {
                         <div class="text-sm text-blue-800 dark:text-blue-400">
                             <p class="font-medium mb-1">Important Information:</p>
                             <ul class="list-disc list-inside space-y-1">
-                                <li>Your vote has been recorded securely</li>
-                                <li>You cannot change your vote once submitted</li>
-                                <li>Results will be available after the election ends</li>
+                                <p> ○ Your vote has been recorded securely</p>
+                                <p> ○ You cannot change your vote once submitted</p>
+                                <p> ○ Results will be available after the election ends</p>
                             </ul>
                         </div>
                     </div>
                 </div>
 
-                <!-- Actions -->
+                <<!-- Actions -->
                 <div class="flex flex-col sm:flex-row justify-center gap-3">
                     <Link href="/voter/dashboard">
                         <Button variant="outline" class="w-full sm:w-auto">
@@ -131,7 +131,7 @@ const groupedVotes = props.votes.reduce((acc, vote) => {
                         </Button>
                     </Link>
                     <Link href="/voter/result">
-                        <Button class="w-full sm:w-auto">
+                        <Button class="w-full sm:w-auto" style="background-color: #5A2D6F;">
                             View Live Results
                         </Button>
                     </Link>

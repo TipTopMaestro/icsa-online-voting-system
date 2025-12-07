@@ -278,7 +278,7 @@ function getSelectedCandidates(positionId: number) {
                             </Button>
                         </Link>
                         <Link href="/voter/result">
-                            <Button>
+                            <Button style="background-color: #5A2D6F;">
                                 View Results
                             </Button>
                         </Link>
@@ -584,12 +584,13 @@ function getSelectedCandidates(positionId: number) {
                             :disabled="!hasMinimumVote"
                             size="lg"
                             class="gap-2 w-full sm:w-auto"
+                            style="background-color: #5A2D6F;"
                         >
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                             </svg>
                             Review Ballot
-                        </Button>
+                </Button>
                     </div>
                 </div>
             </div>
@@ -633,7 +634,7 @@ function getSelectedCandidates(positionId: number) {
                     <Button variant="outline" @click="showReviewModal = false" class="w-full sm:w-auto">
                         Go Back
                     </Button>
-                    <Button @click="submitVotes" class="gap-2 w-full sm:w-auto">
+                    <Button @click="submitVotes" class="gap-2 w-full sm:w-auto" style="background-color: #5A2D6F;">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                         </svg>
@@ -659,11 +660,7 @@ function getSelectedCandidates(positionId: number) {
                     <p class="text-gray-600 dark:text-muted-foreground mb-4">
                         Are you sure you want to submit your ballot?
                     </p>
-                    <div class="bg-yellow-50 dark:bg-yellow-500/10 border border-yellow-200 dark:border-yellow-500/20 rounded-lg p-3">
-                        <p class="text-sm font-medium text-yellow-800 dark:text-yellow-500">
-                            ⚠️ This action cannot be undone
-                        </p>
-                    </div>
+                    
                 </div>
 
                 <div class="flex flex-col sm:flex-row gap-3">
@@ -674,9 +671,10 @@ function getSelectedCandidates(positionId: number) {
                     >
                         Cancel
                     </Button>
-                    <Button 
+                     <Button 
                         @click="confirmSubmit"
                         class="flex-1"
+                        style="background-color: #5A2D6F;"
                     >
                         Yes, Submit
                     </Button>
