@@ -45,8 +45,8 @@ class Election extends Model
 
     public function isActive()
     {
-        return $this->is_active && 
-               now()->between($this->start_datetime, $this->end_datetime);
+        // If manually activated, consider it active regardless of schedule
+        return $this->is_active;
     }
 
     public function hasStarted()
