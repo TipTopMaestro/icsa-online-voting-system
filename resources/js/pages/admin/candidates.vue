@@ -83,6 +83,91 @@ const filterCourse = ref<string | null>(props.filters.course || null);
 const filterYear = ref<string | null>(props.filters.year_level || null);
 const showFilters = ref(false);
 
+// Dropdown states and options for filters
+const electionDropdownOpen = ref(false);
+const positionDropdownOpen = ref(false);
+const courseDropdownOpen = ref(false);
+const yearDropdownOpen = ref(false);
+
+const electionOptions = computed(() => [{ label: 'All Elections', value: null }, ...props.elections.map(e => ({ label: e.title, value: e.id }))]);
+const positionOptions = computed(() => [{ label: 'All Positions', value: null }, ...props.positions.map(p => ({ label: p.name, value: p.id }))]);
+const courseOptions = [
+  { label: 'All Courses', value: null },
+  { label: 'BSIT', value: 'BSIT' },
+  { label: 'BSIS', value: 'BSIS' },
+];
+const yearOptions = [
+  { label: 'All Years', value: null },
+  { label: '1st Year', value: '1' },
+  { label: '2nd Year', value: '2' },
+  { label: '3rd Year', value: '3' },
+  { label: '4th Year', value: '4' },
+];
+
+function selectElectionOption(opt: { label: string; value: number | null }) {
+  filterElection.value = opt.value as number | null;
+  electionDropdownOpen.value = false;
+  applyFilters();
+}
+
+function selectPositionOption(opt: { label: string; value: number | null }) {
+  filterPosition.value = opt.value as number | null;
+  positionDropdownOpen.value = false;
+  applyFilters();
+}
+
+function selectCourseOption(opt: { label: string; value: string | null }) {
+  filterCourse.value = opt.value as string | null;
+  courseDropdownOpen.value = false;
+  applyFilters();
+}
+
+function selectYearOption(opt: { label: string; value: string | null }) {
+  filterYear.value = opt.value as string | null;
+  yearDropdownOpen.value = false;
+  applyFilters();
+}
+
+function toggleElectionDropdown() {
+  const next = !electionDropdownOpen.value;
+  electionDropdownOpen.value = next;
+  if (next) {
+    positionDropdownOpen.value = false;
+    courseDropdownOpen.value = false;
+    yearDropdownOpen.value = false;
+  }
+}
+
+function togglePositionDropdown() {
+  const next = !positionDropdownOpen.value;
+  positionDropdownOpen.value = next;
+  if (next) {
+    electionDropdownOpen.value = false;
+    courseDropdownOpen.value = false;
+    yearDropdownOpen.value = false;
+  }
+}
+
+function toggleCourseDropdown() {
+  const next = !courseDropdownOpen.value;
+  courseDropdownOpen.value = next;
+  if (next) {
+    electionDropdownOpen.value = false;
+    positionDropdownOpen.value = false;
+    yearDropdownOpen.value = false;
+  }
+}
+
+function toggleYearDropdown() {
+  const next = !yearDropdownOpen.value;
+  yearDropdownOpen.value = next;
+  if (next) {
+    electionDropdownOpen.value = false;
+    positionDropdownOpen.value = false;
+    courseDropdownOpen.value = false;
+  }
+}
+
 // Computed
 const activeFiltersCount = computed(() => {
   let count = 0;
@@ -586,20 +671,17 @@ function copyPassword() {
                 <div>
                   <label class="block text-xs font-medium text-muted-foreground mb-1.5">Election</label>
                   <div class="relative">
-                    <select 
-                      v-model="filterElection" 
-                      @change="applyFilters" 
-                      class="w-full appearance-none px-3 py-2 pr-10 text-sm bg-background border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                    >
-                      <option :value="null">All Elections</option>
-                      <option v-for="election in props.elections" :key="election.id" :value="election.id">
-                        {{ election.title }}
-                      </option>
-                    </select>
-                    <div class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
-                      <svg class="w-4 h-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                      </svg>
+                    <button type="button" @click.stop="toggleElectionDropdown()" class="w-full text-left px-3 py-2 pr-10 text-sm bg-background border rounded-lg flex items-center justify-between">
+                      <span>{{ electionOptions.find(o => o.value === filterElection)?.label ?? 'All Elections' }}</span>
+                      <svg class="w-4 h-4 text-muted-foreground transition-transform duration-200" :class="{ 'rotate-180': electionDropdownOpen }" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+
+                    <div v-if="electionDropdownOpen" class="absolute right-0 mt-2 w-64 bg-white border rounded-lg shadow-md z-20">
+                      <ul class="py-1">
+                        <li v-for="opt in electionOptions" :key="String(opt.value)" class="px-3 py-2 hover:bg-primary/10 cursor-pointer text-sm" @click="selectElectionOption(opt)">
+                          {{ opt.label }}
+                        </li>
+                      </ul>
                     </div>
                   </div>
                 </div>
@@ -608,20 +690,17 @@ function copyPassword() {
                 <div>
                   <label class="block text-xs font-medium text-muted-foreground mb-1.5">Position</label>
                   <div class="relative">
-                    <select 
-                      v-model="filterPosition" 
-                      @change="applyFilters" 
-                      class="w-full appearance-none px-3 py-2 pr-10 text-sm bg-background border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                    >
-                      <option :value="null">All Positions</option>
-                      <option v-for="position in props.positions" :key="position.id" :value="position.id">
-                        {{ position.name }}
-                      </option>
-                    </select>
-                    <div class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
-                      <svg class="w-4 h-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                      </svg>
+                    <button type="button" @click.stop="togglePositionDropdown()" class="w-full text-left px-3 py-2 pr-10 text-sm bg-background border rounded-lg flex items-center justify-between">
+                      <span>{{ positionOptions.find(o => o.value === filterPosition)?.label ?? 'All Positions' }}</span>
+                      <svg class="w-4 h-4 text-muted-foreground transition-transform duration-200" :class="{ 'rotate-180': positionDropdownOpen }" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+
+                    <div v-if="positionDropdownOpen" class="absolute right-0 mt-2 w-64 bg-white border rounded-lg shadow-md z-20">
+                      <ul class="py-1">
+                        <li v-for="opt in positionOptions" :key="String(opt.value)" class="px-3 py-2 hover:bg-primary/10 cursor-pointer text-sm" @click="selectPositionOption(opt)">
+                          {{ opt.label }}
+                        </li>
+                      </ul>
                     </div>
                   </div>
                 </div>
@@ -642,19 +721,17 @@ function copyPassword() {
                 <div>
                   <label class="block text-xs font-medium text-muted-foreground mb-1.5">Course</label>
                   <div class="relative">
-                    <select 
-                      v-model="filterCourse" 
-                      @change="applyFilters" 
-                      class="w-full appearance-none px-3 py-2 pr-10 text-sm bg-background border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                    >
-                      <option :value="null">All Courses</option>
-                      <option value="BSIT">BSIT</option>
-                      <option value="BSIS">BSIS</option>
-                    </select>
-                    <div class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
-                      <svg class="w-4 h-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                      </svg>
+                    <button type="button" @click.stop="toggleCourseDropdown()" class="w-full text-left px-3 py-2 pr-10 text-sm bg-background border rounded-lg flex items-center justify-between">
+                      <span>{{ courseOptions.find(o => o.value === filterCourse)?.label ?? 'All Courses' }}</span>
+                      <svg class="w-4 h-4 text-muted-foreground transition-transform duration-200" :class="{ 'rotate-180': courseDropdownOpen }" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+
+                    <div v-if="courseDropdownOpen" class="absolute right-0 mt-2 w-44 bg-white border rounded-lg shadow-md z-20">
+                      <ul class="py-1">
+                        <li v-for="opt in courseOptions" :key="String(opt.value)" class="px-3 py-2 hover:bg-primary/10 cursor-pointer text-sm" @click="selectCourseOption(opt)">
+                          {{ opt.label }}
+                        </li>
+                      </ul>
                     </div>
                   </div>
                 </div>
@@ -663,21 +740,17 @@ function copyPassword() {
                 <div>
                   <label class="block text-xs font-medium text-muted-foreground mb-1.5">Year Level</label>
                   <div class="relative">
-                    <select 
-                      v-model="filterYear" 
-                      @change="applyFilters" 
-                      class="w-full appearance-none px-3 py-2 pr-10 text-sm bg-background border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                    >
-                      <option :value="null">All Years</option>
-                      <option value="1">1st Year</option>
-                      <option value="2">2nd Year</option>
-                      <option value="3">3rd Year</option>
-                      <option value="4">4th Year</option>
-                    </select>
-                    <div class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
-                      <svg class="w-4 h-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                      </svg>
+                    <button type="button" @click.stop="toggleYearDropdown()" class="w-full text-left px-3 py-2 pr-10 text-sm bg-background border rounded-lg flex items-center justify-between">
+                      <span>{{ yearOptions.find(o => o.value === filterYear)?.label ?? 'All Years' }}</span>
+                      <svg class="w-4 h-4 text-muted-foreground transition-transform duration-200" :class="{ 'rotate-180': yearDropdownOpen }" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+
+                    <div v-if="yearDropdownOpen" class="absolute right-0 mt-2 w-44 bg-white border rounded-lg shadow-md z-20">
+                      <ul class="py-1">
+                        <li v-for="opt in yearOptions" :key="String(opt.value)" class="px-3 py-2 hover:bg-primary/10 cursor-pointer text-sm" @click="selectYearOption(opt)">
+                          {{ opt.label }}
+                        </li>
+                      </ul>
                     </div>
                   </div>
                 </div>

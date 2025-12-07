@@ -83,7 +83,7 @@ const closeModal = () => {
     <Head title="View Candidates" />
     <VoterLayout>
         <!-- Page body -->
-    <main class="min-h-screen bg-gray-100 py-6 sm:py-8 lg:py-10">
+    <main class="min-h-screen bg-gray-50 py-6 sm:py-8 lg:py-10">
       <div class="max-w-1xl mx-auto px-4 sm:px-6 lg:px-8">
         
         <!-- No Active Election Message -->
@@ -114,7 +114,7 @@ const closeModal = () => {
 
         <!-- Arrow Icon -->
         <svg
-          class="w-4 h-4 text-slate-600 transition-transform duration-200"
+          class="w-6 h-6 text-purple-800 transition-transform duration-200"
           :class="{ 'rotate-180': dropdownOpen }"
           fill="none"
           stroke="currentColor"
@@ -128,9 +128,7 @@ const closeModal = () => {
         <!-- Options Panel -->
         <div
           v-show="dropdownOpen"
-          class="absolute z-50 mt-2 w-full rounded-xl
-                border-2 border-purple-800
-                bg-white shadow-xl overflow-hidden"
+          class="absolute z-50 mt-2 w-full rounded-xl border-2 border-purple-800 bg-white shadow-xl overflow-hidden ring-1 ring-purple-50"
         >
           <div
             v-for="option in options"
@@ -143,12 +141,12 @@ const closeModal = () => {
         </div>
       </div>
 
-            <div class="w-full sm:w-auto relative">
+            <div class="w-full sm:w-44 relative">
               <svg class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                 <path d="M21 21l-4.35-4.40" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 <circle cx="11" cy="11" r="8" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
-              <input v-model="searchTerm" type="search" placeholder="Search candidates..." aria-label="Search" class="bg-white w-full px-4 py-2 pl-10 border border-slate-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-800 text-sm" />
+              <input v-model="searchTerm" type="search" placeholder="Search candidates..." aria-label="Search" class="bg-white w-full px-4 py-2 pl-10 border border-slate-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-800 text-sm" />
             </div>
           </div>
         </div>

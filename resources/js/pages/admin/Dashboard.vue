@@ -579,7 +579,7 @@ const navigateToResults = () => {
                                         </div>
                                         <div class="h-2 w-full rounded-full bg-muted overflow-hidden">
                                             <div 
-                                                class="h-full rounded-full bg-gradient-to-r from-purple-500 to-purple-600 transition-all duration-500"
+                                                class="h-full rounded-full bg-gradient-to-r from-purple-800 to-purple-900 transition-all duration-500"
                                                 :style="{ width: `${election.turnout_percentage}%` }"
                                             />
                                         </div>

@@ -23,9 +23,9 @@ const closeMobileMenu = () => {
 </script>
 
 <template>
-    <div class="min-h-screen bg-gray-100 dark:bg-background">
+    <div class="min-h-screen bg-gray-50 dark:bg-background">
         <!-- Navigation -->
-        <nav class="bg-white dark:bg-card shadow-sm border-b dark:border-border">
+        <nav class="bg-white dark:bg-card  border-b dark:border-border">
             <div class="w-full px-3 sm:px-4 lg:px-6">
                 <div class="flex h-16 justify-between items-center">
                     <!-- LEFT SECTION -->
@@ -52,6 +52,14 @@ const closeMobileMenu = () => {
                             </Link>
 
                             <Link 
+                                href="/candidate/results" 
+                                :class="isActive('/candidate/results') ? 'text-purple-600 dark:text-primary' : 'text-gray-700 dark:text-gray-300 hover:text-purple-600 dark:hover:text-primary'"
+                                class="text-sm font-medium transition"
+                            >
+                                Results
+                            </Link>
+
+                            <Link 
                                 href="/candidate/announcements" 
                                 :class="isActive('/candidate/announcements') ? 'text-purple-600 dark:text-primary' : 'text-gray-700 dark:text-gray-300 hover:text-purple-600 dark:hover:text-primary'"
                                 class="text-sm font-medium transition"
@@ -59,13 +67,7 @@ const closeMobileMenu = () => {
                                 Announcements
                             </Link>
 
-                            <Link 
-                                href="/candidate/results" 
-                                :class="isActive('/candidate/results') ? 'text-purple-600 dark:text-primary' : 'text-gray-700 dark:text-gray-300 hover:text-purple-600 dark:hover:text-primary'"
-                                class="text-sm font-medium transition"
-                            >
-                                Results
-                            </Link>
+                            
                         </div>
                     </div>
 

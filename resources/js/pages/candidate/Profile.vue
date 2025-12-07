@@ -77,7 +77,7 @@ const uploadPhoto = () => {
         <Head title="Candidate Profile" />
 
         <CandidateLayout>
-            <div class="py-8 px-4 sm:px-6 lg:px-8">
+            <div class="py-8 px-4 sm:px-6 lg:px-8 bg-gray-50">
                 <div class="mx-auto max-w-6xl">
                     <!-- Header Section -->
                     <div class="mb-6">

@@ -66,6 +66,76 @@ const filterCourse = ref<string | null>(props.filters.course || null);
 const filterYear = ref<string | null>(props.filters.year_level || null);
 const filterVoted = ref<boolean | null>(props.filters.has_voted ?? null);
 
+// Dropdown state & options
+const courseDropdownOpen = ref(false);
+const yearDropdownOpen = ref(false);
+const votedDropdownOpen = ref(false);
+
+const courseOptions = [
+  { label: 'All Courses', value: null },
+  { label: 'BSIT', value: 'BSIT' },
+  { label: 'BSIS', value: 'BSIS' },
+];
+
+const yearOptions = [
+  { label: 'All Year Levels', value: null },
+  { label: '1st Year', value: '1' },
+  { label: '2nd Year', value: '2' },
+  { label: '3rd Year', value: '3' },
+  { label: '4th Year', value: '4' },
+];
+
+const votedOptions = [
+  { label: 'All Status', value: null },
+  { label: 'Voted', value: true },
+  { label: 'Not Voted', value: false },
+];
+
+function selectCourseOption(option: { label: string; value: string | null }) {
+  filterCourse.value = option.value as string | null;
+  courseDropdownOpen.value = false;
+  applyFilters();
+}
+
+function selectYearOption(option: { label: string; value: string | null }) {
+  filterYear.value = option.value as string | null;
+  yearDropdownOpen.value = false;
+  applyFilters();
+}
+
+function selectVotedOption(option: { label: string; value: boolean | null }) {
+  filterVoted.value = option.value as boolean | null;
+  votedDropdownOpen.value = false;
+  applyFilters();
+}
+
+function toggleCourseDropdown() {
+  const next = !courseDropdownOpen.value;
+  courseDropdownOpen.value = next;
+  if (next) {
+    yearDropdownOpen.value = false;
+    votedDropdownOpen.value = false;
+  }
+}
+
+function toggleYearDropdown() {
+  const next = !yearDropdownOpen.value;
+  yearDropdownOpen.value = next;
+  if (next) {
+    courseDropdownOpen.value = false;
+    votedDropdownOpen.value = false;
+  }
+}
+
+function toggleVotedDropdown() {
+  const next = !votedDropdownOpen.value;
+  votedDropdownOpen.value = next;
+  if (next) {
+    courseDropdownOpen.value = false;
+    yearDropdownOpen.value = false;
+  }
+}
+
 // Methods
 function applyFilters() {
   const params = {
@@ -136,25 +206,71 @@ function goToPage(page: number) {
           </div>
 
           <div class="flex gap-2 items-center">
-            <select v-model="filterCourse" @change="applyFilters" class="rounded-lg border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary">
-              <option :value="null">All Courses</option>
-              <option value="BSIT">BSIT</option>
-              <option value="BSIS">BSIS</option>
-            </select>
+            <div class="relative">
+              <button
+                type="button"
+                @click.stop="toggleCourseDropdown()"
+                class="w-full flex items-center justify-between px-4 py-2 rounded-xl border border-slate-300 bg-white text-left shadow-sm focus:ring-2 focus:ring-purple-800 text-sm"
+                style="min-width: 9rem;"
+              >
+                <span>
+                  {{ courseOptions.find(o => o.value === filterCourse)?.label ?? 'All Courses' }}
+                </span>
+                <svg class="w-4 h-4 text-slate-600 transition-transform duration-200" :class="{ 'rotate-180': courseDropdownOpen }" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
 
-            <select v-model="filterYear" @change="applyFilters" class="rounded-lg border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary">
-              <option :value="null">All Year Levels</option>
-              <option value="1">1st Year</option>
-              <option value="2">2nd Year</option>
-              <option value="3">3rd Year</option>
-              <option value="4">4th Year</option>
-            </select>
+              <div v-if="courseDropdownOpen" class="absolute z-50 mt-2 w-44 rounded-xl border-2 border-purple-800 bg-white shadow-xl overflow-hidden">
+                <div v-for="opt in courseOptions" :key="String(opt.value)" @click="selectCourseOption(opt)" class="px-4 py-2 cursor-pointer hover:bg-purple-100 text-sm">
+                  {{ opt.label }}
+                </div>
+              </div>
+            </div>
 
-            <select v-model="filterVoted" @change="applyFilters" class="rounded-lg border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary">
-              <option :value="null">All Status</option>
-              <option :value="true">Voted</option>
-              <option :value="false">Not Voted</option>
-            </select>
+            <div class="relative">
+              <button
+                type="button"
+                @click.stop="toggleYearDropdown()"
+                class="w-full flex items-center justify-between px-4 py-2 rounded-xl border border-slate-300 bg-white text-left shadow-sm focus:ring-2 focus:ring-purple-800 text-sm"
+                style="min-width: 9rem;"
+              >
+                <span>
+                  {{ yearOptions.find(o => o.value === filterYear)?.label ?? 'All Year Levels' }}
+                </span>
+                <svg class="w-4 h-4 text-slate-600 transition-transform duration-200" :class="{ 'rotate-180': yearDropdownOpen }" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+
+              <div v-if="yearDropdownOpen" class="absolute z-50 mt-2 w-44 rounded-xl border-2 border-purple-800 bg-white shadow-xl overflow-hidden">
+                <div v-for="opt in yearOptions" :key="String(opt.value)" @click="selectYearOption(opt)" class="px-4 py-2 cursor-pointer hover:bg-purple-100 text-sm">
+                  {{ opt.label }}
+                </div>
+              </div>
+            </div>
+
+            <div class="relative">
+              <button
+                type="button"
+                @click.stop="toggleVotedDropdown()"
+                class="w-full flex items-center justify-between px-4 py-2 rounded-xl border border-slate-300 bg-white text-left shadow-sm focus:ring-2 focus:ring-purple-800 text-sm"
+                style="min-width: 9rem;"
+              >
+                <span>
+                  {{ votedOptions.find(o => o.value === filterVoted)?.label ?? 'All Status' }}
+                </span>
+                <svg class="w-4 h-4 text-slate-600 transition-transform duration-200" :class="{ 'rotate-180': votedDropdownOpen }" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+
+              <div v-if="votedDropdownOpen" class="absolute z-50 mt-2 w-44 rounded-xl border-2 border-purple-800 bg-white shadow-xl overflow-hidden">
+                <div v-for="opt in votedOptions" :key="String(opt.value)" @click="selectVotedOption(opt)" class="px-4 py-2 cursor-pointer hover:bg-purple-100 text-sm">
+                  {{ opt.label }}
+                </div>
+              </div>
+            </div>
 
             
 

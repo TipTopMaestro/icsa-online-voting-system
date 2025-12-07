@@ -26,9 +26,9 @@ const closeMobileMenu = () => {
 </script>
 
 <template>
-    <div class="min-h-screen bg-gray-100 dark:bg-background">
+    <div class="min-h-screen bg-gray-50 dark:bg-background">
         <!-- Navigation -->
-        <nav class="bg-white dark:bg-card shadow-sm border-b dark:border-border">
+        <nav class="bg-white dark:bg-card border-b dark:border-border">
             <div class="w-full px-3 sm:px-4 lg:px-6">
                 <div class="flex h-16 justify-between items-center">
                     <!-- LEFT SECTION -->
@@ -47,14 +47,14 @@ const closeMobileMenu = () => {
                             </Link>
 
                             <Link 
-                                href="/voter/vote" 
-                                :class="isActive('/voter/vote') ? 'text-purple-600 dark:text-primary' : 'text-gray-700 dark:text-gray-300 hover:text-purple-600 dark:hover:text-primary'"
+                                href="/voter/profile" 
+                                :class="isActive('/voter/profile') ? 'text-purple-600 dark:text-primary' : 'text-gray-700 dark:text-gray-300 hover:text-purple-600 dark:hover:text-primary'"
                                 class="text-sm font-medium transition"
                             >
-                                Cast Vote
+                                Profile
                             </Link>
 
-                            <Link 
+                             <Link 
                                 href="/voter/candidates" 
                                 :class="isActive('/voter/candidates') ? 'text-purple-600 dark:text-primary' : 'text-gray-700 dark:text-gray-300 hover:text-purple-600 dark:hover:text-primary'"
                                 class="text-sm font-medium transition"
@@ -63,11 +63,11 @@ const closeMobileMenu = () => {
                             </Link>
 
                             <Link 
-                                href="/voter/announcements" 
-                                :class="isActive('/voter/announcements') ? 'text-purple-600 dark:text-primary' : 'text-gray-700 dark:text-gray-300 hover:text-purple-600 dark:hover:text-primary'"
+                                href="/voter/vote" 
+                                :class="isActive('/voter/vote') ? 'text-purple-600 dark:text-primary' : 'text-gray-700 dark:text-gray-300 hover:text-purple-600 dark:hover:text-primary'"
                                 class="text-sm font-medium transition"
                             >
-                                Announcements
+                                Cast Vote
                             </Link>
 
                             <Link 
@@ -79,12 +79,16 @@ const closeMobileMenu = () => {
                             </Link>
 
                             <Link 
-                                href="/voter/profile" 
-                                :class="isActive('/voter/profile') ? 'text-purple-600 dark:text-primary' : 'text-gray-700 dark:text-gray-300 hover:text-purple-600 dark:hover:text-primary'"
+                                href="/voter/announcements" 
+                                :class="isActive('/voter/announcements') ? 'text-purple-600 dark:text-primary' : 'text-gray-700 dark:text-gray-300 hover:text-purple-600 dark:hover:text-primary'"
                                 class="text-sm font-medium transition"
                             >
-                                Profile
+                                Announcements
                             </Link>
+
+                            
+
+                            
                         </div>
                     </div>
 

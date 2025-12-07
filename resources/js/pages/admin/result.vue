@@ -41,6 +41,41 @@ const currentElection = computed(() => props.selectedElection)
 const showElectionModal = ref(false)
 const selectedPosition = ref('all')
 const sortBy = ref('position') // 'position' or 'votes'
+const positionDropdownOpen = ref(false)
+const sortDropdownOpen = ref(false)
+
+// Options computed for positions dropdown
+const positionOptions = computed(() => [
+  { value: 'all', label: 'All Positions' },
+  ...props.positions.map(p => ({ value: p.name, label: p.name }))
+])
+
+const sortOptions = [
+  { value: 'position', label: 'Sort by Position' },
+  { value: 'votes', label: 'Sort by Total Votes' }
+]
+
+function selectPositionOption(option) {
+  selectedPosition.value = option.value
+  positionDropdownOpen.value = false
+}
+
+function selectSortOption(option) {
+  sortBy.value = option.value
+  sortDropdownOpen.value = false
+}
+
+function togglePositionDropdown() {
+  const next = !positionDropdownOpen.value
+  positionDropdownOpen.value = next
+  if (next) sortDropdownOpen.value = false
+}
+
+function toggleSortDropdown() {
+  const next = !sortDropdownOpen.value
+  sortDropdownOpen.value = next
+  if (next) positionDropdownOpen.value = false
+}
 
 // Statistics computed properties
 const totalVoters = computed(() => props.statistics?.totalVoters || 0)
@@ -153,30 +188,42 @@ function formatPrintDate(date) {
             </div>
 
             <div class="flex items-center gap-2">
-              <!-- Position Filter Dropdown -->
-              <select 
-                v-model="selectedPosition"
-                class="px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500"
-              >
-                <option value="all">All Positions</option>
-                <option v-for="position in positions" :key="position.id" :value="position.name">
-                  {{ position.name }}
-                </option>
-              </select>
+              <!-- Position Filter (styled dropdown) -->
+              <div class="relative w-full sm:w-44">
+                <button @click="togglePositionDropdown()" class="w-full flex items-center justify-between px-4 py-2 rounded-xl border border-slate-300 bg-white text-left shadow-sm focus:ring-2 focus:ring-purple-800 text-sm">
+                  <span>{{ positionOptions.find(o => o.value === selectedPosition)?.label || 'All Positions' }}</span>
+                  <svg class="w-4 h-4 text-slate-600 transition-transform duration-200" :class="{ 'rotate-180': positionDropdownOpen }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
 
-              <!-- Sort Dropdown -->
-              <select 
-                v-model="sortBy"
-                class="px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500"
-              >
-                <option value="position">Sort by Position</option>
-                <option value="votes">Sort by Total Votes</option>
-              </select>
+                <div v-show="positionDropdownOpen" class="absolute z-50 mt-2 w-full rounded-xl border-2 border-purple-800 bg-white shadow-xl overflow-hidden">
+                  <div v-for="opt in positionOptions" :key="opt.value" @click="selectPositionOption(opt)" class="px-4 py-2 cursor-pointer hover:bg-purple-100 text-sm">
+                    {{ opt.label }}
+                  </div>
+                </div>
+              </div>
+
+              <!-- Sort Dropdown (styled) -->
+              <div class="relative w-full sm:w-44">
+                <button @click="toggleSortDropdown()" class="w-full flex items-center justify-between px-4 py-2 rounded-xl border border-slate-300 bg-white text-left shadow-sm focus:ring-2 focus:ring-purple-800 text-sm">
+                  <span>{{ sortOptions.find(o => o.value === sortBy)?.label }}</span>
+                  <svg class="w-4 h-4 text-slate-600 transition-transform duration-200" :class="{ 'rotate-180': sortDropdownOpen }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+
+                <div v-show="sortDropdownOpen" class="absolute z-50 mt-2 w-full rounded-xl border-2 border-purple-800 bg-white shadow-xl overflow-hidden">
+                  <div v-for="opt in sortOptions" :key="opt.value" @click="selectSortOption(opt)" class="px-4 py-2 cursor-pointer hover:bg-purple-100 text-sm">
+                    {{ opt.label }}
+                  </div>
+                </div>
+              </div>
 
               <!-- Election Selector -->
               <ModalTrigger v-model="showElectionModal">
                 <button
-                  class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                  class="inline-flex items-center justify-center gap-2 w-44 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-900 border border-slate-300 dark:border-gray-700 rounded-xl shadow-sm hover:bg-gray-50 dark:hover:bg-gray-800 focus:ring-2 focus:ring-purple-800 transition-colors"
                 >
                   <Icon name="calendar" class="w-4 h-4" />
                   Change Election

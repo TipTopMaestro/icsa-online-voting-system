@@ -43,6 +43,43 @@ const sortOrder = ref<'newest' | 'oldest'>('newest');
 const showDeleteModal = ref(false);
 const showViewModal = ref(false);
 
+// Dropdown state for styled selects
+const sortDropdownOpen = ref(false);
+const audienceDropdownOpen = ref(false);
+
+function toggleSortDropdown() {
+    const next = !sortDropdownOpen.value;
+    sortDropdownOpen.value = next;
+    if (next) audienceDropdownOpen.value = false;
+}
+
+function toggleAudienceDropdown() {
+    const next = !audienceDropdownOpen.value;
+    audienceDropdownOpen.value = next;
+    if (next) sortDropdownOpen.value = false;
+}
+
+const sortOptions: { label: string; value: 'newest' | 'oldest' }[] = [
+    { label: 'Newest First', value: 'newest' },
+    { label: 'Oldest First', value: 'oldest' },
+];
+
+const audienceOptions: { label: string; value: 'all' | 'voters' | 'candidates' }[] = [
+    { label: 'Everyone', value: 'all' },
+    { label: 'Voters Only', value: 'voters' },
+    { label: 'Candidates Only', value: 'candidates' },
+];
+
+function selectSort(opt: { label: string; value: 'newest' | 'oldest' }) {
+    sortOrder.value = opt.value;
+    sortDropdownOpen.value = false;
+}
+
+function selectAudience(opt: { label: string; value: 'all' | 'voters' | 'candidates' }) {
+    form.audience = opt.value;
+    audienceDropdownOpen.value = false;
+}
+
 // Form
 const form = useForm({
     title: '',
@@ -215,13 +252,18 @@ function getAudienceBadgeColor(audience: string) {
                     </div>
 
                     <div class="flex items-center gap-3">
-                        <select 
-                            v-model="sortOrder" 
-                            class="px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                        >
-                            <option value="newest">Newest First</option>
-                            <option value="oldest">Oldest First</option>
-                        </select>
+                        <div class="relative">
+                            <button type="button" @click.stop="toggleSortDropdown()" class="w-full flex items-center justify-between px-4 py-2 rounded-xl border border-slate-300 bg-white text-left shadow-sm focus:ring-2 focus:ring-purple-800 text-sm">
+                                <span>{{ sortOptions.find(o => o.value === sortOrder)?.label ?? 'Newest First' }}</span>
+                                <svg class="w-4 h-4 text-slate-600 transition-transform duration-200" :class="{ 'rotate-180': sortDropdownOpen }" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                            </button>
+
+                            <div v-if="sortDropdownOpen" class="absolute z-50 mt-2 w-48 rounded-xl border-2 border-purple-800 bg-white shadow-xl overflow-hidden">
+                                <div v-for="opt in sortOptions" :key="opt.value" class="px-4 py-2 text-sm hover:bg-purple-100 cursor-pointer" @click="selectSort(opt)">
+                                    {{ opt.label }}
+                                </div>
+                            </div>
+                        </div>
 
                         <button 
                             @click="openCreateModal" 
@@ -428,14 +470,18 @@ function getAudienceBadgeColor(audience: string) {
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                             Audience <span class="text-red-500">*</span>
                         </label>
-                        <select 
-                            v-model="form.audience" 
-                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                        >
-                            <option value="all">Everyone</option>
-                            <option value="voters">Voters Only</option>
-                            <option value="candidates">Candidates Only</option>
-                        </select>
+                        <div class="relative">
+                            <button type="button" @click.stop="toggleAudienceDropdown()" class="w-full flex items-center justify-between px-4 py-2 rounded-xl border border-slate-300 bg-white text-left shadow-sm focus:ring-2 focus:ring-purple-800 text-sm">
+                                <span>{{ audienceOptions.find(o => o.value === form.audience)?.label ?? 'Everyone' }}</span>
+                                <svg class="w-4 h-4 text-slate-600 transition-transform duration-200" :class="{ 'rotate-180': audienceDropdownOpen }" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                            </button>
+
+                            <div v-if="audienceDropdownOpen" class="absolute z-50 mt-2 w-56 rounded-xl border-2 border-purple-800 bg-white shadow-xl overflow-hidden">
+                                <div v-for="opt in audienceOptions" :key="opt.value" class="px-4 py-2 text-sm hover:bg-purple-100 cursor-pointer" @click="selectAudience(opt)">
+                                    {{ opt.label }}
+                                </div>
+                            </div>
+                        </div>
                         <div v-if="form.errors.audience" class="text-red-500 text-xs mt-1">{{ form.errors.audience }}</div>
                     </div>
 

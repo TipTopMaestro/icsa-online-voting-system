@@ -116,7 +116,7 @@ function formatDate(dateString: string) {
     <CandidateLayout>
         <Head title="Announcements" />
 
-        <div class="max-w-5xl mx-auto p-6 space-y-6">
+        <div class="max-w-5xl mx-auto p-6 space-y-6 bg-gray-50">
             <!-- Header with Actions -->
             <div class="flex items-center justify-between">
                 <h1 class="text-2xl font-semibold text-slate-900 dark:text-foreground">Announcements</h1>
@@ -147,37 +147,26 @@ function formatDate(dateString: string) {
                         </button>
                     </div>
 
-                    <!-- popover -->
-                    <div v-if="actionsOpen" class="absolute right-0 top-full mt-2 w-52 bg-white dark:bg-card border border-slate-200 dark:border-border rounded-lg shadow-lg z-40 py-1">
-                        <button
-                            @click="handleMarkAllRead"
-                            class="w-full text-left px-4 py-2 text-sm flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-muted transition"
-                        >
+                    <!-- popover (styled like the sort panel) -->
+                    <div v-show="actionsOpen" class="absolute right-0 top-full mt-2 w-56 z-50 rounded-xl border-2 border-purple-800 bg-white dark:bg-card shadow-xl overflow-hidden ring-1 ring-purple-50">
+                        <div @click="handleMarkAllRead" class="px-4 py-2 cursor-pointer hover:bg-purple-100 text-sm flex items-center gap-3">
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-purple-600 dark:text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
                             </svg>
                             <span class="truncate dark:text-foreground">Mark all as read</span>
                             <span class="ml-auto text-xs text-slate-400 dark:text-muted-foreground" v-if="unreadCount === 0">none</span>
-                        </button>
+                        </div>
 
-                        <button
-                            @click="handleMarkAllUnread"
-                            class="w-full text-left px-4 py-2 text-sm flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-muted transition"
-                        >
+                        <div @click="handleMarkAllUnread" class="px-4 py-2 cursor-pointer hover:bg-purple-100 text-sm flex items-center gap-3">
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-slate-500 dark:text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v8m-4-4h8" />
                             </svg>
                             <span class="truncate dark:text-foreground">Mark all as unread</span>
-                        </button>
+                        </div>
 
-                        <div class="border-t border-slate-100 dark:border-border mt-1"></div>
+                        <div class="border-t border-purple-100 dark:border-border mt-1"></div>
 
-                        <button
-                            @click="() => { actionsOpen = false }"
-                            class="w-full text-left px-4 py-2 text-sm text-slate-500 dark:text-muted-foreground hover:bg-slate-50 dark:hover:bg-muted transition"
-                        >
-                            Close
-                        </button>
+                        <div @click="() => { actionsOpen = false }" class="px-4 py-2 cursor-pointer hover:bg-purple-100 text-sm text-slate-500 dark:text-muted-foreground">Close</div>
                     </div>
                 </div>
             </div>
