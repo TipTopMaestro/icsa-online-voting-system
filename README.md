@@ -48,8 +48,8 @@ MAIL_PASSWORD=your-app-password
 5. **Setup database**
 - Create database `icsa_ovs_db` in phpMyAdmin
 ```bash
-php artisan migrate
-php artisan db:seed
+php artisan migrate:fresh
+php artisan migrate:fresh --seed
 php artisan storage:link
 ```
 
