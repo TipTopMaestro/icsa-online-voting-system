@@ -100,7 +100,7 @@ const uploadPhoto = () => {
                                         />
                                         <button 
                                             @click="photoModal = true"
-                                            class="absolute bottom-0 right-0 bg-purple-700 dark:bg-primary text-white p-2.5 rounded-full shadow-lg hover:bg-purple-800 dark:hover:bg-primary/80 transition-all transform group-hover:scale-110"
+                                            class="absolute bottom-0 right-0 p-2.5 rounded-full shadow-lg bg-[#5A2D6F] hover:bg-[#4b255c] text-white transition-all transform group-hover:scale-110"
                                         >
                                             <Icon name="camera" class="w-5 h-5" />
                                         </button>
@@ -236,7 +236,7 @@ const uploadPhoto = () => {
                         <button 
                             @click="uploadPhoto"
                             :disabled="!photoFile"
-                            class="px-4 py-2 bg-purple-700 dark:bg-primary text-white rounded-lg hover:bg-purple-800 dark:hover:bg-primary/80 transition-all font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                            class="px-4 py-2 bg-[#5A2D6F] rounded-lg hover:bg-[#4b255c] text-white transition-all font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             Upload
                         </button>

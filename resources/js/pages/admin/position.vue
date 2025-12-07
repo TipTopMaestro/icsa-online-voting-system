@@ -137,9 +137,9 @@ const breadcrumbs: BreadcrumbItem[] = [
                     </div>
                     <button 
                         @click="openCreateModal"
-                        class="inline-flex items-center gap-2 px-4 py-2 bg-purple-800 hover:bg-purple-900 dark:bg-purple-800 dark:hover:bg-purple-900 text-white text-sm font-medium rounded-md transition-colors">
+                        class="inline-flex items-center gap-2 px-4 py-2 bg-[#5A2D6F] hover:bg-[#4b255c] dark:bg-[#5A2D6F] dark:hover:bg-[#4b255c] text-white text-sm font-medium rounded-md transition-colors">
                         <Icon name="plus" class="h-4 w-4" />
-                        New Position
+                        Create Position
                     </button>
                 </div>
             </ModalTrigger>
@@ -195,7 +195,11 @@ const breadcrumbs: BreadcrumbItem[] = [
 
                     <div class="flex justify-end gap-3 pt-4">
                         <Button variant="ghost" type="button" @click="open = false">Cancel</Button>
-                        <Button variant="default" type="submit" :disabled="form.processing">
+                        <Button variant="default" 
+                            type="submit" 
+                            :disabled="form.processing"
+                            class="inline-flex items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-medium bg-[#5A2D6F] hover:bg-[#4b255c] text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
                             {{ form.processing ? 'Saving...' : (editMode ? 'Update Position' : 'Create Position') }}
                         </Button>
                     </div>
@@ -229,8 +233,11 @@ const breadcrumbs: BreadcrumbItem[] = [
             </div>
             <h3 class="text-lg font-semibold mb-2">No positions yet</h3>
             <p class="text-sm text-muted-foreground mb-4">Get started by creating your first position</p>
-            <Button @click="openCreateModal">
-                <Icon name="plus" class="h-4 w-4 mr-2" />
+            <Button 
+                @click="openCreateModal" 
+                class="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium bg-[#5A2D6F] hover:bg-[#4b255c] text-white"
+                >
+                <Icon name="plus" class="h-4 w-4" />
                 Create Position
             </Button>
         </div>

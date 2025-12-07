@@ -234,7 +234,7 @@ function formatPrintDate(date) {
               <button
                 @click="printResults"
                 
-                class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-purple-800 hover:bg-purple-900 dark:bg-purple-800 dark:hover:bg-purple-900 rounded-lg transition-colors print:hidden"
+                class="inline-flex items-center gap-2 px-4 py-2 bg-[#5A2D6F] hover:bg-[#4b255c] dark:bg-[#5A2D6F] dark:hover:bg-[#4b255c] text-white text-sm font-medium rounded-md transition-colors"
               >
                 <Icon name="printer" class="w-4 h-4" />
                 Print Results

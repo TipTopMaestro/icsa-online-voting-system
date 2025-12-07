@@ -4,6 +4,7 @@ import { router, useForm } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Head } from '@inertiajs/vue3';
 import { type BreadcrumbItem } from '@/types';
+import Icon from '@/components/Icon.vue';
 
 // Interfaces
 interface User {
@@ -557,9 +558,10 @@ function copyPassword() {
         </div>
         <button 
           @click="openCreateModal"
-          class="px-4 py-2 bg-purple-800 hover:bg-purple-900 dark:bg-purple-800 dark:hover:bg-purple-900 text-white text-sm font-medium rounded-md transition-colors"
+          class="inline-flex items-center gap-2 px-4 py-2 bg-[#5A2D6F] hover:bg-[#4b255c] dark:bg-[#5A2D6F] dark:hover:bg-[#4b255c] text-white text-sm font-medium rounded-md transition-colors"
         >
-          + Add Candidate
+          <Icon name="plus" class="h-4 w-4" />
+          Add Candidate
         </button>
       </div>
 
@@ -771,9 +773,10 @@ function copyPassword() {
         <p class="text-muted-foreground mb-4">Start by adding candidates for your elections.</p>
         <button 
           @click="openCreateModal"
-          class="px-4 py-2 bg-card hover:bg-accent transition-colors text-sm font-medium border rounded-md focus:outline-none"
+          class="inline-flex items-center gap-2 px-4 py-2 bg-[#5A2D6F] hover:bg-[#4b255c] dark:bg-[#5A2D6F] dark:hover:bg-[#4b255c] text-white text-sm font-medium rounded-md transition-colors"
         >
-          + Add Candidate
+          <Icon name="plus" class="h-4 w-4" />
+          Add Candidate
         </button>
       </section>
 
@@ -894,8 +897,8 @@ function copyPassword() {
               :class="[
                 'px-3 py-1 rounded-md text-sm border',
                 page === props.candidates.current_page
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-card hover:bg-accent'
+                  ? 'bg-[#5A2D6F] text-white'
+                  : 'bg-card hover:bg-[#4b255c]'
               ]"
             >
               {{ page }}
@@ -1075,7 +1078,7 @@ function copyPassword() {
             <button 
               type="submit"
               :disabled="createFormProcessing"
-              class="px-4 py-2 bg-primary text-primary-foreground hover:bg-primary/90 text-sm font-medium rounded-md transition"
+              class="px-4 py-2 bg-[#5A2D6F] hover:bg-[#4b255c] text-white text-sm font-medium rounded-md transition"
             >
               {{ createFormProcessing ? 'Creating...' : 'Create Candidate' }}
             </button>

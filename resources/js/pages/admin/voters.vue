@@ -379,8 +379,8 @@ function goToPage(page: number) {
               :class="[
                 'px-3 py-1 rounded-md text-sm border',
                 page === props.voters.current_page
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-card hover:bg-accent'
+                  ? 'bg-[#5A2D6F] text-white'
+                  : 'bg-card hover:bg-[#4b255c]'
               ]"
             >
               {{ page }}

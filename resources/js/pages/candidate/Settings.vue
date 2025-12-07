@@ -71,7 +71,7 @@ const savePassword = () => {
                                     </div>
 
                                     <div>
-                                        <button type="submit" :disabled="profileForm.processing" class="inline-flex items-center px-4 py-2 bg-black dark:bg-primary text-white rounded hover:bg-black/80 dark:hover:bg-primary/80 disabled:opacity-50">
+                                        <button type="submit" :disabled="profileForm.processing" class="inline-flex items-center px-4 py-2 rounded bg-[#5A2D6F] hover:bg-[#4b255c] text-white disabled:opacity-50">
                                             {{ profileForm.processing ? 'Saving...' : 'Save' }}
                                         </button>
                                     </div>
@@ -101,7 +101,7 @@ const savePassword = () => {
                                     </div>
 
                                     <div>
-                                        <button type="submit" :disabled="passwordForm.processing" class="inline-flex items-center px-4 py-2 bg-black dark:bg-primary text-white rounded hover:bg-black/80 dark:hover:bg-primary/80 disabled:opacity-50">
+                                        <button type="submit" :disabled="passwordForm.processing" class="inline-flex items-center px-4 py-2 rounded bg-[#5A2D6F] hover:bg-[#4b255c] text-white disabled:opacity-50">
                                             {{ passwordForm.processing ? 'Saving...' : 'Save Password' }}
                                         </button>
                                     </div>

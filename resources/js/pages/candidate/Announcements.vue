@@ -128,7 +128,7 @@ function formatDate(dateString: string) {
                             <span class="text-sm text-slate-500 dark:text-muted-foreground">Unread</span>
                             <span
                                 class="inline-flex items-center justify-center min-w-[28px] h-6 px-2 rounded-full text-sm font-medium"
-                                :class="unreadCount > 0 ? 'bg-purple-600 text-white' : 'bg-slate-100 dark:bg-muted text-slate-600 dark:text-muted-foreground'"
+                                :class="unreadCount > 0 ? 'bg-[#5A2D6F] text-white' : 'bg-slate-100 dark:bg-muted text-slate-600 dark:text-muted-foreground'"
                             >
                                 {{ unreadCount }}
                             </span>

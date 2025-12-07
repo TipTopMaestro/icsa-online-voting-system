@@ -4,6 +4,7 @@ import { router, useForm } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/vue3';
+import Icon from '@/components/Icon.vue';
 
 // TypeScript Interfaces
 interface User {
@@ -268,9 +269,10 @@ function getAudienceBadgeColor(audience: string) {
                         <button 
                             @click="openCreateModal" 
                             type="button" 
-                            class="px-4 py-2 bg-purple-800 hover:bg-purple-900 dark:bg-purple-800 dark:hover:bg-purple-900 text-white text-sm font-medium rounded-md transition-colors"
+                            class="inline-flex items-center gap-2 px-4 py-2 bg-[#5A2D6F] hover:bg-[#4b255c] dark:bg-[#5A2D6F] dark:hover:bg-[#4b255c] text-white text-sm font-medium rounded-md transition-colors"
                         >
-                            + New Announcement
+                            <Icon name="plus" class="h-4 w-4" />
+                            Create Announcement
                         </button>
                     </div>
                 </div>
@@ -406,8 +408,9 @@ function getAudienceBadgeColor(audience: string) {
                                 <button 
                                     @click="openCreateModal" 
                                     type="button" 
-                                    class="px-4 py-2 bg-purple-800 hover:bg-purple-900 dark:bg-purple-800 dark:hover:bg-purple-900 text-white text-sm font-medium rounded-md transition-colors"
+                                    class="inline-flex items-center gap-2 px-4 py-2 bg-[#5A2D6F] hover:bg-[#4b255c] dark:bg-[#5A2D6F] dark:hover:bg-[#4b255c] text-white text-sm font-medium rounded-md transition-colors"
                                 >
+                                    <Icon name="plus" class="h-4 w-4" />
                                     Create Announcement
                                 </button>
                             </div>
@@ -505,7 +508,7 @@ function getAudienceBadgeColor(audience: string) {
                         <button 
                             type="submit" 
                             :disabled="form.processing"
-                            class="px-4 py-2 text-sm font-medium bg-purple-800 hover:bg-purple-900 dark:bg-purple-800 dark:hover:bg-purple-900 text-white rounded-md disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                            class="px-4 py-2 bg-[#5A2D6F] hover:bg-[#4b255c] text-white text-sm font-medium rounded-md transition"
                         >
                             {{ editMode ? 'Update' : 'Publish' }}
                         </button>

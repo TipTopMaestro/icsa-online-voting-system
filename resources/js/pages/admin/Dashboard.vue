@@ -531,7 +531,7 @@ const navigateToResults = () => {
                         <p class="text-sm text-muted-foreground mb-4 text-center">Get started by creating your first election</p>
                         <button 
                             @click="navigateToElection"
-                            class="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+                            class="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium bg-[#5A2D6F] hover:bg-[#4b255c] text-white"
                         >
                             <Icon name="plus" class="h-4 w-4" />
                             Create Election
