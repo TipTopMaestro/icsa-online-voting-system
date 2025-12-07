@@ -106,16 +106,17 @@ class ElectionController extends Controller
 
         $now = now();
 
-        if ($now->lessThan($election->start_datetime)) {
-            return 'scheduled';
+        // If manually activated, show as active regardless of schedule
+        if ($election->is_active) {
+            return 'active';
         }
 
         if ($now->greaterThan($election->end_datetime)) {
             return 'ended';
         }
 
-        if ($election->is_active && $now->between($election->start_datetime, $election->end_datetime)) {
-            return 'active';
+        if ($now->lessThan($election->start_datetime)) {
+            return 'scheduled';
         }
 
         return 'scheduled';

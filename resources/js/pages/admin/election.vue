@@ -126,6 +126,7 @@ const activateElection = () => {
     if (selectedElection.value) {
         router.post(`/admin/election/${selectedElection.value.id}/activate`, {}, {
             preserveScroll: true,
+            preserveState: false,
             onSuccess: () => {
                 activateConfirmOpen.value = false;
                 selectedElection.value = null;
@@ -138,6 +139,7 @@ const deactivateElection = () => {
     if (selectedElection.value) {
         router.post(`/admin/election/${selectedElection.value.id}/deactivate`, {}, {
             preserveScroll: true,
+            preserveState: false,
             onSuccess: () => {
                 deactivateConfirmOpen.value = false;
                 selectedElection.value = null;

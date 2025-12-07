@@ -32,6 +32,7 @@ npm install
 ```bash
 copy .env.example .env
 php artisan key:generate
+npm install chart.js
 ```
 
 4. **Configure `.env` file**
