@@ -50,7 +50,7 @@ const props = defineProps<{
 
 // Live countdown
 const countdown = ref<TimeRemaining | null>(props.timeRemaining);
-let countdownInterval: NodeJS.Timeout | null = null;
+let countdownInterval: ReturnType<typeof setInterval> | null = null;
 
 onMounted(() => {
     if (countdown.value && countdown.value.total_seconds > 0) {
