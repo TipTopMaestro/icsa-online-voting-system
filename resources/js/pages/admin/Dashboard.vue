@@ -122,11 +122,13 @@ const initDoughnutChart = () => {
                 label: 'Votes',
                 data: props.chartData.data,
                 backgroundColor: [
-                    'rgba(99, 102, 241, 0.8)',
-                    'rgba(168, 85, 247, 0.8)',
-                    'rgba(236, 72, 153, 0.8)',
-                    'rgba(251, 146, 60, 0.8)',
-                    'rgba(34, 197, 94, 0.8)',
+                    'rgba(57, 0, 68, 0.7)',
+                    'rgba(138, 9, 120, 1)',
+                    'rgba(186, 40, 215, 0.82)',
+                    'rgba(173, 88, 161, 0.7)',
+                    'rgba(159, 84, 15, 0.7)',
+                    'rgba(212, 106, 14, 1)',
+                    'rgba(233, 216, 198, 1)',
                     'rgba(59, 130, 246, 0.8)',
                     'rgba(244, 63, 94, 0.8)',
                 ],
@@ -195,24 +197,24 @@ const initLineChart = () => {
             datasets: [{
                 label: 'Vote Trend',
                 data: props.chartData.data,
-                borderColor: 'rgba(99, 102, 241, 1)',
+                borderColor: 'rgba(57, 0, 68, 1)',
                 backgroundColor: (context: any) => {
                     const ctx = context.chart.ctx;
                     const gradient = ctx.createLinearGradient(0, 0, 0, 400);
-                    gradient.addColorStop(0, 'rgba(99, 102, 241, 0.3)');
-                    gradient.addColorStop(0.5, 'rgba(99, 102, 241, 0.15)');
-                    gradient.addColorStop(1, 'rgba(99, 102, 241, 0)');
+                    gradient.addColorStop(0, 'rgba(57, 0, 68, 0.3)');
+                    gradient.addColorStop(0.5, 'rgba(57, 0, 68, 0.15)');
+                    gradient.addColorStop(1, 'rgba(57, 0, 68, 0)');
                     return gradient;
                 },
                 borderWidth: 3,
                 fill: true,
                 tension: 0.4,
-                pointBackgroundColor: 'rgba(99, 102, 241, 1)',
+                pointBackgroundColor: 'rgba(57, 0, 68, 1)',
                 pointBorderColor: '#fff',
                 pointBorderWidth: 2,
                 pointRadius: 6,
                 pointHoverRadius: 10,
-                pointHoverBackgroundColor: 'rgba(99, 102, 241, 1)',
+                pointHoverBackgroundColor: 'rgba(57, 0, 68, 1)',
                 pointHoverBorderWidth: 3,
                 pointHitRadius: 15,
             }]
@@ -398,73 +400,73 @@ const navigateToResults = () => {
             <!-- Stats Grid -->
             <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <!-- Total Voters Card -->
-                <div class="group relative overflow-hidden rounded-xl border bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900 p-6 transition-all duration-300 hover:shadow-xl hover:scale-[1.02]">
-                    <div class="absolute right-0 top-0 h-24 w-24 translate-x-8 -translate-y-8 rounded-full bg-blue-500/10" />
+                <div class="group relative overflow-hidden rounded-xl border p-6 transition-all duration-300 hover:shadow-xl hover:scale-[1.02]" style="background: linear-gradient(135deg, rgba(57, 0, 68, 0.1) 0%, rgba(100, 30, 110, 0.1)100%);">
+                    <div class="absolute right-0 top-0 h-24 w-24 translate-x-8 -translate-y-8 rounded-full " style="background: linear-gradient(135deg, rgba(57, 0, 68, 0.05) 0%, rgba(100, 30, 110, 0.05)10%);" />
                     <div class="relative">
                         <div class="flex items-center justify-between mb-4">
-                            <div class="rounded-xl bg-blue-500 p-3 shadow-lg shadow-blue-500/50">
+                            <div class="rounded-xl p-3 shadow-lg" style="background: rgba(57, 0, 68, 0.7); box-shadow: 0 5px 10px rgba(57, 0, 68, 0.9);">
                                 <Icon name="users" class="h-6 w-6 text-white" />
                             </div>
-                            <Icon name="arrowUpRight" class="h-5 w-5 text-blue-600 dark:text-blue-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                            <Icon name="arrowUpRight" class="h-5 w-5 text-white opacity-0 group-hover:opacity-100 transition-opacity" style="color: rgba(57, 0, 68, 0.8);"/>
                         </div>
                         <div class="space-y-1">
-                            <p class="text-sm font-medium text-blue-700 dark:text-blue-300">Total Voters</p>
-                            <p class="text-3xl font-bold text-blue-900 dark:text-blue-100">{{ stats.totalVoters.toLocaleString() }}</p>
-                            <p class="text-xs text-blue-600/70 dark:text-blue-400/70">Registered students</p>
+                            <p class="text-sm font-medium" style="color: rgba(57, 0, 68, 0.8);">Total Voters</p>
+                            <p class="text-3xl font-bold" style="color: rgba(57, 0, 68, 0.8);">{{ stats.totalVoters.toLocaleString() }}</p>
+                            <p class="text-xs" style="color: rgba(57, 0, 68, 0.8);">Registered students</p>
                         </div>
                     </div>
                 </div>
 
                 <!-- Active Elections Card -->
-                <div class="group relative overflow-hidden rounded-xl border bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950 dark:to-green-900 p-6 transition-all duration-300 hover:shadow-xl hover:scale-[1.02]">
-                    <div class="absolute right-0 top-0 h-24 w-24 translate-x-8 -translate-y-8 rounded-full bg-green-500/10" />
+                <div class="group relative overflow-hidden rounded-xl border p-6 transition-all duration-300 hover:shadow-xl hover:scale-[1.02]" style="background: linear-gradient(135deg, rgba(173, 88, 161, 0.3) 0%, rgba(200, 120, 185, 0.3) 100%);">
+                    <div class="absolute right-0 top-0 h-24 w-24 translate-x-8 -translate-y-8 rounded-full" style="background: linear-gradient(135deg, rgba(173, 88, 161, 0.1) 0%, rgba(200, 120, 185, 0.1) 100%);" />
                     <div class="relative">
                         <div class="flex items-center justify-between mb-4">
-                            <div class="rounded-xl bg-green-500 p-3 shadow-lg shadow-green-500/50">
+                            <div class="rounded-xl p-3 shadow-lg" style="background: rgba(173, 88, 161, 0.7); box-shadow: 0 5px 10px rgba(173, 88, 161, 1);">
                                 <Icon name="clipboardList" class="h-6 w-6 text-white" />
                             </div>
-                            <Icon name="arrowUpRight" class="h-5 w-5 text-green-600 dark:text-green-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                            <Icon name="arrowUpRight" class="h-5 w-5 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
                         </div>
                         <div class="space-y-1">
-                            <p class="text-sm font-medium text-green-700 dark:text-green-300">Active Elections</p>
-                            <p class="text-3xl font-bold text-green-900 dark:text-green-100">{{ stats.activeElections }}</p>
-                            <p class="text-xs text-green-600/70 dark:text-green-400/70">Currently running</p>
+                            <p class="text-sm font-medium" style="color: rgba(173, 88, 161, 2);">Active Elections</p>
+                            <p class="text-3xl font-bold" style="color: rgba(173, 88, 161, 2);">{{ stats.activeElections }}</p>
+                            <p class="text-xs" style="color: rgba(173, 88, 161, 2);">Currently running</p>
                         </div>
                     </div>
                 </div>
 
                 <!-- Total Votes Card -->
-                <div class="group relative overflow-hidden rounded-xl border bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950 dark:to-purple-900 p-6 transition-all duration-300 hover:shadow-xl hover:scale-[1.02]">
-                    <div class="absolute right-0 top-0 h-24 w-24 translate-x-8 -translate-y-8 rounded-full bg-purple-500/10" />
+                <div class="group relative overflow-hidden rounded-xl border p-6 transition-all duration-300 hover:shadow-xl hover:scale-[1.02]" style="background: linear-gradient(135deg, rgba(159, 84, 15, 0.3) 0%, rgba(185, 115, 45, 0.6) 100%);">
+                    <div class="absolute right-0 top-0 h-24 w-24 translate-x-8 -translate-y-8 rounded-full" style="background: linear-gradient(135deg, rgba(159, 84, 15, 0.1) 0%, rgba(185, 115, 45, 0.1) 100%);"/>
                     <div class="relative">
                         <div class="flex items-center justify-between mb-4">
-                            <div class="rounded-xl bg-purple-500 p-3 shadow-lg shadow-purple-500/50">
+                            <div class="rounded-xl p-3 shadow-lg" style="background: rgba(159, 84, 15, 0.7); box-shadow: 0 5px 10px rgba(159, 84, 15, 1);">
                                 <Icon name="checkCircle" class="h-6 w-6 text-white" />
                             </div>
-                            <Icon name="arrowUpRight" class="h-5 w-5 text-purple-600 dark:text-purple-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                            <Icon name="arrowUpRight" class="h-5 w-5 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
                         </div>
                         <div class="space-y-1">
-                            <p class="text-sm font-medium text-purple-700 dark:text-purple-300">Total Votes Cast</p>
-                            <p class="text-3xl font-bold text-purple-900 dark:text-purple-100">{{ stats.totalVotes.toLocaleString() }}</p>
-                            <p class="text-xs text-purple-600/70 dark:text-purple-400/70">In active elections</p>
+                            <p class="text-sm font-medium" style="color: rgba(159, 84, 15, 2);">Total Votes Cast</p>
+                            <p class="text-3xl font-bold" style="color: rgba(159, 84, 15, 2);">{{ stats.totalVotes.toLocaleString() }}</p>
+                            <p class="text-xs" style="color: rgba(159, 84, 15, 2);">In active elections</p>
                         </div>
                     </div>
                 </div>
 
                 <!-- Total Candidates Card -->
-                <div class="group relative overflow-hidden rounded-xl border bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950 dark:to-orange-900 p-6 transition-all duration-300 hover:shadow-xl hover:scale-[1.02]">
-                    <div class="absolute right-0 top-0 h-24 w-24 translate-x-8 -translate-y-8 rounded-full bg-orange-500/10" />
+                <div class="group relative overflow-hidden rounded-xl border p-6 transition-all duration-300 hover:shadow-xl hover:scale-[1.02]" style="background: linear-gradient(135deg, rgba(235, 135, 49, 0.3) 0%, rgba(245, 160, 80, 0.6) 100%);">
+                    <div class="absolute right-0 top-0 h-24 w-24 translate-x-8 -translate-y-8 rounded-full" style="background: linear-gradient(135deg, rgba(235, 135, 49, 0.1) 0%, rgba(245, 160, 80, 0.1) 100%);" />
                     <div class="relative">
                         <div class="flex items-center justify-between mb-4">
-                            <div class="rounded-xl bg-orange-500 p-3 shadow-lg shadow-orange-500/50">
+                            <div class="rounded-xl p-3 shadow-lg" style="background: rgba(212, 106, 14, 1); box-shadow: 0 5px 10px rgba(235, 135, 49, 1);">
                                 <Icon name="userCheck" class="h-6 w-6 text-white" />
                             </div>
-                            <Icon name="arrowUpRight" class="h-5 w-5 text-orange-600 dark:text-orange-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                            <Icon name="arrowUpRight" class="h-5 w-5 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
                         </div>
                         <div class="space-y-1">
-                            <p class="text-sm font-medium text-orange-700 dark:text-orange-300">Total Candidates</p>
-                            <p class="text-3xl font-bold text-orange-900 dark:text-orange-100">{{ stats.totalCandidates }}</p>
-                            <p class="text-xs text-orange-600/70 dark:text-orange-400/70">Running for positions</p>
+                            <p class="text-sm font-medium" style="color: rgba(212, 106, 14, 2);">Total Candidates</p>
+                            <p class="text-3xl font-bold" style="color: rgba(212, 106, 14, 2);">{{ stats.totalCandidates }}</p>
+                            <p class="text-xs" style="color: rgba(212, 106, 14, 2);">Running for positions</p>
                         </div>
                     </div>
                 </div>

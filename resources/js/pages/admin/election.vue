@@ -375,7 +375,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                             </div>
                             <div class="h-2 w-full rounded-full bg-muted overflow-hidden">
                                 <div 
-                                    class="h-full rounded-full bg-purple-600 transition-all duration-500"
+                                    class="h-full rounded-full bg-purple-900 transition-all duration-500"
                                     :style="{ width: `${getVoterTurnout(election)}%` }"
                                 />
                                 </div>
