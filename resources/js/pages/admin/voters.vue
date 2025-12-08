@@ -12,6 +12,7 @@ interface User {
   email: string;
   email_verified_at: string | null;
   role: string;
+  photo: string | null;
 }
 
 interface VoterProfile {
