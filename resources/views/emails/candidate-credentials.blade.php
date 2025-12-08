@@ -22,7 +22,7 @@ Login to Your Account
 
 - Please keep your password secure and do not share it with anyone.
 - You can change your password after logging in for the first time.
-- If you have any questions, please contact the Master Froyd.
+- If you have any questions, please contact Master Froyd.
 
 We wish you the best of luck in the upcoming election!
 

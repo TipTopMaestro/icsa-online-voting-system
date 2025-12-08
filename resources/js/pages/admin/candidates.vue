@@ -934,7 +934,7 @@ function copyPassword() {
         </div>
 
         <form @submit.prevent="submitCreate" class="space-y-4">
-          <div class="grid grid-cols-2 gap-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label class="block text-sm font-medium mb-1">Name *</label>
               <input 
@@ -958,7 +958,7 @@ function copyPassword() {
             </div>
           </div>
 
-          <div class="grid grid-cols-2 gap-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label class="block text-sm font-medium mb-1">Election *</label>
               <select 
@@ -1115,7 +1115,7 @@ function copyPassword() {
             />
           </div>
 
-          <div class="grid grid-cols-2 gap-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label class="block text-sm font-medium text-slate-700 mb-1">Name *</label>
               <input 
@@ -1139,7 +1139,7 @@ function copyPassword() {
             </div>
           </div>
 
-          <div class="grid grid-cols-2 gap-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label class="block text-sm font-medium text-slate-700 mb-1">Election *</label>
               <select 
@@ -1198,7 +1198,7 @@ function copyPassword() {
             <div v-if="editForm.errors.platform" class="text-red-600 text-xs mt-1">{{ editForm.errors.platform }}</div>
           </div>
 
-          <div class="grid grid-cols-3 gap-4">
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
               <label class="block text-sm font-medium text-slate-700 mb-1">Course *</label>
               <select 
@@ -1296,7 +1296,7 @@ function copyPassword() {
           <div class="border-t"></div>
 
           <!-- Election & Position Info -->
-          <div class="grid grid-cols-2 gap-6">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
             <div>
               <label class="block text-sm font-medium text-muted-foreground mb-1">Election</label>
               <p class="text-lg font-semibold">{{ selectedCandidate.election.title }}</p>

@@ -147,6 +147,26 @@ function formatPrintDate(date) {
         day: 'numeric' 
     })
 }
+
+// Generate unique document reference number
+const documentRefNumber = computed(() => {
+    if (!currentElection.value) return ''
+    const date = new Date()
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const electionId = String(currentElection.value.id).padStart(4, '0')
+    return `DNSC-OVS-${year}${month}-${electionId}`
+})
+
+// Calculate position-specific statistics
+function getPositionStatistics(positionName, candidates) {
+    const totalVotes = candidates.reduce((sum, c) => sum + c.votes, 0)
+    return {
+        totalVotes,
+        totalVoters: totalVoters.value,
+        validVotes: totalVotes
+    }
+}
 </script>
 
 <template>
@@ -165,8 +185,9 @@ function formatPrintDate(date) {
         </div>
       </div>
 
-      <!-- Election Results -->
+      <!-- Election Results (Screen Only) -->
       <template v-else>
+        <div class="screen-only">
         <!-- Header Section -->
         <div class="mb-6">
           <div class="flex items-center justify-between mb-2">
@@ -300,7 +321,7 @@ function formatPrintDate(date) {
                   <div 
                     :class="[
                       'flex-shrink-0 w-10 h-15 flex items-center justify-center font-bold text-xl',
-                      index === 0 ? 'bg-purple-600 text-white' : 'bg-gray-300 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                      index === 0 ? 'bg-purple-800 text-white' : 'bg-gray-300 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
                     ]"
                   >
                     {{ index + 1 }}
@@ -327,6 +348,7 @@ function formatPrintDate(date) {
               </div>
             </div>
           </div>
+        </div>
         </div>
       </template>
 
@@ -384,9 +406,9 @@ function formatPrintDate(date) {
         </div>
       </Modal>
 
-      <!-- Print-Only Professional Format -->
+      <!-- Print-Only Certificate Format (Based on TC Elections Form 11) -->
       <div class="print-only">
-        <!-- Header with Logo -->
+        <!-- Header with Logo (repeats on every page) -->
         <div class="print-header">
           <div class="print-header-content">
             <img src="/images/dnscLogo.png" alt="DNSC Logo" class="print-logo">
@@ -403,85 +425,84 @@ function formatPrintDate(date) {
           </div>
         </div>
 
-        <!-- Document Title -->
+        <!-- Document Title & Reference -->
         <div class="print-title-section">
-          <h2 class="print-doc-title">OFFICIAL ELECTION RESULTS</h2>
+          <div class="print-doc-ref">Document No.: {{ documentRefNumber }}</div>
+          <h2 class="print-doc-title">CERTIFICATE OF RESULTS OF ELECTION</h2>
           <p class="print-election-name">{{ selectedElection?.title || 'Election Results' }}</p>
           <p class="print-dates">
-            {{ formatPrintDate(selectedElection?.start_date) }} - {{ formatPrintDate(selectedElection?.end_date) }} | 
-            Generated: {{ formatPrintDate(new Date()) }}
+            {{ formatPrintDate(selectedElection?.start_date) }} to {{ formatPrintDate(selectedElection?.end_date) }}
           </p>
         </div>
 
-        <!-- Summary Section -->
-        <div class="print-summary">
-          <h3 class="print-section-title">ELECTION SUMMARY</h3>
-          <table class="print-summary-table">
-            <tr>
-              <td><strong>Total Registered Voters:</strong></td>
-              <td>{{ totalVoters.toLocaleString() }}</td>
-            </tr>
-            <tr>
-              <td><strong>Total Votes Cast:</strong></td>
-              <td>{{ totalVotesCast.toLocaleString() }}</td>
-            </tr>
-            <tr>
-              <td><strong>Voter Turnout:</strong></td>
-              <td>{{ voterTurnout }}%</td>
-            </tr>
+        <!-- Certification Statement -->
+        <div class="print-certification">
+          <p class="cert-intro">This is to certify that the election for <strong>{{ selectedElection?.title || 'Student Officers' }}</strong> held on <strong>{{ formatPrintDate(selectedElection?.start_date) }}</strong> to <strong>{{ formatPrintDate(selectedElection?.end_date) }}</strong> at Davao del Norte State College resulted in the following winners:</p>
+        </div>
+
+        <!-- Results Table (Winners Only) -->
+        <div class="print-results">
+          <table class="print-results-table">
+            <thead>
+              <tr>
+                <th class="col-position">POSITION</th>
+                <th class="col-name">NAME OF WINNING CANDIDATE</th>
+                <th class="col-party">PARTY/ORGANIZATION</th>
+                <th class="col-votes">VOTES RECEIVED</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="[positionName, candidates] in sortedResults" :key="positionName">
+                <td class="col-position">{{ positionName }}</td>
+                <td class="col-name">{{ candidates[0]?.name || 'No Winner' }}</td>
+                <td class="col-party">{{ candidates[0]?.partylist || 'Independent' }}</td>
+                <td class="col-votes">{{ candidates[0]?.votes.toLocaleString() || '0' }}</td>
+              </tr>
+            </tbody>
           </table>
         </div>
 
-        <!-- Results by Position (List Style) -->
-        <div class="print-results">
-          <h3 class="print-section-title">RESULTS BY POSITION</h3>
-          
-          <div v-for="[positionName, candidates] in sortedResults" :key="positionName" class="print-position">
-            <h4 class="print-position-title">{{ positionName }}</h4>
-            
-            <div class="print-results-list">
-              <div 
-                v-for="(candidate, index) in candidates" 
-                :key="candidate.id"
-                class="print-candidate-item"
-              >
-                <div class="print-rank">{{ index + 1 }}</div>
-                <div class="print-candidate-details">
-                  <div class="print-candidate-name">{{ candidate.name }}</div>
-                  <div class="print-candidate-party">{{ candidate.partylist || 'Independent' }}</div>
-                </div>
-                <div class="print-candidate-stats">
-                  <div class="print-votes">{{ candidate.votes.toLocaleString() }} votes</div>
-                  <div class="print-percentage">{{ candidate.percentage.toFixed(1) }}%</div>
-                </div>
-              </div>
-            </div>
-          </div>
+        <!-- Election Statistics -->
+        <div class="print-statistics">
+          <p><strong>Total Number of Registered Voters:</strong> {{ totalVoters.toLocaleString() }}</p>
+          <p><strong>Total Number of Voters Who Voted:</strong> {{ totalVotesCast.toLocaleString() }}</p>
+          <p><strong>Voter Turnout:</strong> {{ voterTurnout }}%</p>
+        </div>
+
+        <!-- Final Certification Statement -->
+        <div class="print-final-certification">
+          <p>This is to certify that the above are the true and correct results of the election as canvassed and tallied by the Election Committee and the Online Voting System of Davao del Norte State College.</p>
+        </div>
+
+        <!-- Date Generated -->
+        <div class="print-date-generated">
+          <p>Given this {{ formatPrintDate(new Date()) }} at Davao del Norte State College, New Visayas, Panabo City, Philippines.</p>
         </div>
 
         <!-- Signatures Section -->
         <div class="print-signatures">
-          <div class="print-signature-line">
-            <div class="print-signature-space">_________________________</div>
-            <div class="print-signature-label">Prepared by</div>
+          <div class="print-signature-block">
+            <p class="signature-label">Certified by:</p>
+            <div class="signature-line"></div>
+            <p class="signature-name">Election Committee Chairperson</p>
+            <p class="signature-date">Date: _______________</p>
           </div>
-          <div class="print-signature-line">
-            <div class="print-signature-space">_________________________</div>
-            <div class="print-signature-label">Certified by (Election Committee)</div>
-          </div>
-          <div class="print-signature-line">
-            <div class="print-signature-space">_________________________</div>
-            <div class="print-signature-label">Date Certified</div>
+          
+          <div class="print-signature-block">
+            <p class="signature-label">Noted by:</p>
+            <div class="signature-line"></div>
+            <p class="signature-name">College President</p>
+            <p class="signature-date">Date: _______________</p>
           </div>
         </div>
 
-        <!-- Footer -->
-        <div class="print-footer">
-          <div class="print-footer-left">FOR OFFICIAL USE ONLY</div>
+        <!-- Footer (repeats on every page) -->
+        <div class="print-footer-page">
+          <div class="print-footer-left">FOR OFFICIAL USE ONLY - CONFIDENTIAL</div>
           <div class="print-footer-right">Page <span class="page-number"></span></div>
         </div>
 
-        <!-- School Footer Banner -->
+        <!-- School Footer Banner (repeats on every page) -->
         <div class="print-footer-banner">
           <div class="print-footer-section">
             <h5>VISION</h5>
@@ -498,8 +519,7 @@ function formatPrintDate(date) {
             <p>Stewardship, Nationalism, Integrity and Trustworthiness, Rule of Law and Good Governance</p>
           </div>
           <div class="print-footer-logos">
-            <div class="footer-logo-placeholder"></div>
-            <div class="footer-logo-placeholder"></div>
+            <img src="/images/dnscLogo.png" alt="DNSC Logo" class="footer-logo-img">
           </div>
         </div>
       </div>
@@ -515,7 +535,17 @@ function formatPrintDate(date) {
 
 /* Print Styles */
 @media print {
-  /* Hide everything except print section */
+  /* Hide screen-only content when printing */
+  .screen-only {
+    display: none !important;
+  }
+
+  /* Reset and hide everything except print section */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  
   body * {
     visibility: hidden;
   }
@@ -535,17 +565,17 @@ function formatPrintDate(date) {
     color: black;
   }
 
-  /* Page setup */
+  /* Page setup with proper margins for header/footer */
   @page {
-    size: A4;
-    margin: 0.5in 0.75in 0.75in 0.75in;
+    size: A4 portrait;
+    margin: 0.6in 0.6in 1.1in 0.6in;
   }
 
-  /* Header */
+  /* Header (repeats on every page) */
   .print-header {
     border-bottom: 3px solid #2d5016;
-    padding-bottom: 15px;
-    margin-bottom: 20px;
+    padding-bottom: 30px;
+    margin-bottom: 15px;
   }
 
   .print-header-content {
@@ -556,9 +586,10 @@ function formatPrintDate(date) {
   }
 
   .print-logo {
-    width: 70px;
-    height: 70px;
+    width: 65px;
+    height: 65px;
     object-fit: contain;
+    flex-shrink: 0;
   }
 
   .print-header-text {
@@ -567,7 +598,7 @@ function formatPrintDate(date) {
   }
 
   .print-header-text h1 {
-    font-size: 18px;
+    font-size: 17px;
     font-weight: bold;
     color: #2d5016;
     margin: 0 0 2px 0;
@@ -575,231 +606,247 @@ function formatPrintDate(date) {
   }
 
   .print-tagline {
-    font-size: 11px;
-    color: #666;
+    font-size: 10px;
+    color: #555;
     margin: 0;
     font-style: italic;
   }
 
   .print-contact {
     text-align: right;
-    font-size: 9px;
+    font-size: 8px;
     color: #666;
-    line-height: 1.4;
+    line-height: 1.5;
+    flex-shrink: 0;
   }
 
   .print-contact p {
     margin: 0;
   }
 
-  /* Title Section */
+  /* Title Section with Document Reference */
   .print-title-section {
     text-align: center;
-    margin: 25px 0 20px 0;
-    padding: 15px 0;
-    border-bottom: 2px solid #ddd;
+    margin: 15px 0 20px 0;
+    padding: 10px 0;
+    page-break-inside: avoid;
+  }
+
+  .print-doc-ref {
+    font-size: 9px;
+    color: #333;
+    margin-bottom: 8px;
+    font-weight: 500;
   }
 
   .print-doc-title {
-    font-size: 20px;
+    font-size: 18px;
     font-weight: bold;
-    color: #1a1a1a;
-    margin: 0 0 8px 0;
+    color: #000;
+    margin: 8px 0;
     letter-spacing: 1px;
+    text-transform: uppercase;
   }
 
   .print-election-name {
-    font-size: 16px;
+    font-size: 14px;
     font-weight: 600;
-    color: #333;
-    margin: 0 0 5px 0;
+    color: #000;
+    margin: 6px 0;
   }
 
   .print-dates {
-    font-size: 11px;
-    color: #666;
+    font-size: 10px;
+    color: #333;
+    margin: 4px 0;
+  }
+
+  /* Certification Statement */
+  .print-certification {
+    margin: 15px 0;
+    padding: 0;
+    page-break-inside: avoid;
+  }
+
+  .cert-intro {
+    font-size: 10px;
+    color: #000;
+    line-height: 1.6;
     margin: 0;
+    text-align: justify;
+    text-indent: 50px;
   }
 
-  /* Summary Section */
-  .print-summary {
-    margin: 20px 0;
-    padding: 15px;
-    background: #f8f9fa;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-  }
-
-  .print-section-title {
-    font-size: 14px;
-    font-weight: bold;
-    color: #2d5016;
-    margin: 0 0 10px 0;
-    padding-bottom: 5px;
-    border-bottom: 2px solid #2d5016;
-  }
-
-  .print-summary-table {
-    width: 100%;
-    font-size: 11px;
-  }
-
-  .print-summary-table td {
-    padding: 4px 8px;
-  }
-
-  .print-summary-table td:first-child {
-    width: 60%;
-  }
-
-  .print-summary-table td:last-child {
-    text-align: right;
-    font-weight: 600;
-  }
-
-  /* Results Section */
+  /* Results Table (Winners Only) */
   .print-results {
     margin: 20px 0;
   }
 
-  .print-position {
-    margin-bottom: 25px;
+  .print-results-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 15px;
+    font-size: 10px;
+    border: 2px solid #000;
+  }
+
+  .print-results-table thead {
+    background: #fff;
+  }
+
+  .print-results-table th {
+    padding: 8px 6px;
+    text-align: left;
+    font-weight: bold;
+    color: #000;
+    border: 1px solid #000;
+    font-size: 9px;
+    text-transform: uppercase;
+  }
+
+  .print-results-table tbody tr {
+    border: 1px solid #000;
+  }
+
+  .print-results-table td {
+    padding: 8px 6px;
+    border: 1px solid #000;
+    font-size: 10px;
+    vertical-align: top;
+  }
+
+  /* Column widths */
+  .col-position {
+    width: 25%;
+    font-weight: bold;
+  }
+
+  .col-name {
+    width: 30%;
+  }
+
+  .col-party {
+    width: 25%;
+  }
+
+  .col-votes {
+    width: 20%;
+    text-align: center;
+  }
+
+  /* Election Statistics */
+  .print-statistics {
+    margin: 20px 0;
+    padding: 0;
     page-break-inside: avoid;
   }
 
-  .print-position-title {
-    font-size: 13px;
-    font-weight: bold;
-    color: #1a1a1a;
-    margin: 15px 0 8px 0;
-    padding: 8px 10px;
-    background: #f0f0f0;
-    border-left: 4px solid #2d5016;
+  .print-statistics p {
+    font-size: 10px;
+    color: #000;
+    margin: 6px 0;
+    line-height: 1.5;
   }
 
-  .print-results-list {
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    overflow: hidden;
+  /* Final Certification Statement */
+  .print-final-certification {
+    margin: 25px 0 15px 0;
+    padding: 0;
+    page-break-inside: avoid;
   }
 
-  .print-candidate-item {
-    display: flex;
-    align-items: center;
-    padding: 10px;
-    border-bottom: 1px solid #e5e5e5;
-    gap: 12px;
+  .print-final-certification p {
+    font-size: 10px;
+    color: #000;
+    line-height: 1.6;
+    margin: 0;
+    text-align: justify;
+    text-indent: 50px;
   }
 
-  .print-candidate-item:last-child {
-    border-bottom: none;
+  /* Date Generated */
+  .print-date-generated {
+    margin: 15px 0;
+    padding: 0;
   }
 
-  .print-candidate-item:first-child {
-    background: #e8f5e9;
-    font-weight: 600;
-  }
-
-  .print-candidate-item:nth-child(even) {
-    background: #f9f9f9;
-  }
-
-  .print-rank {
-    width: 30px;
-    height: 30px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: #2d5016;
-    color: white;
-    font-weight: bold;
-    font-size: 11px;
-    border-radius: 4px;
-    flex-shrink: 0;
-  }
-
-  .print-candidate-item:first-child .print-rank {
-    background: #1b5e20;
-  }
-
-  .print-candidate-details {
-    flex: 1;
-  }
-
-  .print-candidate-name {
-    font-size: 11px;
-    font-weight: 600;
-    color: #1a1a1a;
-    margin-bottom: 2px;
-  }
-
-  .print-candidate-party {
-    font-size: 9px;
-    color: #666;
-  }
-
-  .print-candidate-stats {
-    text-align: right;
-    flex-shrink: 0;
-  }
-
-  .print-votes {
-    font-size: 11px;
-    font-weight: 600;
-    color: #1a1a1a;
-    margin-bottom: 2px;
-  }
-
-  .print-percentage {
-    font-size: 9px;
-    color: #666;
+  .print-date-generated p {
+    font-size: 10px;
+    color: #000;
+    line-height: 1.5;
+    margin: 0;
+    text-align: justify;
+    text-indent: 50px;
   }
 
   /* Signatures Section */
   .print-signatures {
     margin-top: 40px;
+    margin-bottom: 30px;
     display: flex;
     justify-content: space-between;
-    gap: 20px;
-    padding: 20px 0;
+    gap: 40px;
+    padding: 0;
+    page-break-inside: avoid;
   }
 
-  .print-signature-line {
+  .print-signature-block {
     flex: 1;
+  }
+
+  .signature-label {
+    font-size: 10px;
+    font-weight: normal;
+    color: #000;
+    margin-bottom: 40px;
+  }
+
+  .signature-line {
+    border-top: 1px solid #000;
+    margin-bottom: 3px;
+  }
+
+  .signature-name {
+    font-size: 10px;
+    font-weight: bold;
+    color: #000;
+    margin: 0;
     text-align: center;
   }
 
-  .print-signature-space {
-    border-bottom: 1px solid #333;
-    margin-bottom: 5px;
-    padding-bottom: 30px;
+  .signature-date {
+    font-size: 9px;
+    color: #000;
+    margin-top: 5px;
+    text-align: center;
   }
 
-  .print-signature-label {
-    font-size: 10px;
-    color: #666;
-  }
-
-  /* Footer */
-  .print-footer {
+  /* Page Footer (repeats on every page) */
+  .print-footer-page {
     position: fixed;
-    bottom: 90px;
-    left: 0.75in;
-    right: 0.75in;
+    bottom: 85px;
+    left: 0.6in;
+    right: 0.6in;
     display: flex;
     justify-content: space-between;
-    padding: 8px 0;
-    border-top: 1px solid #ddd;
-    font-size: 9px;
+    padding: 6px 0;
+    border-top: 1px solid #ccc;
+    font-size: 8px;
     color: #666;
+    background: white;
   }
 
   .print-footer-left {
     font-weight: 600;
-    color: #d32f2f;
+    color: #c62828;
+    letter-spacing: 0.3px;
   }
 
-  /* Footer Banner */
+  .print-footer-right {
+    font-weight: 500;
+  }
+
+  /* School Footer Banner (repeats on every page) */
   .print-footer-banner {
     position: fixed;
     bottom: 0;
@@ -807,11 +854,11 @@ function formatPrintDate(date) {
     right: 0;
     background: #2d5016;
     color: white;
-    padding: 10px 0.75in;
+    padding: 8px 0.6in;
     display: flex;
-    align-items: stretch;
-    gap: 15px;
-    height: 70px;
+    align-items: center;
+    gap: 12px;
+    height: 65px;
   }
 
   .print-footer-section {
@@ -819,7 +866,7 @@ function formatPrintDate(date) {
   }
 
   .print-footer-section h5 {
-    font-size: 8px;
+    font-size: 7.5px;
     font-weight: bold;
     margin: 0 0 3px 0;
     letter-spacing: 0.5px;
@@ -827,31 +874,33 @@ function formatPrintDate(date) {
   }
 
   .print-footer-section p {
-    font-size: 6.5px;
+    font-size: 6px;
     margin: 0;
-    line-height: 1.4;
+    line-height: 1.3;
     opacity: 0.95;
   }
 
   .print-footer-divider {
     width: 1px;
     background: rgba(255, 255, 255, 0.3);
-    margin: 5px 0;
+    height: 45px;
   }
 
   .print-footer-logos {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding-left: 15px;
+    justify-content: center;
+    gap: 8px;
+    padding-left: 12px;
     border-left: 1px solid rgba(255, 255, 255, 0.3);
+    min-width: 60px;
   }
 
-  .footer-logo-placeholder {
-    width: 45px;
-    height: 45px;
-    background: rgba(255, 255, 255, 0.2);
-    border-radius: 50%;
+  .footer-logo-img {
+    width: 38px;
+    height: 38px;
+    object-fit: contain;
+    opacity: 0.9;
   }
 
   /* Page counter */
@@ -859,7 +908,34 @@ function formatPrintDate(date) {
     content: counter(page);
   }
 
-  /* Hide screen elements */
+  /* Page break controls for scalability */
+  .print-position-section {
+    page-break-inside: avoid;
+  }
+
+  .print-results-table {
+    page-break-inside: auto;
+  }
+
+  .print-results-table tr {
+    page-break-inside: avoid;
+    page-break-after: auto;
+  }
+
+  .print-results-table thead {
+    display: table-header-group;
+  }
+
+  .print-results-table tbody {
+    display: table-row-group;
+  }
+
+  /* Ensure header/footer repeat */
+  thead {
+    display: table-header-group;
+  }
+
+  /* Hide screen-only elements */
   .print\:hidden {
     display: none !important;
   }

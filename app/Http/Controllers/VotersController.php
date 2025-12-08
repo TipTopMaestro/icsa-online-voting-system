@@ -83,7 +83,16 @@ class VotersController extends Controller
                 'has_voted' => $hasVotedInActiveElection, // Per active election
                 'created_at' => $voter->created_at,
                 'updated_at' => $voter->updated_at,
-                'user' => $voter->user,
+                'user' => [
+                    'id' => $voter->user->id,
+                    'name' => $voter->user->name,
+                    'email' => $voter->user->email,
+                    'role' => $voter->user->role,
+                    'email_verified_at' => $voter->user->email_verified_at,
+                    'photo' => $voter->user->photo 
+                        ? asset('storage/' . $voter->user->photo)
+                        : null,
+                ],
             ];
         });
 
