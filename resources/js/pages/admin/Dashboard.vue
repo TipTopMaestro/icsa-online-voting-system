@@ -474,25 +474,7 @@ const navigateToResults = () => {
 
             <!-- Charts Section -->
             <div class="grid gap-6 grid-cols-1 lg:grid-cols-2">
-                <!-- Doughnut Chart -->
-                <div class="rounded-xl border bg-card p-4 sm:p-6">
-                    <div class="mb-4">
-                        <h3 class="text-base sm:text-lg font-semibold">Vote Distribution</h3>
-                        <p class="text-xs sm:text-sm text-muted-foreground" v-if="activeElection">{{ activeElection.title }}</p>
-                        <p class="text-xs sm:text-sm text-muted-foreground" v-else>Candidate vote breakdown</p>
-                    </div>
-                    
-                    <div v-if="chartData && activeElection" class="h-[250px] sm:h-[300px] lg:h-[350px]">
-                        <canvas id="doughnutChart"></canvas>
-                    </div>
-                    
-                    <div v-else class="flex flex-col items-center justify-center h-[250px] sm:h-[300px] lg:h-[350px]">
-                        <div class="rounded-full bg-muted p-4 mb-3">
-                            <Icon name="pieChart" class="h-8 w-8 text-muted-foreground" />
-                        </div>
-                        <p class="text-sm text-muted-foreground text-center">No active election with votes yet</p>
-                    </div>
-                </div>
+                
 
                 <!-- Line Chart -->
                 <div class="rounded-xl border bg-card p-4 sm:p-6">
@@ -509,6 +491,26 @@ const navigateToResults = () => {
                     <div v-else class="flex flex-col items-center justify-center h-[250px] sm:h-[300px] lg:h-[350px]">
                         <div class="rounded-full bg-muted p-4 mb-3">
                             <Icon name="lineChart" class="h-8 w-8 text-muted-foreground" />
+                        </div>
+                        <p class="text-sm text-muted-foreground text-center">No active election with votes yet</p>
+                    </div>
+                </div>
+
+                <!-- Doughnut Chart -->
+                <div class="rounded-xl border bg-card p-4 sm:p-6">
+                    <div class="mb-4">
+                        <h3 class="text-base sm:text-lg font-semibold">Vote Distribution</h3>
+                        <p class="text-xs sm:text-sm text-muted-foreground" v-if="activeElection">{{ activeElection.title }}</p>
+                        <p class="text-xs sm:text-sm text-muted-foreground" v-else>Candidate vote breakdown</p>
+                    </div>
+                    
+                    <div v-if="chartData && activeElection" class="h-[250px] sm:h-[300px] lg:h-[350px]">
+                        <canvas id="doughnutChart"></canvas>
+                    </div>
+                    
+                    <div v-else class="flex flex-col items-center justify-center h-[250px] sm:h-[300px] lg:h-[350px]">
+                        <div class="rounded-full bg-muted p-4 mb-3">
+                            <Icon name="pieChart" class="h-8 w-8 text-muted-foreground" />
                         </div>
                         <p class="text-sm text-muted-foreground text-center">No active election with votes yet</p>
                     </div>

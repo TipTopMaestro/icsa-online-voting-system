@@ -148,7 +148,7 @@ const formattedCountdown = computed(() => {
                             <!-- Actions -->
                             <div v-if="activeElection" class="mt-6 pt-6 border-t border-gray-100 flex gap-3">
                                 <Link v-if="!hasVoted" href="/voter/vote" 
-                                    class="flex-1 bg-purple-600 text-white px-4 py-2.5 rounded-md text-sm font-medium hover:bg-purple-700 transition text-center">
+                                    class="flex-1 bg-purple-800 text-white px-4 py-2.5 rounded-md text-sm font-medium hover:bg-purple-700 transition text-center">
                                     Cast Vote
                                 </Link>
                                 <Link href="/voter/candidates" 
