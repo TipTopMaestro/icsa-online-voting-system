@@ -211,19 +211,19 @@ function goToPage(page: number) {
               <button
                 type="button"
                 @click.stop="toggleCourseDropdown()"
-                class="w-full flex items-center justify-between px-4 py-2 rounded-xl border border-slate-300 bg-white text-left shadow-sm focus:ring-2 focus:ring-purple-800 text-sm"
+                class="w-full flex items-center justify-between px-4 py-2 rounded-xl border border-slate-300 dark:border-purple-700 bg-white dark:bg-purple-950/40 dark:text-purple-100 text-left shadow-sm focus:ring-2 focus:ring-purple-800 text-sm"
                 style="min-width: 9rem;"
               >
                 <span>
                   {{ courseOptions.find(o => o.value === filterCourse)?.label ?? 'All Courses' }}
                 </span>
-                <svg class="w-4 h-4 text-slate-600 transition-transform duration-200" :class="{ 'rotate-180': courseDropdownOpen }" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <svg class="w-4 h-4 text-slate-600 dark:text-purple-300 transition-transform duration-200" :class="{ 'rotate-180': courseDropdownOpen }" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                 </svg>
               </button>
 
-              <div v-if="courseDropdownOpen" class="absolute z-50 mt-2 w-44 rounded-xl border-2 border-purple-800 bg-white shadow-xl overflow-hidden">
-                <div v-for="opt in courseOptions" :key="String(opt.value)" @click="selectCourseOption(opt)" class="px-4 py-2 cursor-pointer hover:bg-purple-100 text-sm">
+              <div v-if="courseDropdownOpen" class="absolute z-50 mt-2 w-44 rounded-xl border-2 border-purple-800 dark:border-purple-600 bg-white dark:bg-purple-900 shadow-xl overflow-hidden">
+                <div v-for="opt in courseOptions" :key="String(opt.value)" @click="selectCourseOption(opt)" class="px-4 py-2 cursor-pointer hover:bg-purple-100 dark:hover:bg-purple-800 dark:text-purple-100 text-sm">
                   {{ opt.label }}
                 </div>
               </div>
@@ -233,19 +233,19 @@ function goToPage(page: number) {
               <button
                 type="button"
                 @click.stop="toggleYearDropdown()"
-                class="w-full flex items-center justify-between px-4 py-2 rounded-xl border border-slate-300 bg-white text-left shadow-sm focus:ring-2 focus:ring-purple-800 text-sm"
+                class="w-full flex items-center justify-between px-4 py-2 rounded-xl border border-slate-300 dark:border-purple-700 bg-white dark:bg-purple-950/40 dark:text-purple-100 text-left shadow-sm focus:ring-2 focus:ring-purple-800 text-sm"
                 style="min-width: 9rem;"
               >
                 <span>
                   {{ yearOptions.find(o => o.value === filterYear)?.label ?? 'All Year Levels' }}
                 </span>
-                <svg class="w-4 h-4 text-slate-600 transition-transform duration-200" :class="{ 'rotate-180': yearDropdownOpen }" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <svg class="w-4 h-4 text-slate-600 dark:text-purple-300 transition-transform duration-200" :class="{ 'rotate-180': yearDropdownOpen }" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                 </svg>
               </button>
 
-              <div v-if="yearDropdownOpen" class="absolute z-50 mt-2 w-44 rounded-xl border-2 border-purple-800 bg-white shadow-xl overflow-hidden">
-                <div v-for="opt in yearOptions" :key="String(opt.value)" @click="selectYearOption(opt)" class="px-4 py-2 cursor-pointer hover:bg-purple-100 text-sm">
+              <div v-if="yearDropdownOpen" class="absolute z-50 mt-2 w-44 rounded-xl border-2 border-purple-800 dark:border-purple-600 bg-white dark:bg-purple-900 shadow-xl overflow-hidden">
+                <div v-for="opt in yearOptions" :key="String(opt.value)" @click="selectYearOption(opt)" class="px-4 py-2 cursor-pointer hover:bg-purple-100 dark:hover:bg-purple-800 dark:text-purple-100 text-sm">
                   {{ opt.label }}
                 </div>
               </div>
@@ -255,19 +255,19 @@ function goToPage(page: number) {
               <button
                 type="button"
                 @click.stop="toggleVotedDropdown()"
-                class="w-full flex items-center justify-between px-4 py-2 rounded-xl border border-slate-300 bg-white text-left shadow-sm focus:ring-2 focus:ring-purple-800 text-sm"
+                class="w-full flex items-center justify-between px-4 py-2 rounded-xl border border-slate-300 dark:border-purple-700 bg-white dark:bg-purple-950/40 dark:text-purple-100 text-left shadow-sm focus:ring-2 focus:ring-purple-800 text-sm"
                 style="min-width: 9rem;"
               >
                 <span>
                   {{ votedOptions.find(o => o.value === filterVoted)?.label ?? 'All Status' }}
                 </span>
-                <svg class="w-4 h-4 text-slate-600 transition-transform duration-200" :class="{ 'rotate-180': votedDropdownOpen }" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <svg class="w-4 h-4 text-slate-600 dark:text-purple-300 transition-transform duration-200" :class="{ 'rotate-180': votedDropdownOpen }" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                 </svg>
               </button>
 
-              <div v-if="votedDropdownOpen" class="absolute z-50 mt-2 w-44 rounded-xl border-2 border-purple-800 bg-white shadow-xl overflow-hidden">
-                <div v-for="opt in votedOptions" :key="String(opt.value)" @click="selectVotedOption(opt)" class="px-4 py-2 cursor-pointer hover:bg-purple-100 text-sm">
+              <div v-if="votedDropdownOpen" class="absolute z-50 mt-2 w-44 rounded-xl border-2 border-purple-800 dark:border-purple-600 bg-white dark:bg-purple-900 shadow-xl overflow-hidden">
+                <div v-for="opt in votedOptions" :key="String(opt.value)" @click="selectVotedOption(opt)" class="px-4 py-2 cursor-pointer hover:bg-purple-100 dark:hover:bg-purple-800 dark:text-purple-100 text-sm">
                   {{ opt.label }}
                 </div>
               </div>

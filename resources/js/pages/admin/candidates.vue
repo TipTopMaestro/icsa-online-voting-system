@@ -592,8 +592,8 @@ function copyPassword() {
               :class="[
                 'relative flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all',
                 hasActiveFilters 
-                  ? 'bg-primary text-primary-foreground hover:bg-primary/90' 
-                  : 'bg-muted text-foreground hover:bg-muted/80'
+                  ? 'bg-primary text-primary-foreground hover:bg-primary/90 dark:bg-purple-700 dark:hover:bg-purple-600' 
+                  : 'bg-muted text-foreground hover:bg-muted/80 dark:bg-purple-950/40 dark:text-purple-200 dark:hover:bg-purple-900/50'
               ]"
             >
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -602,7 +602,7 @@ function copyPassword() {
               <span>Filters</span>
               <span 
                 v-if="activeFiltersCount > 0" 
-                class="absolute -top-1 -right-1 flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-blue-600 dark:bg-blue-500 rounded-full"
+                class="absolute -top-1 -right-1 flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-blue-600 dark:bg-purple-500 rounded-full"
               >
                 {{ activeFiltersCount }}
               </span>
@@ -633,25 +633,25 @@ function copyPassword() {
 
           <!-- Active Filters Tags -->
           <div v-if="hasActiveFilters" class="flex flex-wrap gap-2 mt-3">
-            <span v-if="search" class="inline-flex items-center gap-1 px-3 py-1 bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400 text-xs font-medium rounded-full">
+            <span v-if="search" class="inline-flex items-center gap-1 px-3 py-1 bg-blue-50 text-blue-700 dark:bg-purple-800/50 dark:text-purple-200 text-xs font-medium rounded-full">
               <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
               </svg>
               Search: "{{ search }}"
             </span>
-            <span v-if="filterElection" class="inline-flex items-center gap-1 px-3 py-1 bg-purple-50 text-purple-700 dark:bg-purple-500/10 dark:text-purple-400 text-xs font-medium rounded-full">
+            <span v-if="filterElection" class="inline-flex items-center gap-1 px-3 py-1 bg-purple-50 text-purple-700 dark:bg-purple-800/50 dark:text-purple-200 text-xs font-medium rounded-full">
               Election: {{ props.elections.find(e => e.id === filterElection)?.title }}
             </span>
-            <span v-if="filterPosition" class="inline-flex items-center gap-1 px-3 py-1 bg-green-50 text-green-700 dark:bg-green-500/10 dark:text-green-400 text-xs font-medium rounded-full">
+            <span v-if="filterPosition" class="inline-flex items-center gap-1 px-3 py-1 bg-green-50 text-green-700 dark:bg-purple-800/50 dark:text-purple-200 text-xs font-medium rounded-full">
               Position: {{ props.positions.find(p => p.id === filterPosition)?.name }}
             </span>
-            <span v-if="filterPartylist" class="inline-flex items-center gap-1 px-3 py-1 bg-orange-50 text-orange-700 dark:bg-orange-500/10 dark:text-orange-400 text-xs font-medium rounded-full">
+            <span v-if="filterPartylist" class="inline-flex items-center gap-1 px-3 py-1 bg-orange-50 text-orange-700 dark:bg-purple-800/50 dark:text-purple-200 text-xs font-medium rounded-full">
               Partylist: "{{ filterPartylist }}"
             </span>
-            <span v-if="filterCourse" class="inline-flex items-center gap-1 px-3 py-1 bg-pink-50 text-pink-700 dark:bg-pink-500/10 dark:text-pink-400 text-xs font-medium rounded-full">
+            <span v-if="filterCourse" class="inline-flex items-center gap-1 px-3 py-1 bg-pink-50 text-pink-700 dark:bg-purple-800/50 dark:text-purple-200 text-xs font-medium rounded-full">
               Course: {{ filterCourse }}
             </span>
-            <span v-if="filterYear" class="inline-flex items-center gap-1 px-3 py-1 bg-indigo-50 text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-400 text-xs font-medium rounded-full">
+            <span v-if="filterYear" class="inline-flex items-center gap-1 px-3 py-1 bg-indigo-50 text-indigo-700 dark:bg-purple-800/50 dark:text-purple-200 text-xs font-medium rounded-full">
               Year: {{ filterYear }}{{ ['st', 'nd', 'rd', 'th'][parseInt(filterYear) - 1] }}
             </span>
           </div>
@@ -673,14 +673,14 @@ function copyPassword() {
                 <div>
                   <label class="block text-xs font-medium text-muted-foreground mb-1.5">Election</label>
                   <div class="relative">
-                    <button type="button" @click.stop="toggleElectionDropdown()" class="w-full text-left px-3 py-2 pr-10 text-sm bg-background border rounded-lg flex items-center justify-between">
+                    <button type="button" @click.stop="toggleElectionDropdown()" class="w-full text-left px-3 py-2 pr-10 text-sm bg-background dark:bg-purple-950/40 border dark:border-purple-700 rounded-lg flex items-center justify-between dark:text-purple-100">
                       <span>{{ electionOptions.find(o => o.value === filterElection)?.label ?? 'All Elections' }}</span>
-                      <svg class="w-4 h-4 text-muted-foreground transition-transform duration-200" :class="{ 'rotate-180': electionDropdownOpen }" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                      <svg class="w-4 h-4 text-muted-foreground dark:text-purple-300 transition-transform duration-200" :class="{ 'rotate-180': electionDropdownOpen }" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                     </button>
 
-                    <div v-if="electionDropdownOpen" class="absolute right-0 mt-2 w-64 bg-white border rounded-lg shadow-md z-20">
+                    <div v-if="electionDropdownOpen" class="absolute right-0 mt-2 w-64 bg-white dark:bg-purple-900 border dark:border-purple-600 rounded-lg shadow-md z-20">
                       <ul class="py-1">
-                        <li v-for="opt in electionOptions" :key="String(opt.value)" class="px-3 py-2 hover:bg-primary/10 cursor-pointer text-sm" @click="selectElectionOption(opt)">
+                        <li v-for="opt in electionOptions" :key="String(opt.value)" class="px-3 py-2 hover:bg-primary/10 dark:hover:bg-purple-800 cursor-pointer text-sm dark:text-purple-100" @click="selectElectionOption(opt)">
                           {{ opt.label }}
                         </li>
                       </ul>
@@ -692,14 +692,14 @@ function copyPassword() {
                 <div>
                   <label class="block text-xs font-medium text-muted-foreground mb-1.5">Position</label>
                   <div class="relative">
-                    <button type="button" @click.stop="togglePositionDropdown()" class="w-full text-left px-3 py-2 pr-10 text-sm bg-background border rounded-lg flex items-center justify-between">
+                    <button type="button" @click.stop="togglePositionDropdown()" class="w-full text-left px-3 py-2 pr-10 text-sm bg-background dark:bg-purple-950/40 border dark:border-purple-700 rounded-lg flex items-center justify-between dark:text-purple-100">
                       <span>{{ positionOptions.find(o => o.value === filterPosition)?.label ?? 'All Positions' }}</span>
-                      <svg class="w-4 h-4 text-muted-foreground transition-transform duration-200" :class="{ 'rotate-180': positionDropdownOpen }" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                      <svg class="w-4 h-4 text-muted-foreground dark:text-purple-300 transition-transform duration-200" :class="{ 'rotate-180': positionDropdownOpen }" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                     </button>
 
-                    <div v-if="positionDropdownOpen" class="absolute right-0 mt-2 w-64 bg-white border rounded-lg shadow-md z-20">
+                    <div v-if="positionDropdownOpen" class="absolute right-0 mt-2 w-64 bg-white dark:bg-purple-900 border dark:border-purple-600 rounded-lg shadow-md z-20">
                       <ul class="py-1">
-                        <li v-for="opt in positionOptions" :key="String(opt.value)" class="px-3 py-2 hover:bg-primary/10 cursor-pointer text-sm" @click="selectPositionOption(opt)">
+                        <li v-for="opt in positionOptions" :key="String(opt.value)" class="px-3 py-2 hover:bg-primary/10 dark:hover:bg-purple-800 cursor-pointer text-sm dark:text-purple-100" @click="selectPositionOption(opt)">
                           {{ opt.label }}
                         </li>
                       </ul>
@@ -715,7 +715,7 @@ function copyPassword() {
                     @keyup.enter="applyFilters"
                     type="text" 
                     placeholder="Enter partylist name..."
-                    class="w-full px-3 py-2 text-sm bg-background border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                    class="w-full px-3 py-2 text-sm bg-background dark:bg-purple-950/40 border dark:border-purple-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:text-purple-100"
                   />
                 </div>
 
@@ -723,14 +723,14 @@ function copyPassword() {
                 <div>
                   <label class="block text-xs font-medium text-muted-foreground mb-1.5">Course</label>
                   <div class="relative">
-                    <button type="button" @click.stop="toggleCourseDropdown()" class="w-full text-left px-3 py-2 pr-10 text-sm bg-background border rounded-lg flex items-center justify-between">
+                    <button type="button" @click.stop="toggleCourseDropdown()" class="w-full text-left px-3 py-2 pr-10 text-sm bg-background dark:bg-purple-950/40 border dark:border-purple-700 rounded-lg flex items-center justify-between dark:text-purple-100">
                       <span>{{ courseOptions.find(o => o.value === filterCourse)?.label ?? 'All Courses' }}</span>
-                      <svg class="w-4 h-4 text-muted-foreground transition-transform duration-200" :class="{ 'rotate-180': courseDropdownOpen }" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                      <svg class="w-4 h-4 text-muted-foreground dark:text-purple-300 transition-transform duration-200" :class="{ 'rotate-180': courseDropdownOpen }" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                     </button>
 
-                    <div v-if="courseDropdownOpen" class="absolute right-0 mt-2 w-44 bg-white border rounded-lg shadow-md z-20">
+                    <div v-if="courseDropdownOpen" class="absolute right-0 mt-2 w-44 bg-white dark:bg-purple-900 border dark:border-purple-600 rounded-lg shadow-md z-20">
                       <ul class="py-1">
-                        <li v-for="opt in courseOptions" :key="String(opt.value)" class="px-3 py-2 hover:bg-primary/10 cursor-pointer text-sm" @click="selectCourseOption(opt)">
+                        <li v-for="opt in courseOptions" :key="String(opt.value)" class="px-3 py-2 hover:bg-primary/10 dark:hover:bg-purple-800 cursor-pointer text-sm dark:text-purple-100" @click="selectCourseOption(opt)">
                           {{ opt.label }}
                         </li>
                       </ul>
@@ -742,14 +742,14 @@ function copyPassword() {
                 <div>
                   <label class="block text-xs font-medium text-muted-foreground mb-1.5">Year Level</label>
                   <div class="relative">
-                    <button type="button" @click.stop="toggleYearDropdown()" class="w-full text-left px-3 py-2 pr-10 text-sm bg-background border rounded-lg flex items-center justify-between">
+                    <button type="button" @click.stop="toggleYearDropdown()" class="w-full text-left px-3 py-2 pr-10 text-sm bg-background dark:bg-purple-950/40 border dark:border-purple-700 rounded-lg flex items-center justify-between dark:text-purple-100">
                       <span>{{ yearOptions.find(o => o.value === filterYear)?.label ?? 'All Years' }}</span>
-                      <svg class="w-4 h-4 text-muted-foreground transition-transform duration-200" :class="{ 'rotate-180': yearDropdownOpen }" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                      <svg class="w-4 h-4 text-muted-foreground dark:text-purple-300 transition-transform duration-200" :class="{ 'rotate-180': yearDropdownOpen }" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                     </button>
 
-                    <div v-if="yearDropdownOpen" class="absolute right-0 mt-2 w-44 bg-white border rounded-lg shadow-md z-20">
+                    <div v-if="yearDropdownOpen" class="absolute right-0 mt-2 w-44 bg-white dark:bg-purple-900 border dark:border-purple-600 rounded-lg shadow-md z-20">
                       <ul class="py-1">
-                        <li v-for="opt in yearOptions" :key="String(opt.value)" class="px-3 py-2 hover:bg-primary/10 cursor-pointer text-sm" @click="selectYearOption(opt)">
+                        <li v-for="opt in yearOptions" :key="String(opt.value)" class="px-3 py-2 hover:bg-primary/10 dark:hover:bg-purple-800 cursor-pointer text-sm dark:text-purple-100" @click="selectYearOption(opt)">
                           {{ opt.label }}
                         </li>
                       </ul>

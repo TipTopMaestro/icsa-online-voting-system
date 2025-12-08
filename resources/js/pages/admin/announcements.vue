@@ -254,13 +254,13 @@ function getAudienceBadgeColor(audience: string) {
 
                     <div class="flex items-center gap-3">
                         <div class="relative">
-                            <button type="button" @click.stop="toggleSortDropdown()" class="w-full flex items-center justify-between px-4 py-2 rounded-xl border border-slate-300 bg-white text-left shadow-sm focus:ring-2 focus:ring-purple-800 text-sm">
+                            <button type="button" @click.stop="toggleSortDropdown()" class="w-full flex items-center justify-between px-4 py-2 rounded-xl border border-slate-300 dark:border-purple-700 bg-white dark:bg-purple-950/40 dark:text-purple-100 text-left shadow-sm focus:ring-2 focus:ring-purple-800 text-sm">
                                 <span>{{ sortOptions.find(o => o.value === sortOrder)?.label ?? 'Newest First' }}</span>
-                                <svg class="w-4 h-4 text-slate-600 transition-transform duration-200" :class="{ 'rotate-180': sortDropdownOpen }" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                <svg class="w-4 h-4 text-slate-600 dark:text-purple-300 transition-transform duration-200" :class="{ 'rotate-180': sortDropdownOpen }" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                             </button>
 
-                            <div v-if="sortDropdownOpen" class="absolute z-50 mt-2 w-48 rounded-xl border-2 border-purple-800 bg-white shadow-xl overflow-hidden">
-                                <div v-for="opt in sortOptions" :key="opt.value" class="px-4 py-2 text-sm hover:bg-purple-100 cursor-pointer" @click="selectSort(opt)">
+                            <div v-if="sortDropdownOpen" class="absolute z-50 mt-2 w-48 rounded-xl border-2 border-purple-800 dark:border-purple-600 bg-white dark:bg-purple-900 shadow-xl overflow-hidden">
+                                <div v-for="opt in sortOptions" :key="opt.value" class="px-4 py-2 text-sm hover:bg-purple-100 dark:hover:bg-purple-800 dark:text-purple-100 cursor-pointer" @click="selectSort(opt)">
                                     {{ opt.label }}
                                 </div>
                             </div>
@@ -278,14 +278,14 @@ function getAudienceBadgeColor(audience: string) {
                 </div>
 
                 <!-- Filters -->
-                <div class="mb-6 inline-flex gap-2 p-1 bg-gray-100 dark:bg-gray-800 rounded-lg">
+                <div class="mb-6 inline-flex gap-2 p-1 bg-gray-100 dark:bg-purple-950/30 rounded-lg">
                     <button 
                         @click="activeFilter = 'all'" 
                         :class="[
                             'px-4 py-2 text-sm font-medium rounded-md transition-colors',
                             activeFilter === 'all' 
-                                ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm' 
-                                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+                                ? 'bg-white dark:bg-purple-800 text-gray-900 dark:text-white shadow-sm' 
+                                : 'text-gray-600 dark:text-purple-300 hover:text-gray-900 dark:hover:text-purple-100'
                         ]"
                     >
                         All ({{ announcements.length }})
@@ -295,8 +295,8 @@ function getAudienceBadgeColor(audience: string) {
                         :class="[
                             'px-4 py-2 text-sm font-medium rounded-md transition-colors',
                             activeFilter === 'published' 
-                                ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm' 
-                                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+                                ? 'bg-white dark:bg-purple-800 text-gray-900 dark:text-white shadow-sm' 
+                                : 'text-gray-600 dark:text-purple-300 hover:text-gray-900 dark:hover:text-purple-100'
                         ]"
                     >
                         Published ({{ publishedCount }})
@@ -306,8 +306,8 @@ function getAudienceBadgeColor(audience: string) {
                         :class="[
                             'px-4 py-2 text-sm font-medium rounded-md transition-colors',
                             activeFilter === 'draft' 
-                                ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm' 
-                                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+                                ? 'bg-white dark:bg-purple-800 text-gray-900 dark:text-white shadow-sm' 
+                                : 'text-gray-600 dark:text-purple-300 hover:text-gray-900 dark:hover:text-purple-100'
                         ]"
                     >
                         Draft ({{ draftCount }})

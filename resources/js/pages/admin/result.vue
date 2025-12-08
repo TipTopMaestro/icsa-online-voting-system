@@ -211,15 +211,15 @@ function getPositionStatistics(positionName, candidates) {
             <div class="flex items-center gap-2">
               <!-- Position Filter (styled dropdown) -->
               <div class="relative w-full sm:w-44">
-                <button @click="togglePositionDropdown()" class="w-full flex items-center justify-between px-4 py-2 rounded-xl border border-slate-300 bg-white text-left shadow-sm focus:ring-2 focus:ring-purple-800 text-sm">
+                <button @click="togglePositionDropdown()" class="w-full flex items-center justify-between px-4 py-2 rounded-xl border border-slate-300 dark:border-purple-700 bg-white dark:bg-purple-950/40 dark:text-purple-100 text-left shadow-sm focus:ring-2 focus:ring-purple-800 text-sm">
                   <span>{{ positionOptions.find(o => o.value === selectedPosition)?.label || 'All Positions' }}</span>
-                  <svg class="w-4 h-4 text-slate-600 transition-transform duration-200" :class="{ 'rotate-180': positionDropdownOpen }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg class="w-4 h-4 text-slate-600 dark:text-purple-300 transition-transform duration-200" :class="{ 'rotate-180': positionDropdownOpen }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                   </svg>
                 </button>
 
-                <div v-show="positionDropdownOpen" class="absolute z-50 mt-2 w-full rounded-xl border-2 border-purple-800 bg-white shadow-xl overflow-hidden">
-                  <div v-for="opt in positionOptions" :key="opt.value" @click="selectPositionOption(opt)" class="px-4 py-2 cursor-pointer hover:bg-purple-100 text-sm">
+                <div v-show="positionDropdownOpen" class="absolute z-50 mt-2 w-full rounded-xl border-2 border-purple-800 dark:border-purple-600 bg-white dark:bg-purple-900 shadow-xl overflow-hidden">
+                  <div v-for="opt in positionOptions" :key="opt.value" @click="selectPositionOption(opt)" class="px-4 py-2 cursor-pointer hover:bg-purple-100 dark:hover:bg-purple-800 dark:text-purple-100 text-sm">
                     {{ opt.label }}
                   </div>
                 </div>
@@ -227,15 +227,15 @@ function getPositionStatistics(positionName, candidates) {
 
               <!-- Sort Dropdown (styled) -->
               <div class="relative w-full sm:w-44">
-                <button @click="toggleSortDropdown()" class="w-full flex items-center justify-between px-4 py-2 rounded-xl border border-slate-300 bg-white text-left shadow-sm focus:ring-2 focus:ring-purple-800 text-sm">
+                <button @click="toggleSortDropdown()" class="w-full flex items-center justify-between px-4 py-2 rounded-xl border border-slate-300 dark:border-purple-700 bg-white dark:bg-purple-950/40 dark:text-purple-100 text-left shadow-sm focus:ring-2 focus:ring-purple-800 text-sm">
                   <span>{{ sortOptions.find(o => o.value === sortBy)?.label }}</span>
-                  <svg class="w-4 h-4 text-slate-600 transition-transform duration-200" :class="{ 'rotate-180': sortDropdownOpen }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg class="w-4 h-4 text-slate-600 dark:text-purple-300 transition-transform duration-200" :class="{ 'rotate-180': sortDropdownOpen }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                   </svg>
                 </button>
 
-                <div v-show="sortDropdownOpen" class="absolute z-50 mt-2 w-full rounded-xl border-2 border-purple-800 bg-white shadow-xl overflow-hidden">
-                  <div v-for="opt in sortOptions" :key="opt.value" @click="selectSortOption(opt)" class="px-4 py-2 cursor-pointer hover:bg-purple-100 text-sm">
+                <div v-show="sortDropdownOpen" class="absolute z-50 mt-2 w-full rounded-xl border-2 border-purple-800 dark:border-purple-600 bg-white dark:bg-purple-900 shadow-xl overflow-hidden">
+                  <div v-for="opt in sortOptions" :key="opt.value" @click="selectSortOption(opt)" class="px-4 py-2 cursor-pointer hover:bg-purple-100 dark:hover:bg-purple-800 dark:text-purple-100 text-sm">
                     {{ opt.label }}
                   </div>
                 </div>
@@ -287,29 +287,29 @@ function getPositionStatistics(positionName, candidates) {
           </div>
 
           <!-- Results Cards -->
-          <div v-for="[positionName, candidates] in sortedResults" :key="positionName" class="bg-white dark:bg-gray-900 rounded-lg shadow-sm border border-gray-200 dark:border-gray-800 overflow-hidden">
+          <div v-for="[positionName, candidates] in sortedResults" :key="positionName" class="bg-white dark:bg-purple-950/20 rounded-lg shadow-sm border border-gray-200 dark:border-purple-800/30 overflow-hidden">
             <!-- Position Header -->
-            <div class="px-6 py-4 bg-gray-50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-800">
-              <h3 class="text-1xl font-bold text-gray-900 dark:text-gray-100 uppercase">{{ positionName }}</h3>
+            <div class="px-6 py-4 bg-gray-50 dark:bg-purple-900/30 border-b border-gray-200 dark:border-purple-800/50">
+              <h3 class="text-1xl font-bold text-gray-900 dark:text-purple-100 uppercase">{{ positionName }}</h3>
             </div>
 
             <!-- Candidates List -->
-            <div class="divide-y divide-gray-200 dark:divide-gray-800">
+            <div class="divide-y divide-gray-200 dark:divide-purple-800/30">
               <div v-if="candidates.length === 0" class="px-6 py-12 text-center">
-                <p class="text-sm text-gray-500 dark:text-gray-400">No candidates for this position</p>
+                <p class="text-sm text-gray-500 dark:text-purple-300">No candidates for this position</p>
               </div>
 
               <div 
                 v-for="(candidate, index) in candidates" 
                 :key="candidate.id"
-                class="relative overflow-hidden hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors"
+                class="relative overflow-hidden hover:bg-gray-50 dark:hover:bg-purple-900/20 transition-colors"
               >
                 <!-- Progress Bar Background -->
                 <div class="absolute inset-0 flex items-center">
                   <div 
                     :class="[
                       'h-full transition-all duration-500',
-                      index === 0 ? 'bg-purple-100 dark:bg-purple-900/20' : 'bg-gray-100 dark:bg-gray-800/30'
+                      index === 0 ? 'bg-purple-100 dark:bg-purple-800/40' : 'bg-gray-100 dark:bg-purple-900/20'
                     ]"
                     :style="{ width: candidate.percentage + '%' }"
                   ></div>
@@ -321,7 +321,7 @@ function getPositionStatistics(positionName, candidates) {
                   <div 
                     :class="[
                       'flex-shrink-0 w-10 h-15 flex items-center justify-center font-bold text-xl',
-                      index === 0 ? 'bg-purple-800 text-white' : 'bg-gray-300 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                      index === 0 ? 'bg-purple-800 dark:bg-purple-700 text-white' : 'bg-gray-300 dark:bg-purple-900/50 text-gray-700 dark:text-purple-200'
                     ]"
                   >
                     {{ index + 1 }}
@@ -329,20 +329,20 @@ function getPositionStatistics(positionName, candidates) {
 
                   <!-- Candidate Name & Party -->
                   <div class="flex-1 px-6 py-4">
-                    <span class="text-lg font-bold text-gray-900 dark:text-gray-100 uppercase">
+                    <span class="text-lg font-bold text-gray-900 dark:text-purple-100 uppercase">
                       {{ candidate.name }}
                     </span>
-                    <span class="ml-2 text-base text-gray-600 dark:text-gray-400">
+                    <span class="ml-2 text-base text-gray-600 dark:text-purple-300">
                       ({{ candidate.partylist || 'IND' }})
                     </span>
                   </div>
 
                   <!-- Vote Count -->
                   <div class="flex-shrink-0 px-6 py-4 flex items-center gap-3">
-                    <span class="text-lg font-bold text-gray-900 dark:text-gray-100">
+                    <span class="text-lg font-bold text-gray-900 dark:text-purple-100">
                       {{ candidate.votes.toLocaleString() }}
                     </span>
-                    <Icon name="flag" class="w-5 h-5 text-gray-400 dark:text-gray-500" />
+                    <Icon name="flag" class="w-5 h-5 text-gray-400 dark:text-purple-400" />
                   </div>
                 </div>
               </div>

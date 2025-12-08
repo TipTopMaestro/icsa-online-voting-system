@@ -400,73 +400,73 @@ const navigateToResults = () => {
             <!-- Stats Grid -->
             <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <!-- Total Voters Card -->
-                <div class="group relative overflow-hidden rounded-xl border p-6 transition-all duration-300 hover:shadow-xl hover:scale-[1.02]" style="background: linear-gradient(135deg, rgba(57, 0, 68, 0.1) 0%, rgba(100, 30, 110, 0.1)100%);">
-                    <div class="absolute right-0 top-0 h-24 w-24 translate-x-8 -translate-y-8 rounded-full " style="background: linear-gradient(135deg, rgba(57, 0, 68, 0.05) 0%, rgba(100, 30, 110, 0.05)10%);" />
+                <div class="group relative overflow-hidden rounded-xl border border-gray-200 dark:border-gray-500 p-6 transition-all duration-300 hover:shadow-xl hover:scale-[1.02] bg-gradient-to-br from-[rgba(57,0,68,0.1)] to-[rgba(100,30,110,0.1)] dark:from-[rgba(57,0,68,0.1)] dark:to-[rgba(100,30,110,0.1)]">
+                    <div class="absolute right-0 top-0 h-24 w-24 translate-x-8 -translate-y-8 rounded-full bg-gradient-to-br from-[rgba(57,0,68,0.05)] to-[rgba(100,30,110,0.05)] dark:from-[rgba(57,0,68,0.05)] dark:to-[rgba(100,30,110,0.05)]" />
                     <div class="relative">
                         <div class="flex items-center justify-between mb-4">
-                            <div class="rounded-xl p-3 shadow-lg" style="background: rgba(57, 0, 68, 0.7); box-shadow: 0 5px 10px rgba(57, 0, 68, 0.9);">
+                            <div class="rounded-xl p-3 shadow-lg bg-[rgba(57,0,68,0.7)] dark:bg-[rgba(57,0,68,0.7)]" style="box-shadow: 0 5px 10px rgba(57, 0, 68, 0.9);">
                                 <Icon name="users" class="h-6 w-6 text-white" />
                             </div>
-                            <Icon name="arrowUpRight" class="h-5 w-5 text-white opacity-0 group-hover:opacity-100 transition-opacity" style="color: rgba(57, 0, 68, 0.8);"/>
+                            <Icon name="arrowUpRight" class="h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity text-[rgba(57,0,68,0.8)] dark:text-white"/>
                         </div>
                         <div class="space-y-1">
-                            <p class="text-sm font-medium" style="color: rgba(57, 0, 68, 0.8);">Total Voters</p>
-                            <p class="text-3xl font-bold" style="color: rgba(57, 0, 68, 0.8);">{{ stats.totalVoters.toLocaleString() }}</p>
-                            <p class="text-xs" style="color: rgba(57, 0, 68, 0.8);">Registered students</p>
+                            <p class="text-sm font-medium text-[rgba(57,0,68,0.8)] dark:text-purple-200">Total Voters</p>
+                            <p class="text-3xl font-bold text-[rgba(57,0,68,0.8)] dark:text-purple-100">{{ stats.totalVoters.toLocaleString() }}</p>
+                            <p class="text-xs text-[rgba(57,0,68,0.8)] dark:text-purple-300">Registered students</p>
                         </div>
                     </div>
                 </div>
 
                 <!-- Active Elections Card -->
-                <div class="group relative overflow-hidden rounded-xl border p-6 transition-all duration-300 hover:shadow-xl hover:scale-[1.02]" style="background: linear-gradient(135deg, rgba(173, 88, 161, 0.3) 0%, rgba(200, 120, 185, 0.3) 100%);">
-                    <div class="absolute right-0 top-0 h-24 w-24 translate-x-8 -translate-y-8 rounded-full" style="background: linear-gradient(135deg, rgba(173, 88, 161, 0.1) 0%, rgba(200, 120, 185, 0.1) 100%);" />
+                <div class="group relative overflow-hidden rounded-xl border border-gray-200 dark:border--800/30 p-6 transition-all duration-300 hover:shadow-xl hover:scale-[1.02] bg-gradient-to-br from-[rgba(173,88,161,0.3)] to-[rgba(200,120,185,0.3)] dark:from-[rgba(173,88,161,0.3)] dark:to-[rgba(200,120,185,0.3)]">
+                    <div class="absolute right-0 top-0 h-24 w-24 translate-x-8 -translate-y-8 rounded-full bg-gradient-to-br from-[rgba(173,88,161,0.1)] to-[rgba(200,120,185,0.1)] dark:from-[rgba(173,88,161,0.1)] dark:to-[rgba(200,120,185,0.1)]" />
                     <div class="relative">
                         <div class="flex items-center justify-between mb-4">
-                            <div class="rounded-xl p-3 shadow-lg" style="background: rgba(173, 88, 161, 0.7); box-shadow: 0 5px 10px rgba(173, 88, 161, 1);">
+                            <div class="rounded-xl p-3 shadow-lg bg-[rgba(173,88,161,0.7)] dark:bg-[rgba(173,88,161,0.7)]" style="box-shadow: 0 5px 10px rgba(173, 88, 161, 1);">
                                 <Icon name="clipboardList" class="h-6 w-6 text-white" />
                             </div>
-                            <Icon name="arrowUpRight" class="h-5 w-5 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                            <Icon name="arrowUpRight" class="h-5 w-5 text-[rgba(173,88,161,0.7)] opacity-0 group-hover:opacity-100 transition-opacity dark:text-white" />
                         </div>
                         <div class="space-y-1">
-                            <p class="text-sm font-medium" style="color: rgba(173, 88, 161, 2);">Active Elections</p>
-                            <p class="text-3xl font-bold" style="color: rgba(173, 88, 161, 2);">{{ stats.activeElections }}</p>
-                            <p class="text-xs" style="color: rgba(173, 88, 161, 2);">Currently running</p>
+                            <p class="text-sm font-medium text-[rgba(173,88,161,2)] dark:text-purple-200">Active Elections</p>
+                            <p class="text-3xl font-bold text-[rgba(173,88,161,2)] dark:text-purple-100">{{ stats.activeElections }}</p>
+                            <p class="text-xs text-[rgba(173,88,161,2)] dark:text-purple-300">Currently running</p>
                         </div>
                     </div>
                 </div>
 
                 <!-- Total Votes Card -->
-                <div class="group relative overflow-hidden rounded-xl border p-6 transition-all duration-300 hover:shadow-xl hover:scale-[1.02]" style="background: linear-gradient(135deg, rgba(159, 84, 15, 0.3) 0%, rgba(185, 115, 45, 0.6) 100%);">
-                    <div class="absolute right-0 top-0 h-24 w-24 translate-x-8 -translate-y-8 rounded-full" style="background: linear-gradient(135deg, rgba(159, 84, 15, 0.1) 0%, rgba(185, 115, 45, 0.1) 100%);"/>
+                <div class="group relative overflow-hidden rounded-xl border border-gray-200 dark:border-gray-500 p-6 transition-all duration-300 hover:shadow-xl hover:scale-[1.02] bg-gradient-to-br from-[rgba(159,84,15,0.3)] to-[rgba(185,115,45,0.6)] dark:from-[rgba(159,84,15,0.3)] dark:to-[rgba(185,115,45,0.6)]">
+                    <div class="absolute right-0 top-0 h-24 w-24 translate-x-8 -translate-y-8 rounded-full bg-gradient-to-br from-[rgba(159,84,15,0.1)] to-[rgba(185,115,45,0.1)] dark:from-[rgba(159,84,15,0.1)] dark:to-[rgba(185,115,45,0.1)]"/>
                     <div class="relative">
                         <div class="flex items-center justify-between mb-4">
-                            <div class="rounded-xl p-3 shadow-lg" style="background: rgba(159, 84, 15, 0.7); box-shadow: 0 5px 10px rgba(159, 84, 15, 1);">
+                            <div class="rounded-xl p-3 shadow-lg bg-[rgba(159,84,15,0.7)] dark:bg-[rgba(159,84,15,0.7)]" style="box-shadow: 0 5px 10px rgba(159, 84, 15, 1);">
                                 <Icon name="checkCircle" class="h-6 w-6 text-white" />
                             </div>
-                            <Icon name="arrowUpRight" class="h-5 w-5 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                            <Icon name="arrowUpRight" class="h-5 w-5 text-[rgba(159,84,15,0.7)] opacity-0 group-hover:opacity-100 transition-opacity dark:text-white" />
                         </div>
                         <div class="space-y-1">
-                            <p class="text-sm font-medium" style="color: rgba(159, 84, 15, 2);">Total Votes Cast</p>
-                            <p class="text-3xl font-bold" style="color: rgba(159, 84, 15, 2);">{{ stats.totalVotes.toLocaleString() }}</p>
-                            <p class="text-xs" style="color: rgba(159, 84, 15, 2);">In active elections</p>
+                            <p class="text-sm font-medium text-[rgba(159,84,15,2)] dark:text-purple-200">Total Votes Cast</p>
+                            <p class="text-3xl font-bold text-[rgba(159,84,15,2)] dark:text-purple-100">{{ stats.totalVotes.toLocaleString() }}</p>
+                            <p class="text-xs text-[rgba(159,84,15,2)] dark:text-purple-300">In active elections</p>
                         </div>
                     </div>
                 </div>
 
                 <!-- Total Candidates Card -->
-                <div class="group relative overflow-hidden rounded-xl border p-6 transition-all duration-300 hover:shadow-xl hover:scale-[1.02]" style="background: linear-gradient(135deg, rgba(235, 135, 49, 0.3) 0%, rgba(245, 160, 80, 0.6) 100%);">
-                    <div class="absolute right-0 top-0 h-24 w-24 translate-x-8 -translate-y-8 rounded-full" style="background: linear-gradient(135deg, rgba(235, 135, 49, 0.1) 0%, rgba(245, 160, 80, 0.1) 100%);" />
+                <div class="group relative overflow-hidden rounded-xl border border-gray-200 dark:border-gray-500 p-6 transition-all duration-300 hover:shadow-xl hover:scale-[1.02] bg-gradient-to-br from-[rgba(235,135,49,0.3)] to-[rgba(245,160,80,0.6)] dark:from-[rgba(235,135,49,0.3)] dark:to-[rgba(245,160,80,0.6)]">
+                    <div class="absolute right-0 top-0 h-24 w-24 translate-x-8 -translate-y-8 rounded-full bg-gradient-to-br from-[rgba(235,135,49,0.1)] to-[rgba(245,160,80,0.1)] dark:from-[rgba(235,135,49,0.1)] dark:to-[rgba(245,160,80,0.1)]" />
                     <div class="relative">
                         <div class="flex items-center justify-between mb-4">
-                            <div class="rounded-xl p-3 shadow-lg" style="background: rgba(212, 106, 14, 1); box-shadow: 0 5px 10px rgba(235, 135, 49, 1);">
+                            <div class="rounded-xl p-3 shadow-lg bg-[rgba(212,106,14,1)] dark:bg-[rgba(212,106,14,1)]" style="box-shadow: 0 5px 10px rgba(235, 135, 49, 1);">
                                 <Icon name="userCheck" class="h-6 w-6 text-white" />
                             </div>
-                            <Icon name="arrowUpRight" class="h-5 w-5 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                            <Icon name="arrowUpRight" class="h-5 w-5 text-[rgba(212,106,14,0.7)] opacity-0 group-hover:opacity-100 transition-opacity dark:text-white" />
                         </div>
                         <div class="space-y-1">
-                            <p class="text-sm font-medium" style="color: rgba(212, 106, 14, 2);">Total Candidates</p>
-                            <p class="text-3xl font-bold" style="color: rgba(212, 106, 14, 2);">{{ stats.totalCandidates }}</p>
-                            <p class="text-xs" style="color: rgba(212, 106, 14, 2);">Running for positions</p>
+                            <p class="text-sm font-medium text-[rgba(212,106,14,2)] dark:text-purple-200">Total Candidates</p>
+                            <p class="text-3xl font-bold text-[rgba(212,106,14,2)] dark:text-purple-100">{{ stats.totalCandidates }}</p>
+                            <p class="text-xs text-[rgba(212,106,14,2)] dark:text-purple-300">Running for positions</p>
                         </div>
                     </div>
                 </div>
