@@ -12,6 +12,9 @@ class ApprovedStudentsSeeder extends Seeder
      */
     public function run(): void
     {
+
+        DB::table('approved_students')->truncate();
+
         ApprovedStudent::create([
     'student_id' => '2024-00819',
     'name' => 'ABUTON, CARL JUDI LABAO',
