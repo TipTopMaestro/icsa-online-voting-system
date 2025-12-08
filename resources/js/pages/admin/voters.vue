@@ -313,7 +313,16 @@ function goToPage(page: number) {
 
                 <td class="py-3 px-4">
                   <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 flex items-center justify-center rounded-full bg-muted font-medium">
+                    <img 
+                      v-if="voter.user.photo" 
+                      :src="voter.user.photo" 
+                      :alt="voter.user.name"
+                      class="w-10 h-10 rounded-full object-cover"
+                    />
+                    <div 
+                      v-else
+                      class="w-10 h-10 flex items-center justify-center rounded-full bg-muted font-medium"
+                    >
                       {{ voter.user.name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase() }}
                     </div>
                     <div class="min-w-0">

@@ -373,22 +373,22 @@ const navigateToResults = () => {
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-6 p-6">
             <!-- Header Section -->
-            <div class="flex items-center justify-between flex-wrap gap-4">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                    <h1 class="text-3xl font-bold tracking-tight">Dashboard</h1>
-                    <p class="text-muted-foreground mt-1">Welcome back! Here's what's happening with your elections.</p>
+                    <h1 class="text-2xl sm:text-3xl font-bold tracking-tight">Dashboard</h1>
+                    <p class="text-muted-foreground mt-1 text-sm">Welcome back! Here's what's happening with your elections.</p>
                 </div>
-                <div class="flex items-center gap-3">
+                <div class="flex items-center gap-3 flex-wrap">
                     <div v-if="isRefreshing" class="flex items-center gap-2 text-sm text-muted-foreground">
                         <Icon name="loader" class="h-4 w-4 animate-spin" />
-                        <span>Refreshing...</span>
+                        <span class="hidden sm:inline">Refreshing...</span>
                     </div>
-                    <div class="rounded-lg border bg-card px-4 py-2">
+                    <div class="rounded-lg border bg-card px-3 sm:px-4 py-2">
                         <div class="flex items-center gap-2">
-                            <Icon name="trendingUp" class="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                            <Icon name="trendingUp" class="h-4 w-4 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
                             <div>
-                                <p class="text-xs text-muted-foreground">Overall Turnout</p>
-                                <p class="text-lg font-bold">{{ turnoutPercentage }}%</p>
+                                <p class="text-xs text-muted-foreground whitespace-nowrap">Overall Turnout</p>
+                                <p class="text-base sm:text-lg font-bold">{{ turnoutPercentage }}%</p>
                             </div>
                         </div>
                     </div>
@@ -471,20 +471,20 @@ const navigateToResults = () => {
             </div>
 
             <!-- Charts Section -->
-            <div class="grid gap-6 lg:grid-cols-2">
+            <div class="grid gap-6 grid-cols-1 lg:grid-cols-2">
                 <!-- Doughnut Chart -->
-                <div class="rounded-xl border bg-card p-6">
+                <div class="rounded-xl border bg-card p-4 sm:p-6">
                     <div class="mb-4">
-                        <h3 class="text-lg font-semibold">Vote Distribution</h3>
-                        <p class="text-sm text-muted-foreground" v-if="activeElection">{{ activeElection.title }}</p>
-                        <p class="text-sm text-muted-foreground" v-else>Candidate vote breakdown</p>
+                        <h3 class="text-base sm:text-lg font-semibold">Vote Distribution</h3>
+                        <p class="text-xs sm:text-sm text-muted-foreground" v-if="activeElection">{{ activeElection.title }}</p>
+                        <p class="text-xs sm:text-sm text-muted-foreground" v-else>Candidate vote breakdown</p>
                     </div>
                     
-                    <div v-if="chartData && activeElection" class="h-[350px]">
+                    <div v-if="chartData && activeElection" class="h-[250px] sm:h-[300px] lg:h-[350px]">
                         <canvas id="doughnutChart"></canvas>
                     </div>
                     
-                    <div v-else class="flex flex-col items-center justify-center h-[350px]">
+                    <div v-else class="flex flex-col items-center justify-center h-[250px] sm:h-[300px] lg:h-[350px]">
                         <div class="rounded-full bg-muted p-4 mb-3">
                             <Icon name="pieChart" class="h-8 w-8 text-muted-foreground" />
                         </div>
@@ -493,18 +493,18 @@ const navigateToResults = () => {
                 </div>
 
                 <!-- Line Chart -->
-                <div class="rounded-xl border bg-card p-6">
+                <div class="rounded-xl border bg-card p-4 sm:p-6">
                     <div class="mb-4">
-                        <h3 class="text-lg font-semibold">Vote Trend</h3>
-                        <p class="text-sm text-muted-foreground" v-if="activeElection">{{ activeElection.title }}</p>
-                        <p class="text-sm text-muted-foreground" v-else>Candidate vote comparison</p>
+                        <h3 class="text-base sm:text-lg font-semibold">Vote Trend</h3>
+                        <p class="text-xs sm:text-sm text-muted-foreground" v-if="activeElection">{{ activeElection.title }}</p>
+                        <p class="text-xs sm:text-sm text-muted-foreground" v-else>Candidate vote comparison</p>
                     </div>
                     
-                    <div v-if="chartData && activeElection" class="h-[350px]">
+                    <div v-if="chartData && activeElection" class="h-[250px] sm:h-[300px] lg:h-[350px]">
                         <canvas id="lineChart"></canvas>
                     </div>
                     
-                    <div v-else class="flex flex-col items-center justify-center h-[350px]">
+                    <div v-else class="flex flex-col items-center justify-center h-[250px] sm:h-[300px] lg:h-[350px]">
                         <div class="rounded-full bg-muted p-4 mb-3">
                             <Icon name="lineChart" class="h-8 w-8 text-muted-foreground" />
                         </div>
@@ -514,9 +514,9 @@ const navigateToResults = () => {
             </div>
 
             <!-- Main Content Grid -->
-            <div class="grid gap-6 lg:grid-cols-3">
+            <div class="grid gap-6 grid-cols-1 lg:grid-cols-3">
                 <!-- Elections List - Takes 2 columns -->
-                <div class="lg:col-span-2">
+                <div class="lg:col-span-2 min-w-0">
                     <div class="mb-4">
                         <h2 class="text-xl font-semibold">Elections</h2>
                         <p class="text-sm text-muted-foreground">Monitor and manage all elections</p>
@@ -586,31 +586,31 @@ const navigateToResults = () => {
                                     </div>
 
                                     <!-- Election Metrics -->
-                                    <div class="grid grid-cols-4 gap-4">
+                                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
                                         <div class="flex items-center gap-2 text-sm">
-                                            <Icon name="calendar" class="h-4 w-4 text-muted-foreground" />
-                                            <div>
+                                            <Icon name="calendar" class="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                                            <div class="min-w-0">
                                                 <p class="text-xs text-muted-foreground">Start Date</p>
-                                                <p class="font-medium text-xs">{{ formatDate(election.start_datetime) }}</p>
+                                                <p class="font-medium text-xs truncate">{{ formatDate(election.start_datetime) }}</p>
                                             </div>
                                         </div>
                                         <div class="flex items-center gap-2 text-sm">
-                                            <Icon name="users" class="h-4 w-4 text-muted-foreground" />
-                                            <div>
+                                            <Icon name="users" class="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                                            <div class="min-w-0">
                                                 <p class="text-xs text-muted-foreground">Votes</p>
                                                 <p class="font-medium text-xs">{{ election.voted_count.toLocaleString() }}</p>
                                             </div>
                                         </div>
                                         <div class="flex items-center gap-2 text-sm">
-                                            <Icon name="briefcase" class="h-4 w-4 text-muted-foreground" />
-                                            <div>
+                                            <Icon name="briefcase" class="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                                            <div class="min-w-0">
                                                 <p class="text-xs text-muted-foreground">Positions</p>
                                                 <p class="font-medium text-xs">{{ election.positions_count }}</p>
                                             </div>
                                         </div>
                                         <div class="flex items-center gap-2 text-sm">
-                                            <Icon name="userCheck" class="h-4 w-4 text-muted-foreground" />
-                                            <div>
+                                            <Icon name="userCheck" class="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                                            <div class="min-w-0">
                                                 <p class="text-xs text-muted-foreground">Candidates</p>
                                                 <p class="font-medium text-xs">{{ election.candidates_count }}</p>
                                             </div>

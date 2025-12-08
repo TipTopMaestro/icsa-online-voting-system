@@ -381,33 +381,33 @@ const breadcrumbs: BreadcrumbItem[] = [
                                 </div>
                             </div>
 
-                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
                                 <div class="flex items-center gap-2 text-sm">
-                                    <Icon name="calendar" class="h-4 w-4 text-muted-foreground" />
-                                    <div>
+                                    <Icon name="calendar" class="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                                    <div class="min-w-0">
                                         <p class="text-xs text-muted-foreground">Duration</p>
-                                        <p class="font-medium text-xs">{{ formatDateRange(election.start_datetime, election.end_datetime) }}</p>
+                                        <p class="font-medium text-xs truncate">{{ formatDateRange(election.start_datetime, election.end_datetime) }}</p>
                                     </div>
                                 </div>
                                 <div class="flex items-center gap-2 text-sm">
-                                    <Icon name="users" class="h-4 w-4 text-muted-foreground" />
-                                    <div>
+                                    <Icon name="users" class="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                                    <div class="min-w-0">
                                         <p class="text-xs text-muted-foreground">Votes</p>
-                                        <p class="font-medium">{{ election.votes_count }}</p>
+                                        <p class="font-medium text-xs">{{ election.votes_count }}</p>
                                     </div>
                                 </div>
                                 <div class="flex items-center gap-2 text-sm">
-                                    <Icon name="briefcase" class="h-4 w-4 text-muted-foreground" />
-                                    <div>
+                                    <Icon name="briefcase" class="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                                    <div class="min-w-0">
                                         <p class="text-xs text-muted-foreground">Positions</p>
-                                        <p class="font-medium">{{ election.positions_count }}</p>
+                                        <p class="font-medium text-xs">{{ election.positions_count }}</p>
                                     </div>
                                 </div>
                                 <div class="flex items-center gap-2 text-sm">
-                                    <Icon name="userCheck" class="h-4 w-4 text-muted-foreground" />
-                                    <div>
+                                    <Icon name="userCheck" class="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                                    <div class="min-w-0">
                                         <p class="text-xs text-muted-foreground">Candidates</p>
-                                        <p class="font-medium">{{ election.candidates_count }}</p>
+                                        <p class="font-medium text-xs">{{ election.candidates_count }}</p>
                                     </div>
                                 </div>
                         </div>

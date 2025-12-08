@@ -329,7 +329,7 @@ function getCandidatePhoto(photo: string) {
                                           <div 
                                             :class="[
                                               'flex-shrink-0 w-10 h-15 flex items-center justify-center font-bold text-xl',
-                                              index === 0 ? 'bg-purple-600 text-white' : 'bg-gray-300 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                                              index === 0 ? 'bg-purple-800 text-white' : 'bg-gray-300 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
                                             ]"
                                           >
                                             {{ index + 1 }}
