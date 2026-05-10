@@ -66,102 +66,61 @@ class VotingController extends Controller
     }
 
     /**
-     * Store votes (submit ballot)
+     * Store votes (submit ballot) using stored procedure
      */
     public function store(Request $request)
     {
         $user = Auth::user();
         
-        // Validate request
+        // Validate request - keep this for immediate UI feedback
         $validated = $request->validate([
             'election_id' => 'required|exists:elections,id',
-            'votes' => 'required|array|min:1', // At least 1 vote required
+            'votes' => 'required|array|min:1',
             'votes.*.position_id' => 'required|exists:positions,id',
             'votes.*.candidate_ids' => 'required|array|min:1',
             'votes.*.candidate_ids.*' => 'required|exists:candidates,id',
         ]);
 
-        // Get election
-        $election = Election::findOrFail($validated['election_id']);
-
-        // Validate election is active
-        if (!$election->isActive()) {
-            return redirect()->back()->withErrors([
-                'error' => 'This election is no longer active.'
-            ]);
-        }
-
-        // Check if already voted
-        $hasVoted = Vote::where('user_id', $user->id)
-            ->where('election_id', $election->id)
-            ->exists();
-
-        if ($hasVoted) {
-            return redirect()->back()->withErrors([
-                'error' => 'You have already voted in this election.'
-            ]);
-        }
-
-        // Validate each position's candidate selections
-        foreach ($validated['votes'] as $vote) {
-            $position = Position::findOrFail($vote['position_id']);
-            
-            // Check max_selection limit
-            if (count($vote['candidate_ids']) > $position->max_selection) {
-                return redirect()->back()->withErrors([
-                    'error' => "Too many candidates selected for position: {$position->name}. Maximum allowed: {$position->max_selection}"
-                ]);
-            }
-
-            // Validate candidates belong to this position
-            foreach ($vote['candidate_ids'] as $candidateId) {
-                $candidate = Candidate::findOrFail($candidateId);
-                if ($candidate->position_id != $position->id) {
-                    return redirect()->back()->withErrors([
-                        'error' => 'Invalid candidate for position.'
-                    ]);
-                }
-            }
-        }
-
-        // Use database transaction for atomicity
-        DB::beginTransaction();
-        
         try {
-            // Store all votes
-            foreach ($validated['votes'] as $vote) {
-                foreach ($vote['candidate_ids'] as $candidateId) {
-                    Vote::create([
-                        'user_id' => $user->id,
-                        'election_id' => $election->id,
-                        'position_id' => $vote['position_id'],
-                        'candidate_id' => $candidateId,
-                    ]);
-
-                    // Increment candidate vote count
-                    $candidate = Candidate::find($candidateId);
-                    $candidate->increment('votes_count');
-                }
-            }
-
-            DB::commit();
+            // Call the stored procedure sp_CastBallot
+            // We pass the votes array as a JSON string
+            DB::statement('CALL sp_CastBallot(?, ?, ?)', [
+                $user->id,
+                $validated['election_id'],
+                json_encode($validated['votes'])
+            ]);
 
             // Redirect to receipt page
             return redirect()->route('voter.receipt', [
-                'election_id' => $election->id
+                'election_id' => $validated['election_id']
             ])->with('success', 'Your vote has been submitted successfully!');
 
-        } catch (\Exception $e) {
-            DB::rollBack();
-            
-            \Log::error('Vote submission failed', [
+        } catch (\PDOException $e) {
+            // The stored procedure raises errors using SIGNAL SQLSTATE '45000'
+            // We catch these and return them to the user
+            \Log::error('Vote submission via procedure failed', [
                 'user_id' => $user->id,
-                'election_id' => $election->id,
+                'election_id' => $validated['election_id'],
+                'error' => $e->getMessage()
+            ]);
+            
+            $errorMessage = 'Failed to submit votes. Please try again.';
+            
+            // Extract custom message from SQL error if possible
+            if ($e->getCode() == '45000') {
+                $errorMessage = $e->getMessage();
+            }
+
+            return redirect()->back()->withErrors([
+                'error' => $errorMessage
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Unexpected error during vote submission', [
                 'error' => $e->getMessage()
             ]);
             
             return redirect()->back()->withErrors([
-                'error' => 'Failed to submit votes. Please try again.'
+                'error' => 'An unexpected error occurred.'
             ]);
         }
     }

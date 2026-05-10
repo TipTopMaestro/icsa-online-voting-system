@@ -10,6 +10,7 @@ use App\Models\Announcement;
 use App\Models\Candidate;
 use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class CandidateController extends Controller
 {
@@ -48,7 +49,7 @@ class CandidateController extends Controller
         // Use the election's isActive() method which checks both is_active field and date range
         $isElectionOngoing = $activeElection->isActive();
         
-        $votesReceived = \DB::table('votes')
+        $votesReceived = DB::table('votes')
             ->where('candidate_id', $candidate->id)
             ->where('election_id', $activeElection->id)
             ->count();
@@ -238,75 +239,60 @@ class CandidateController extends Controller
             });
         
         // Get all positions for this election
-        $positions = \DB::table('positions')
+        $positions = DB::table('positions')
             ->join('candidates', 'positions.id', '=', 'candidates.position_id')
             ->where('candidates.election_id', $election->id)
             ->select('positions.id', 'positions.name')
             ->distinct()
             ->get();
         
+        // Fetch pre-calculated results from our database view
+        $viewResults = DB::table('view_election_results')
+            ->where('election_id', $election->id)
+            ->get();
+
         // Get results grouped by position
         $results = [];
         
         foreach ($positions as $position) {
-            $candidates = Candidate::where('position_id', $position->id)
-                ->where('election_id', $election->id)
-                ->with('user')
-                ->get()
-                ->map(function ($candidate) use ($election) {
-                    $voteCount = \DB::table('votes')
-                        ->where('candidate_id', $candidate->id)
-                        ->where('election_id', $election->id)
-                        ->count();
+            $results[$position->name] = $viewResults->where('position_id', $position->id)
+                ->map(function ($row) {
+                    $candidate = Candidate::find($row->candidate_id);
                     
                     return [
-                        'id' => $candidate->id,
-                        'name' => $candidate->user->name,
-                        'photo' => $candidate->photo 
+                        'id' => $row->candidate_id,
+                        'name' => $row->candidate_name,
+                        'photo' => $candidate && $candidate->photo 
                             ? asset('storage/candidates/' . $candidate->photo)
                             : asset('images/profile.png'),
-                        'votes' => $voteCount,
-                        'partylist' => $candidate->partylist,
-                        'course' => $candidate->course,
-                        'year_level' => $candidate->year_level,
-                        'section' => $candidate->section,
+                        'votes' => (int) $row->votes_count,
+                        'percentage' => (float) $row->vote_percentage,
+                        'isWinner' => $row->current_rank == 1 && $row->votes_count > 0,
+                        'partylist' => $candidate->partylist ?? 'N/A',
+                        'course' => $candidate->course ?? 'N/A',
+                        'year_level' => $candidate->year_level ?? 'N/A',
+                        'section' => $candidate->section ?? 'N/A',
                     ];
                 })
-                ->sortByDesc('votes')
-                ->values();
-            
-            // Calculate total votes and percentages
-            $totalVotesForPosition = $candidates->sum('votes');
-            
-            $candidates = $candidates->map(function ($candidate, $index) use ($totalVotesForPosition) {
-                $percentage = $totalVotesForPosition > 0 
-                    ? round(($candidate['votes'] / $totalVotesForPosition) * 100, 2) 
-                    : 0;
-                
-                return array_merge($candidate, [
-                    'percentage' => $percentage,
-                    'isWinner' => $index === 0,
-                ]);
-            });
-            
-            $results[$position->name] = $candidates->toArray();
+                ->values()
+                ->toArray();
         }
         
         // Calculate statistics
-        $totalVoters = \DB::table('votes')
+        $totalVotersWhoVoted = DB::table('votes')
             ->where('election_id', $election->id)
             ->distinct('user_id')
             ->count('user_id');
         
         $totalRegisteredVoters = User::where('role', 'voter')->count();
         $turnoutPercentage = $totalRegisteredVoters > 0 
-            ? round(($totalVoters / $totalRegisteredVoters) * 100, 2) 
+            ? round(($totalVotersWhoVoted / $totalRegisteredVoters) * 100, 2) 
             : 0;
         
         $statistics = [
             'totalVoters' => $totalRegisteredVoters,
-            'votedCount' => $totalVoters,
-            'abstainedCount' => $totalRegisteredVoters - $totalVoters,
+            'votedCount' => $totalVotersWhoVoted,
+            'abstainedCount' => $totalRegisteredVoters - $totalVotersWhoVoted,
             'turnoutPercentage' => $turnoutPercentage,
             'totalPositions' => count($positions),
             'totalCandidates' => Candidate::where('election_id', $election->id)->count(),

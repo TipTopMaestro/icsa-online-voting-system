@@ -11,6 +11,7 @@ use App\Models\User;
 use App\Models\Candidate;
 use App\Models\Position;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
@@ -33,7 +34,7 @@ class DashboardController extends Controller
         $totalVotes = 0;
         if ($activeElection) {
             // Count unique voters who voted in the active election
-            $totalVotes = \DB::table('votes')
+            $totalVotes = DB::table('votes')
                 ->where('election_id', $activeElection->id)
                 ->distinct('user_id')
                 ->count('user_id');
@@ -41,24 +42,14 @@ class DashboardController extends Controller
         
         $chartData = null;
         if ($activeElection) {
-            // Get vote counts per candidate for active election
-            $voteCounts = \DB::table('votes')
-                ->join('candidates', 'votes.candidate_id', '=', 'candidates.id')
-                ->join('users', 'candidates.user_id', '=', 'users.id')
-                ->join('positions', 'candidates.position_id', '=', 'positions.id')
-                ->where('votes.election_id', $activeElection->id)
-                ->select(
-                    'candidates.id',
-                    'users.name as candidate_name',
-                    'positions.name as position_name'
-                )
-                ->selectRaw('COUNT(votes.id) as vote_count')
-                ->groupBy('candidates.id', 'users.name', 'positions.name')
+            // Get vote counts per candidate for active election using our optimized view
+            $voteCounts = DB::table('view_election_results')
+                ->where('election_id', $activeElection->id)
                 ->get();
             
             $chartData = [
                 'labels' => $voteCounts->pluck('candidate_name')->toArray(),
-                'data' => $voteCounts->pluck('vote_count')->toArray(),
+                'data' => $voteCounts->pluck('votes_count')->toArray(),
                 'positions' => $voteCounts->pluck('position_name')->toArray(),
             ];
         }
@@ -67,7 +58,7 @@ class DashboardController extends Controller
         $activities = [];
         
         // Recent votes
-        $recentVotes = \DB::table('votes')
+        $recentVotes = DB::table('votes')
             ->join('elections', 'votes.election_id', '=', 'elections.id')
             ->select('elections.title as election_name', 'votes.created_at')
             ->orderBy('votes.created_at', 'desc')
@@ -131,7 +122,7 @@ class DashboardController extends Controller
         $elections = Election::withCount(['votes', 'candidates', 'positions'])
             ->get()
             ->map(function ($election) use ($totalVoters) {
-                $votedCount = \DB::table('votes')
+                $votedCount = DB::table('votes')
                     ->where('election_id', $election->id)
                     ->distinct('user_id')
                     ->count('user_id');
@@ -198,7 +189,7 @@ class DashboardController extends Controller
         
         if ($activeElection) {
             // Check if user has voted
-            $hasVoted = \DB::table('votes')
+            $hasVoted = DB::table('votes')
                 ->where('user_id', $user->id)
                 ->where('election_id', $activeElection->id)
                 ->exists();
@@ -248,11 +239,11 @@ class DashboardController extends Controller
             });
         
         // Get voter statistics
-        $totalVotes = \DB::table('votes')
+        $totalVotes = DB::table('votes')
             ->where('user_id', $user->id)
             ->count();
         
-        $participatedElections = \DB::table('votes')
+        $participatedElections = DB::table('votes')
             ->where('user_id', $user->id)
             ->distinct('election_id')
             ->count('election_id');

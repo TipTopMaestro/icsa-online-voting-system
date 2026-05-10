@@ -148,79 +148,59 @@ class ResultController extends Controller
     }
 
     /**
-     * Get election results data
+     * Get election results data using the view_election_results database view
      * Returns positions, results grouped by position, and statistics
      */
     private function getElectionResults($electionId)
     {
         $election = Election::findOrFail($electionId);
 
-        // Get all positions for this election
-        $positions = Position::where('election_id', $electionId)
-            ->select('id', 'name')
-            ->orderBy('id')
-            ->get();
+        // Get total registered voters (for turnout calculation)
+        $totalRegisteredVoters = VoterProfile::count();
 
-        // Get total votes cast in this election (unique voters)
+        // Get total voters who actually cast at least one vote in this election
         $totalVotersWhoVoted = Vote::where('election_id', $electionId)
             ->distinct('user_id')
             ->count('user_id');
-
-        // Get total registered voters
-        $totalRegisteredVoters = VoterProfile::count();
 
         // Calculate turnout percentage
         $turnoutPercentage = $totalRegisteredVoters > 0 
             ? round(($totalVotersWhoVoted / $totalRegisteredVoters) * 100, 2) 
             : 0;
 
-        // Get results grouped by position
-        $results = [];
-        
-        foreach ($positions as $position) {
-            // Get candidates for this position with their vote counts
-            $candidates = Candidate::where('position_id', $position->id)
-                ->where('election_id', $electionId)
-                ->with('user')
-                ->get()
-                ->map(function ($candidate) use ($electionId) {
-                    // Count votes for this candidate in this election
-                    $voteCount = Vote::where('candidate_id', $candidate->id)
-                        ->where('election_id', $electionId)
-                        ->count();
+        // Fetch pre-calculated results from our database view
+        $viewResults = DB::table('view_election_results')
+            ->where('election_id', $electionId)
+            ->get();
 
+        // Get positions for this election
+        $positions = Position::where('election_id', $electionId)
+            ->select('id', 'name')
+            ->orderBy('id')
+            ->get();
+
+        // Group the view results by position name for the frontend
+        $results = [];
+        foreach ($positions as $position) {
+            $results[$position->name] = $viewResults->where('position_id', $position->id)
+                ->map(function ($row) {
+                    // Fetch the photo from the candidate model if needed or logic here
+                    // Assuming candidate table has the photo path
+                    $candidate = Candidate::find($row->candidate_id);
+                    
                     return [
-                        'id' => $candidate->id,
-                        'name' => $candidate->user->name,
-                        'photo' => $candidate->photo 
+                        'id' => $row->candidate_id,
+                        'name' => $row->candidate_name,
+                        'photo' => $candidate && $candidate->photo 
                             ? asset('storage/candidates/' . $candidate->photo)
                             : asset('images/profile.png'),
-                        'votes' => $voteCount,
-                        'partylist' => $candidate->partylist,
-                        'course' => $candidate->course,
-                        'year_level' => $candidate->year_level,
-                        'section' => $candidate->section,
+                        'votes' => (int) $row->votes_count,
+                        'percentage' => (float) $row->vote_percentage,
+                        'isWinner' => $row->current_rank == 1 && $row->votes_count > 0,
                     ];
                 })
-                ->sortByDesc('votes')
-                ->values();
-
-            // Calculate total votes for this position
-            $totalVotesForPosition = $candidates->sum('votes');
-
-            // Calculate percentages and add winner flag
-            $candidates = $candidates->map(function ($candidate, $index) use ($totalVotesForPosition) {
-                $percentage = $totalVotesForPosition > 0 
-                    ? round(($candidate['votes'] / $totalVotesForPosition) * 100, 2) 
-                    : 0;
-
-                return array_merge($candidate, [
-                    'percentage' => $percentage,
-                    'isWinner' => $index === 0 && $candidate['votes'] > 0, // First place is winner
-                ]);
-            });
-
-            $results[$position->name] = $candidates->toArray();
+                ->values()
+                ->toArray();
         }
 
         // Statistics

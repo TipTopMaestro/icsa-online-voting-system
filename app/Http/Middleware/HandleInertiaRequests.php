@@ -67,6 +67,11 @@ class HandleInertiaRequests extends Middleware
                     'role' => $user->role,
                 ] : null,
             ],
+            'flash' => [
+                'success' => $request->session()->get('success'),
+                'error' => $request->session()->get('error'),
+                'generated_password' => $request->session()->get('generated_password'),
+            ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];
     }
