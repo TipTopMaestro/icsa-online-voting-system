@@ -19,7 +19,7 @@ class CandidateController extends Controller
         $user = Auth::user();
         
         $candidate = Candidate::where('user_id', $user->id)
-            ->with(['position', 'election'])
+            ->with(['position'])
             ->first();
         
         if (!$candidate) {
@@ -41,38 +41,22 @@ class CandidateController extends Controller
             ]);
         }
         
-        $activeElection = $candidate->election;
+        // Fetch candidate's election statistics from optimized view
+        $electionStats = DB::table('view_election_statistics')
+            ->where('id', $candidate->election_id)
+            ->first();
         
-        // Refresh election data to get latest is_active status from database
-        $activeElection->refresh();
-        
-        // Use the election's isActive() method which checks both is_active field and date range
-        $isElectionOngoing = $activeElection->isActive();
-        
-        $votesReceived = DB::table('votes')
+        if (!$electionStats) {
+             return redirect()->route('dashboard')->withErrors(['error' => 'Election data not found.']);
+        }
+
+        // Get candidate's specific results from the results view
+        $candidateResult = DB::table('view_election_results')
             ->where('candidate_id', $candidate->id)
-            ->where('election_id', $activeElection->id)
-            ->count();
+            ->first();
         
         $totalVoters = User::where('role', 'voter')->count();
-        
-        $votePercentage = $totalVoters > 0 ? round(($votesReceived / $totalVoters) * 100, 1) : 0;
-        
-        $candidatesInPosition = Candidate::where('position_id', $candidate->position_id)
-            ->where('election_id', $activeElection->id)
-            ->withCount('votes')
-            ->orderBy('votes_count', 'desc')
-            ->get();
-        
-        $ranking = 0;
-        $totalCandidates = $candidatesInPosition->count();
-        
-        foreach ($candidatesInPosition as $index => $c) {
-            if ($c->id === $candidate->id) {
-                $ranking = $index + 1;
-                break;
-            }
-        }
+        $votesReceived = (int)($candidateResult->votes_count ?? 0);
         
         $recentAnnouncements = Announcement::where('is_published', 1)
             ->orderBy('created_at', 'desc')
@@ -93,12 +77,12 @@ class CandidateController extends Controller
                 'photo' => $user->photo ? asset('storage/' . $user->photo) : null,
             ],
             'activeElection' => [
-                'id' => $activeElection->id,
-                'name' => $activeElection->title,
-                'description' => $activeElection->description,
-                'start_datetime' => $activeElection->start_datetime,
-                'end_datetime' => $activeElection->end_datetime,
-                'is_ongoing' => $isElectionOngoing,
+                'id' => $electionStats->id,
+                'name' => $electionStats->title,
+                'description' => $electionStats->description,
+                'start_datetime' => $electionStats->start_datetime,
+                'end_datetime' => $electionStats->end_datetime,
+                'is_ongoing' => $electionStats->status === 'active',
             ],
             'candidatePosition' => [
                 'id' => $candidate->position->id,
@@ -108,9 +92,9 @@ class CandidateController extends Controller
             'statistics' => [
                 'votesReceived' => $votesReceived,
                 'totalVoters' => $totalVoters,
-                'votePercentage' => $votePercentage,
-                'ranking' => $ranking,
-                'totalCandidates' => $totalCandidates,
+                'votePercentage' => $totalVoters > 0 ? round(($votesReceived / $totalVoters) * 100, 1) : 0,
+                'ranking' => (int)($candidateResult->current_rank ?? 0),
+                'totalCandidates' => (int)($electionStats->candidates_count ?? 0),
             ],
         ]);
     }
@@ -221,29 +205,30 @@ class CandidateController extends Controller
         }
         
         $electionId = $request->input('election_id', $candidate->election_id);
-        $election = Election::find($electionId) ?? $candidate->election;
         
-        // Get all elections for selector dropdown
-        $elections = Election::select('id', 'title', 'description', 'start_datetime', 'end_datetime', 'is_active')
+        // Get election metadata from optimized view
+        $allElections = DB::table('view_election_statistics')
             ->orderBy('start_datetime', 'desc')
-            ->get()
-            ->map(function ($e) {
-                return [
-                    'id' => $e->id,
-                    'title' => $e->title,
-                    'description' => $e->description,
-                    'status' => $e->isActive() ? 'active' : 'closed',
-                    'startDate' => $e->start_datetime->format('d M Y') . ' - ' . $e->end_datetime->format('d M Y'),
-                    'is_active' => $e->isActive(),
-                ];
-            });
+            ->get();
+        
+        $election = $allElections->firstWhere('id', $electionId) ?? $allElections->firstWhere('id', $candidate->election_id);
+
+        // Map elections for selector dropdown
+        $electionOptions = $allElections->map(function ($e) {
+            return [
+                'id' => $e->id,
+                'title' => $e->title,
+                'description' => $e->description,
+                'status' => $e->status,
+                'startDate' => \Carbon\Carbon::parse($e->start_datetime)->format('d M Y') . ' - ' . \Carbon\Carbon::parse($e->end_datetime)->format('d M Y'),
+                'is_active' => (bool)$e->is_active,
+            ];
+        });
         
         // Get all positions for this election
-        $positions = DB::table('positions')
-            ->join('candidates', 'positions.id', '=', 'candidates.position_id')
-            ->where('candidates.election_id', $election->id)
-            ->select('positions.id', 'positions.name')
-            ->distinct()
+        $positions = Position::where('election_id', $election->id)
+            ->select('id', 'name')
+            ->orderBy('id')
             ->get();
         
         // Fetch pre-calculated results from our database view
@@ -278,35 +263,31 @@ class CandidateController extends Controller
                 ->toArray();
         }
         
-        // Calculate statistics
-        $totalVotersWhoVoted = DB::table('votes')
-            ->where('election_id', $election->id)
-            ->distinct('user_id')
-            ->count('user_id');
-        
+        // Calculate statistics using the view
+        $electionStats = $allElections->firstWhere('id', $election->id);
         $totalRegisteredVoters = User::where('role', 'voter')->count();
-        $turnoutPercentage = $totalRegisteredVoters > 0 
-            ? round(($totalVotersWhoVoted / $totalRegisteredVoters) * 100, 2) 
-            : 0;
+        $votedCount = (int)($electionStats->voted_count ?? 0);
         
         $statistics = [
             'totalVoters' => $totalRegisteredVoters,
-            'votedCount' => $totalVotersWhoVoted,
-            'abstainedCount' => $totalRegisteredVoters - $totalVotersWhoVoted,
-            'turnoutPercentage' => $turnoutPercentage,
-            'totalPositions' => count($positions),
-            'totalCandidates' => Candidate::where('election_id', $election->id)->count(),
+            'votedCount' => $votedCount,
+            'abstainedCount' => max(0, $totalRegisteredVoters - $votedCount),
+            'turnoutPercentage' => $totalRegisteredVoters > 0 
+                ? round(($votedCount / $totalRegisteredVoters) * 100, 2) 
+                : 0,
+            'totalPositions' => $positions->count(),
+            'totalCandidates' => (int)($electionStats->candidates_count ?? 0),
         ];
         
         return Inertia::render('candidate/Results', [
-            'elections' => $elections,
+            'elections' => $electionOptions,
             'selectedElection' => [
                 'id' => $election->id,
                 'title' => $election->title,
                 'description' => $election->description,
-                'status' => $election->isActive() ? 'active' : 'closed',
-                'startDate' => $election->start_datetime->format('d M Y') . ' - ' . $election->end_datetime->format('d M Y'),
-                'is_active' => $election->isActive(),
+                'status' => $election->status,
+                'startDate' => \Carbon\Carbon::parse($election->start_datetime)->format('d M Y') . ' - ' . \Carbon\Carbon::parse($election->end_datetime)->format('d M Y'),
+                'is_active' => (bool)$election->is_active,
             ],
             'positions' => $positions,
             'results' => $results,

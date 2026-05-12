@@ -438,7 +438,7 @@ function copyPassword() {
       </div>
 
       <!-- Modern Search & Filters -->
-      <section class="bg-card rounded-xl shadow-sm border mb-6 relative">
+      <section :class="['bg-card rounded-xl shadow-sm border mb-6 relative transition-all duration-200', showFilters ? 'z-40 shadow-md' : 'z-10']">
         <!-- Search Bar -->
         <div class="p-4 relative z-20">
           <div class="flex items-center gap-3">
@@ -489,8 +489,6 @@ function copyPassword() {
             </button>
 
             <!-- Quick Actions -->
-            
-
             <button 
               v-if="hasActiveFilters"
               @click="clearFilters" 
@@ -531,18 +529,18 @@ function copyPassword() {
 
         <!-- Expandable Filters -->
         <transition
-          enter-active-class="transition-all duration-300 ease-out"
-          enter-from-class="opacity-0 max-h-0"
-          enter-to-class="opacity-100 max-h-[500px]"
-          leave-active-class="transition-all duration-200 ease-in"
-          leave-from-class="opacity-100 max-h-[500px]"
-          leave-to-class="opacity-0 max-h-0"
+          enter-active-class="transition-opacity duration-200 ease-out"
+          enter-from-class="opacity-0"
+          enter-to-class="opacity-100"
+          leave-active-class="transition-opacity duration-150 ease-in"
+          leave-from-class="opacity-100"
+          leave-to-class="opacity-0"
         >
           <div v-show="showFilters" class="border-t bg-muted/50 relative z-30">
             <div class="p-4">
               <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <!-- Election Filter -->
-                <div :class="['relative', electionDropdownOpen ? 'z-50' : 'z-10']">
+                <div :class="['relative', electionDropdownOpen ? 'z-[60]' : 'z-10']">
                   <label class="block text-xs font-medium text-muted-foreground mb-1.5">Election</label>
                   <div class="relative">
                     <button type="button" @click.stop="toggleElectionDropdown()" class="w-full text-left px-3 py-2 pr-10 text-sm bg-background dark:bg-purple-950/40 border dark:border-purple-700 rounded-lg flex items-center justify-between dark:text-purple-100">
@@ -561,7 +559,7 @@ function copyPassword() {
                 </div>
 
                 <!-- Position Filter -->
-                <div :class="['relative', positionDropdownOpen ? 'z-50' : 'z-10']">
+                <div :class="['relative', positionDropdownOpen ? 'z-[60]' : 'z-10']">
                   <label class="block text-xs font-medium text-muted-foreground mb-1.5">Position</label>
                   <div class="relative">
                     <button type="button" @click.stop="togglePositionDropdown()" class="w-full text-left px-3 py-2 pr-10 text-sm bg-background dark:bg-purple-950/40 border dark:border-purple-700 rounded-lg flex items-center justify-between dark:text-purple-100">
@@ -592,7 +590,7 @@ function copyPassword() {
                 </div>
 
                 <!-- Course Filter -->
-                <div :class="['relative', courseDropdownOpen ? 'z-50' : 'z-10']">
+                <div :class="['relative', courseDropdownOpen ? 'z-[60]' : 'z-10']">
                   <label class="block text-xs font-medium text-muted-foreground mb-1.5">Course</label>
                   <div class="relative">
                     <button type="button" @click.stop="toggleCourseDropdown()" class="w-full text-left px-3 py-2 pr-10 text-sm bg-background dark:bg-purple-950/40 border dark:border-purple-700 rounded-lg flex items-center justify-between dark:text-purple-100">
@@ -611,7 +609,7 @@ function copyPassword() {
                 </div>
 
                 <!-- Year Level Filter -->
-                <div :class="['relative', yearDropdownOpen ? 'z-50' : 'z-10']">
+                <div :class="['relative', yearDropdownOpen ? 'z-[60]' : 'z-10']">
                   <label class="block text-xs font-medium text-muted-foreground mb-1.5">Year Level</label>
                   <div class="relative">
                     <button type="button" @click.stop="toggleYearDropdown()" class="w-full text-left px-3 py-2 pr-10 text-sm bg-background dark:bg-purple-950/40 border dark:border-purple-700 rounded-lg flex items-center justify-between dark:text-purple-100">

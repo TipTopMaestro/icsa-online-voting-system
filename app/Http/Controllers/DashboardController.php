@@ -16,35 +16,25 @@ use Illuminate\Support\Facades\DB;
 class DashboardController extends Controller
 {
     public function adminDashboard() {
+        // Fetch all election statistics from the optimized database view
+        $allStats = DB::table('view_election_statistics')->orderBy('created_at', 'desc')->get();
+        
+        // Find the active election record from the view
+        $activeElectionRecord = $allStats->firstWhere('is_active', 1);
+        
         // Get overall statistics
         $totalVoters = User::where('role', 'voter')->count();
-        
-        // Get active election - use isActive() method
-        $activeElection = Election::where('is_active', 1)
-            ->with(['positions.candidates'])
-            ->get()
-            ->first(function ($e) {
-                return $e->isActive();
-            });
-        
-        $activeElectionsCount = $activeElection ? 1 : 0;
+        $activeElectionsCount = $activeElectionRecord ? 1 : 0;
         $totalCandidates = Candidate::count();
         
-        // Calculate accurate turnout for active election
-        $totalVotes = 0;
-        if ($activeElection) {
-            // Count unique voters who voted in the active election
-            $totalVotes = DB::table('votes')
-                ->where('election_id', $activeElection->id)
-                ->distinct('user_id')
-                ->count('user_id');
-        }
+        // Calculate accurate turnout for active election from the view
+        $totalVotes = $activeElectionRecord ? $activeElectionRecord->voted_count : 0;
         
         $chartData = null;
-        if ($activeElection) {
-            // Get vote counts per candidate for active election using our optimized view
+        if ($activeElectionRecord) {
+            // Get vote counts per candidate for active election using our optimized results view
             $voteCounts = DB::table('view_election_results')
-                ->where('election_id', $activeElection->id)
+                ->where('election_id', $activeElectionRecord->id)
                 ->get();
             
             $chartData = [
@@ -87,7 +77,7 @@ class DashboardController extends Controller
             $activities[] = [
                 'type' => 'voter',
                 'title' => 'New voter registered',
-                'description' => $voter->name . ($voter->course ? ' (' . $voter->course . ')' : ''),
+                'description' => $voter->name,
                 'time' => $voter->created_at->diffForHumans(),
                 'timestamp' => $voter->created_at->timestamp,
                 'icon' => 'userPlus',
@@ -118,31 +108,24 @@ class DashboardController extends Controller
         });
         $activities = array_slice($activities, 0, 5);
         
-        // Get all elections with stats
-        $elections = Election::withCount(['votes', 'candidates', 'positions'])
-            ->get()
-            ->map(function ($election) use ($totalVoters) {
-                $votedCount = DB::table('votes')
-                    ->where('election_id', $election->id)
-                    ->distinct('user_id')
-                    ->count('user_id');
-                
-                return [
-                    'id' => $election->id,
-                    'title' => $election->title,
-                    'description' => $election->description,
-                    'start_datetime' => $election->start_datetime,
-                    'end_datetime' => $election->end_datetime,
-                    'is_active' => $election->is_active,
-                    'status' => $election->status,
-                    'positions_count' => $election->positions_count,
-                    'candidates_count' => $election->candidates_count,
-                    'votes_count' => $election->votes_count,
-                    'voted_count' => $votedCount,
-                    'total_voters' => $totalVoters,
-                    'turnout_percentage' => $totalVoters > 0 ? round(($votedCount / $totalVoters) * 100, 1) : 0,
-                ];
-            });
+        // Format elections list from the view data
+        $elections = $allStats->map(function ($row) use ($totalVoters) {
+            return [
+                'id' => $row->id,
+                'title' => $row->title,
+                'description' => $row->description,
+                'start_datetime' => $row->start_datetime,
+                'end_datetime' => $row->end_datetime,
+                'is_active' => $row->is_active,
+                'status' => $row->status,
+                'positions_count' => $row->positions_count,
+                'candidates_count' => $row->candidates_count,
+                'votes_count' => $row->votes_count,
+                'voted_count' => $row->voted_count,
+                'total_voters' => $totalVoters,
+                'turnout_percentage' => $totalVoters > 0 ? round(($row->voted_count / $totalVoters) * 100, 1) : 0,
+            ];
+        });
         
         return Inertia::render('admin/Dashboard', [
             'stats' => [
@@ -154,9 +137,9 @@ class DashboardController extends Controller
             'chartData' => $chartData,
             'activities' => $activities,
             'elections' => $elections,
-            'activeElection' => $activeElection ? [
-                'id' => $activeElection->id,
-                'title' => $activeElection->title,
+            'activeElection' => $activeElectionRecord ? [
+                'id' => $activeElectionRecord->id,
+                'title' => $activeElectionRecord->title,
             ] : null,
         ]);
     }
@@ -164,12 +147,10 @@ class DashboardController extends Controller
     public function voterDashboard() {
         $user = Auth::user();
         
-        // Get active election - use isActive() method
-        $activeElection = Election::where('is_active', 1)
-            ->get()
-            ->first(function ($e) {
-                return $e->isActive();
-            });
+        // Fetch active election from the optimized view
+        $activeElection = DB::table('view_election_statistics')
+            ->where('is_active', 1)
+            ->first();
         
         $dashboardData = [
             'user' => [
@@ -212,7 +193,7 @@ class DashboardController extends Controller
             
             $dashboardData['activeElection'] = [
                 'id' => $activeElection->id,
-                'name' => $activeElection->name,
+                'name' => $activeElection->title, // Mapped title to name for frontend compatibility
                 'description' => $activeElection->description,
                 'start_datetime' => $activeElection->start_datetime,
                 'end_datetime' => $activeElection->end_datetime,

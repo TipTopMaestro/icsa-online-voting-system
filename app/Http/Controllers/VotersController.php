@@ -5,17 +5,16 @@ namespace App\Http\Controllers;
 use App\Models\VoterProfile;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\DB;
 
 class VotersController extends Controller
 {
     public function index(Request $request)
     {
-        // Get active election - use isActive() method that checks both is_active and date range
-        $activeElection = \App\Models\Election::where('is_active', true)
-            ->get()
-            ->first(function ($election) {
-                return $election->isActive();
-            });
+        // Get active election from optimized view
+        $activeElection = DB::table('view_election_statistics')
+            ->where('is_active', 1)
+            ->first();
 
         $query = VoterProfile::with('user')
             ->orderBy('created_at', 'desc');

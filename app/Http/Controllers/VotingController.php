@@ -20,12 +20,10 @@ class VotingController extends Controller
     {
         $user = Auth::user();
         
-        // Get active election - use isActive() method
-        $election = Election::where('is_active', true)
-            ->get()
-            ->first(function ($e) {
-                return $e->isActive();
-            });
+        // Fetch the active election from optimized view
+        $election = DB::table('view_election_statistics')
+            ->where('is_active', 1)
+            ->first();
 
         // No active election
         if (!$election) {
@@ -158,12 +156,10 @@ class VotingController extends Controller
      */
     public function viewCandidates()
     {
-        // Get active election - use isActive() method
-        $election = Election::where('is_active', true)
-            ->get()
-            ->first(function ($e) {
-                return $e->isActive();
-            });
+        // Fetch the active election from optimized view
+        $election = DB::table('view_election_statistics')
+            ->where('is_active', 1)
+            ->first();
 
         // No active election
         if (!$election) {

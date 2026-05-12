@@ -80,8 +80,8 @@ class CandidatesController extends Controller
 
         $candidates = $query->paginate(15);
 
-        // Get elections and positions for filters
-        $elections = Election::orderBy('title')->get(['id', 'title']);
+        // Get elections and positions for filters from optimized view
+        $elections = DB::table('view_election_statistics')->orderBy('title')->get(['id', 'title']);
         $positions = Position::orderBy('name')->get(['id', 'name', 'election_id']);
 
         return Inertia::render('admin/candidates', [

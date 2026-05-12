@@ -33,5 +33,5 @@ class Election extends Model
     // public function isActive()
     // {
     //     return $this->is_active;
-    // }
+// }
 }
