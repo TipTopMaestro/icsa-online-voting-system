@@ -13,57 +13,40 @@ class ProfileController extends Controller
 {
     public function profile() {
         $user = Auth::user();
-        $voterProfile = \DB::table('voter_profiles')->where('user_id', $user->id)->first();
-        $activeElection = Election::where('is_active', 1)->first();
         
-        // Check if user has voted in active election
-        $hasVoted = false;
-        if ($activeElection) {
-            $hasVoted = \DB::table('votes')
-                ->where('user_id', $user->id)
-                ->where('election_id', $activeElection->id)
-                ->exists();
+        // Use our new View to fetch all profile details in one query
+        $voter = DB::table('view_voter_details')
+            ->where('user_id', $user->id)
+            ->first();
+        
+        if (!$voter) {
+            // Handle case where user is not a voter (e.g. admin)
+            return Inertia::render('voter/Profile', [
+                'voter' => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'photo' => $user->photo ? asset('storage/' . $user->photo) : null,
+                    'role' => $user->role
+                ]
+            ]);
         }
         
         return Inertia::render('voter/Profile', [
             'voter' => [
-                'id' => $user->id,
-                'student_id' => $voterProfile->student_id ?? '',
-                'name' => $user->name,
-                'email' => $user->email,
-                'program' => $voterProfile->course ?? '',
-                'year' => $voterProfile->year_level ?? '',
-                'section' => $voterProfile->section ?? '',
-                'photo' => $user->photo ? asset('storage/' . $user->photo) : null,
-                'voted' => $hasVoted
+                'id' => $voter->user_id,
+                'student_id' => $voter->student_id,
+                'name' => $voter->name,
+                'email' => $voter->email,
+                'program' => $voter->course,
+                'year' => $voter->year_level,
+                'section' => $voter->section,
+                'photo' => $voter->photo ? asset('storage/' . $voter->photo) : null,
+                'voted' => (bool) $voter->has_voted_active
             ]
         ]);
     }
-    
-    public function updatePhoto(Request $request) {
-        $request->validate([
-            'photo' => 'required|image|mimes:jpeg,jpg,png|max:2048'
-        ]);
-        
-        $user = Auth::user();
-        
-        // Delete old photo if exists
-        if ($user->photo && Storage::disk('public')->exists($user->photo)) {
-            Storage::disk('public')->delete($user->photo);
-        }
-        
-        // Store new photo
-        $path = $request->file('photo')->store('voters', 'public');
-        
-        $user->update(['photo' => $path]);
-        
-        // Return updated user with photo URL
-        return back()->with([
-            'success' => 'Photo updated successfully',
-            'photo' => asset('storage/' . $path)
-        ]);
-    }
-    
+
     public function updateInfo(Request $request) {
         $request->validate([
             'student_id' => 'required|string|max:50',
@@ -74,25 +57,22 @@ class ProfileController extends Controller
             'section' => 'nullable|string|max:10'
         ]);
         
-        $user = Auth::user();
-        
-        // Update users table
-        $user->update([
-            'name' => $request->name,
-            'email' => $request->email,
-        ]);
-        
-        // Update voter_profiles table
-        \DB::table('voter_profiles')
-            ->where('user_id', $user->id)
-            ->update([
-                'student_id' => $request->student_id,
-                'course' => $request->program,
-                'year_level' => $request->year,
-                'section' => $request->section,
-                'updated_at' => now()
+        try {
+            // Call the Stored Procedure to handle the multi-table update
+            DB::statement('CALL sp_UpdateUserProfile(?, ?, ?, ?, ?, ?, ?)', [
+                Auth::id(),
+                $request->name,
+                $request->email,
+                $request->student_id,
+                $request->program,
+                $request->year,
+                $request->section ?? ''
             ]);
-        
-        return back()->with('success', 'Profile updated successfully');
+
+            return back()->with('success', 'Profile updated successfully');
+        } catch (\Exception $e) {
+            \Log::error('Profile update failed: ' . $e->getMessage());
+            return back()->withErrors(['error' => 'Failed to update profile.']);
+        }
     }
 }

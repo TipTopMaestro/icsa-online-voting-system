@@ -225,43 +225,45 @@ class CandidateController extends Controller
             ];
         });
         
-        // Get all positions for this election
-        $positions = Position::where('election_id', $election->id)
-            ->select('id', 'name')
-            ->orderBy('id')
-            ->get();
-        
         // Fetch pre-calculated results from our database view
         $viewResults = DB::table('view_election_results')
             ->where('election_id', $election->id)
             ->get();
 
-        // Get results grouped by position
+        // Get results grouped by position name from the database view
         $results = [];
+        $groupedResults = $viewResults->groupBy('position_name');
         
-        foreach ($positions as $position) {
-            $results[$position->name] = $viewResults->where('position_id', $position->id)
-                ->map(function ($row) {
-                    $candidate = Candidate::find($row->candidate_id);
-                    
-                    return [
-                        'id' => $row->candidate_id,
-                        'name' => $row->candidate_name,
-                        'photo' => $candidate && $candidate->photo 
-                            ? asset('storage/candidates/' . $candidate->photo)
-                            : asset('images/profile.png'),
-                        'votes' => (int) $row->votes_count,
-                        'percentage' => (float) $row->vote_percentage,
-                        'isWinner' => $row->current_rank == 1 && $row->votes_count > 0,
-                        'partylist' => $candidate->partylist ?? 'N/A',
-                        'course' => $candidate->course ?? 'N/A',
-                        'year_level' => $candidate->year_level ?? 'N/A',
-                        'section' => $candidate->section ?? 'N/A',
-                    ];
-                })
-                ->values()
-                ->toArray();
+        foreach ($groupedResults as $positionName => $candidates) {
+            $results[$positionName] = $candidates->map(function ($row) {
+                $candidate = Candidate::find($row->candidate_id);
+                
+                return [
+                    'id' => $row->candidate_id,
+                    'name' => $row->candidate_name,
+                    'photo' => $candidate && $candidate->photo 
+                        ? asset('storage/candidates/' . $candidate->photo)
+                        : asset('images/profile.png'),
+                    'votes' => (int) $row->votes_count,
+                    'percentage' => (float) $row->vote_percentage,
+                    'isWinner' => $row->current_rank == 1 && $row->votes_count > 0,
+                    'partylist' => $candidate->partylist ?? 'N/A',
+                    'course' => $candidate->course ?? 'N/A',
+                    'year_level' => $candidate->year_level ?? 'N/A',
+                    'section' => $candidate->section ?? 'N/A',
+                ];
+            })
+            ->values()
+            ->toArray();
         }
+
+        // Extract positions for the frontend mapping from the grouped keys
+        $positions = collect(array_keys($results))->map(function ($name, $index) {
+            return (object) [
+                'id' => $index + 1,
+                'name' => $name
+            ];
+        });
         
         // Calculate statistics using the view
         $electionStats = $allElections->firstWhere('id', $election->id);

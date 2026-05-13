@@ -11,24 +11,15 @@ class Candidate extends Model
 {
     use HasFactory;
 
-    protected $fillable = [
-        'user_id',
-        'election_id',
-        'position_id',
-        'partylist',
-        'platform',
-        'photo',
-        'course',
-        'year_level',
-        'section',
-        'votes_count',
-    ];
-
+    /**
+     * The attributes that should be cast.
+     */
     protected $casts = [
         'votes_count' => 'integer',
     ];
 
-    // Relationships
+    //Relationships
+    
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
@@ -48,37 +39,4 @@ class Candidate extends Model
     {
         return $this->hasMany(Vote::class);
     }
-
-    // Helper Methods
-    public function getPhotoUrlAttribute(): string
-    {
-        return asset('storage/candidates/' . $this->photo);
-    }
-
-    public function getFullInfoAttribute(): string
-    {
-        return "{$this->user->name} - {$this->position->name} ({$this->election->title})";
-    }
-
-    public function incrementVotes(): void
-    {
-        $this->increment('votes_count');
-    }
-
-    // Scopes
-    public function scopeForElection($query, $electionId)
-    {
-        return $query->where('election_id', $electionId);
-    }
-
-    public function scopeForPosition($query, $positionId)
-    {
-        return $query->where('position_id', $positionId);
-    }
-
-    public function scopeWithPartylist($query, $partylist)
-    {
-        return $query->where('partylist', $partylist);
-    }
 }
-
