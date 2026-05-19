@@ -6,8 +6,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
-use App\Models\User;
-use App\Models\Election;
+use Illuminate\Support\Facades\DB;
 
 class ProfileController extends Controller
 {

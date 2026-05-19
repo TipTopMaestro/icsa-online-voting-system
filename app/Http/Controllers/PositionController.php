@@ -4,19 +4,50 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Inertia\Inertia;
-use App\Models\Position;
-use App\Models\Election;
 use Illuminate\Support\Facades\DB;
 
 
 class PositionController extends Controller
 {
     public function position() {
-        $positions = Position::with('election')
-            ->withCount('candidates')
-            ->latest()
-            ->get();
-        $elections = Election::all();
+        // Fetch all positions with election details using DB join
+        $positions = DB::table('positions')
+            ->join('elections', 'positions.election_id', '=', 'elections.id')
+            ->select(
+                'positions.*', 
+                'elections.title as election_title', 
+                'elections.description as election_description', 
+                'elections.is_active as election_is_active'
+            )
+            ->orderBy('elections.title')
+            ->orderBy('positions.name')
+            ->get()
+            ->map(function ($row) {
+                return [
+                    'id' => $row->id,
+                    'name' => $row->name,
+                    'max_selection' => (int)$row->max_selection,
+                    'election_id' => (int)$row->election_id,
+                    'election' => [
+                        'id' => (int)$row->election_id,
+                        'title' => $row->election_title,
+                        'description' => $row->election_description,
+                        'is_active' => (bool)$row->election_is_active,
+                    ],
+                    'candidates_count' => DB::table('candidates')->where('position_id', $row->id)->count(),
+                    'created_at' => $row->created_at,
+                ];
+            });
+        
+        // Fetch all elections using DB facade for the create/edit dropdowns
+        $elections = DB::table('elections')->get()->map(function($e) {
+            return [
+                'id' => $e->id,
+                'title' => $e->title,
+                'description' => $e->description,
+                'is_active' => (bool)$e->is_active,
+            ];
+        });
         
         return Inertia::render('admin/position', [
             'positions' => $positions,
@@ -46,7 +77,7 @@ class PositionController extends Controller
         }
     }
 
-    public function update(Request $request, Position $position) {
+    public function update(Request $request, $id) {
         try {
             $validated = $request->validate([
                 'election_id' => 'required|exists:elections,id',
@@ -56,7 +87,7 @@ class PositionController extends Controller
 
             // Call the stored procedure sp_UpdatePosition
             DB::statement('CALL sp_UpdatePosition(?, ?, ?)', [
-                $position->id,
+                $id,
                 $validated['name'],
                 $validated['max_selection']
             ]);
@@ -68,11 +99,10 @@ class PositionController extends Controller
         }
     }
 
-    public function destroy(Position $position) {
+    public function destroy($id) {
         try {
-            // Note: Ensure you have sp_DeletePosition created, 
-            // or use sp_DeleteElection logic. Since it's a simple delete:
-            DB::statement('DELETE FROM positions WHERE id = ?', [$position->id]);
+            // Note: Since no sp_DeletePosition exists in the provided dump, use raw SQL DELETE
+            DB::statement('DELETE FROM positions WHERE id = ?', [$id]);
 
             return redirect()->back()->with('success', 'Position deleted successfully');
         } catch (\Exception $e) {

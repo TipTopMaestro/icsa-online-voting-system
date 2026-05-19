@@ -2,14 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Election;
-use App\Models\Position;
-use App\Models\Candidate;
-use App\Models\Vote;
-use App\Models\VoterProfile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
+use Carbon\Carbon;
 
 class ResultController extends Controller
 {
@@ -40,7 +36,7 @@ class ResultController extends Controller
                 'title' => $e->title,
                 'description' => $e->description,
                 'status' => $e->status, // Use pre-calculated status from view
-                'startDate' => \Carbon\Carbon::parse($e->start_datetime)->format('d M Y') . ' - ' . \Carbon\Carbon::parse($e->end_datetime)->format('d M Y'),
+                'startDate' => Carbon::parse($e->start_datetime)->format('d M Y') . ' - ' . Carbon::parse($e->end_datetime)->format('d M Y'),
                 'is_active' => (bool)$e->is_active,
             ];
         });
@@ -65,9 +61,9 @@ class ResultController extends Controller
                 'title' => $election->title,
                 'description' => $election->description,
                 'status' => $election->status,
-                'startDate' => \Carbon\Carbon::parse($election->start_datetime)->format('d M Y') . ' - ' . \Carbon\Carbon::parse($election->end_datetime)->format('d M Y'),
-                'start_date' => \Carbon\Carbon::parse($election->start_datetime)->format('Y-m-d'),
-                'end_date' => \Carbon\Carbon::parse($election->end_datetime)->format('Y-m-d'),
+                'startDate' => Carbon::parse($election->start_datetime)->format('d M Y') . ' - ' . Carbon::parse($election->end_datetime)->format('d M Y'),
+                'start_date' => Carbon::parse($election->start_datetime)->format('Y-m-d'),
+                'end_date' => Carbon::parse($election->end_datetime)->format('Y-m-d'),
                 'is_active' => (bool)$election->is_active,
             ],
             'positions' => $resultsData['positions'],
@@ -105,7 +101,7 @@ class ResultController extends Controller
                 'title' => $e->title,
                 'description' => $e->description,
                 'status' => $e->status,
-                'startDate' => \Carbon\Carbon::parse($e->start_datetime)->format('d M Y') . ' - ' . \Carbon\Carbon::parse($e->end_datetime)->format('d M Y'),
+                'startDate' => Carbon::parse($e->start_datetime)->format('d M Y') . ' - ' . Carbon::parse($e->end_datetime)->format('d M Y'),
                 'is_active' => (bool)$e->is_active,
             ];
         });
@@ -130,9 +126,9 @@ class ResultController extends Controller
                 'title' => $election->title,
                 'description' => $election->description,
                 'status' => $election->status,
-                'startDate' => \Carbon\Carbon::parse($election->start_datetime)->format('d M Y') . ' - ' . \Carbon\Carbon::parse($election->end_datetime)->format('d M Y'),
-                'start_date' => \Carbon\Carbon::parse($election->start_datetime)->format('Y-m-d'),
-                'end_date' => \Carbon\Carbon::parse($election->end_datetime)->format('Y-m-d'),
+                'startDate' => Carbon::parse($election->start_datetime)->format('d M Y') . ' - ' . Carbon::parse($election->end_datetime)->format('d M Y'),
+                'start_date' => Carbon::parse($election->start_datetime)->format('Y-m-d'),
+                'end_date' => Carbon::parse($election->end_datetime)->format('Y-m-d'),
                 'is_active' => (bool)$election->is_active,
             ],
             'positions' => $resultsData['positions'],
@@ -148,7 +144,7 @@ class ResultController extends Controller
     private function getElectionResults($electionId)
     {
         // Get total registered voters (for turnout calculation)
-        $totalRegisteredVoters = VoterProfile::count();
+        $totalRegisteredVoters = DB::table('voter_profiles')->count();
 
         // Get pre-calculated statistics from the view_election_statistics view
         $electionStats = DB::table('view_election_statistics')
@@ -161,7 +157,7 @@ class ResultController extends Controller
             ->get();
 
         // Get positions for this election
-        $positions = Position::where('election_id', $electionId)
+        $positions = DB::table('positions')->where('election_id', $electionId)
             ->select('id', 'name')
             ->orderBy('id')
             ->get();
@@ -171,9 +167,9 @@ class ResultController extends Controller
         foreach ($positions as $position) {
             $results[$position->name] = $viewResults->where('position_id', $position->id)
                 ->map(function ($row) {
-                    // Fetch the photo from the candidate model if needed or logic here
-                    $candidate = Candidate::find($row->candidate_id);
-                    
+                    // Fetch the photo from the candidates table
+                    $candidate = DB::table('candidates')->where('id', $row->candidate_id)->first();
+
                     return [
                         'id' => $row->candidate_id,
                         'name' => $row->candidate_name,
@@ -183,6 +179,7 @@ class ResultController extends Controller
                         'votes' => (int) $row->votes_count,
                         'percentage' => (float) $row->vote_percentage,
                         'isWinner' => $row->current_rank == 1 && $row->votes_count > 0,
+                        'partylist' => $candidate->partylist ?? 'Independent',
                     ];
                 })
                 ->values()

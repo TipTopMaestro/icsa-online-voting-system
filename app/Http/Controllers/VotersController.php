@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\VoterProfile;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
@@ -16,7 +15,8 @@ class VotersController extends Controller
             ->where('is_active', 1)
             ->first();
 
-        $query = VoterProfile::with('user')
+        // Use the optimized view_voter_details view
+        $query = DB::table('view_voter_details')
             ->orderBy('created_at', 'desc');
 
         // Search functionality
@@ -25,10 +25,8 @@ class VotersController extends Controller
             $query->where(function ($q) use ($search) {
                 $q->where('student_id', 'like', "%{$search}%")
                     ->orWhere('course', 'like', "%{$search}%")
-                    ->orWhereHas('user', function ($userQuery) use ($search) {
-                        $userQuery->where('name', 'like', "%{$search}%")
-                            ->orWhere('email', 'like', "%{$search}%");
-                    });
+                    ->orWhere('name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%");
             });
         }
 
@@ -43,53 +41,29 @@ class VotersController extends Controller
         }
 
         // Filter by voting status (for active election)
-        if ($request->has('has_voted') && $request->has_voted !== null && $activeElection) {
+        if ($request->has('has_voted') && $request->has_voted !== null) {
             $hasVotedValue = $request->has_voted === 'true' || $request->has_voted === true;
-            
-            if ($hasVotedValue) {
-                // Show only voters who voted in active election
-                $query->whereHas('user', function($q) use ($activeElection) {
-                    $q->whereHas('votes', function($vq) use ($activeElection) {
-                        $vq->where('election_id', $activeElection->id);
-                    });
-                });
-            } else {
-                // Show only voters who haven't voted in active election
-                $query->whereHas('user', function($q) use ($activeElection) {
-                    $q->whereDoesntHave('votes', function($vq) use ($activeElection) {
-                        $vq->where('election_id', $activeElection->id);
-                    });
-                });
-            }
+            $query->where('has_voted_active', $hasVotedValue ? 1 : 0);
         }
 
-        $voters = $query->paginate(15)->through(function ($voter) use ($activeElection) {
-            // Check if voter has voted in active election
-            $hasVotedInActiveElection = false;
-            if ($activeElection) {
-                $hasVotedInActiveElection = \App\Models\Vote::where('user_id', $voter->user_id)
-                    ->where('election_id', $activeElection->id)
-                    ->exists();
-            }
-            
+        $voters = $query->paginate(15)->through(function ($voter) {
             return [
-                'id' => $voter->id,
+                'id' => $voter->profile_id,
                 'user_id' => $voter->user_id,
                 'student_id' => $voter->student_id,
                 'course' => $voter->course,
                 'year_level' => $voter->year_level,
                 'section' => $voter->section,
-                'has_voted' => $hasVotedInActiveElection, // Per active election
+                'has_voted' => (bool)$voter->has_voted_active,
                 'created_at' => $voter->created_at,
                 'updated_at' => $voter->updated_at,
                 'user' => [
-                    'id' => $voter->user->id,
-                    'name' => $voter->user->name,
-                    'email' => $voter->user->email,
-                    'role' => $voter->user->role,
-                    'email_verified_at' => $voter->user->email_verified_at,
-                    'photo' => $voter->user->photo 
-                        ? asset('storage/' . $voter->user->photo)
+                    'id' => $voter->user_id,
+                    'name' => $voter->name,
+                    'email' => $voter->email,
+                    'role' => $voter->role,
+                    'photo' => $voter->photo 
+                        ? asset('storage/' . $voter->photo)
                         : null,
                 ],
             ];

@@ -15,14 +15,17 @@ class ResetUserPassword implements ResetsUserPasswords
      *
      * @param  array<string, string>  $input
      */
-    public function reset(User $user, array $input): void
+    public function reset(\Illuminate\Contracts\Auth\Authenticatable $user, array $input): void
     {
         Validator::make($input, [
             'password' => $this->passwordRules(),
         ])->validate();
 
-        $user->forceFill([
-            'password' => $input['password'],
-        ])->save();
+        \Illuminate\Support\Facades\DB::table('users')
+            ->where('id', $user->id)
+            ->update([
+                'password' => \Illuminate\Support\Facades\Hash::make($input['password']),
+                'updated_at' => now(),
+            ]);
     }
 }

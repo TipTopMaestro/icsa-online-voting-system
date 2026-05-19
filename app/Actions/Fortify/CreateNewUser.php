@@ -16,7 +16,7 @@ class CreateNewUser implements CreatesNewUsers
      *
      * @param  array<string, string>  $input
      */
-    public function create(array $input): User
+    public function create(array $input): \Illuminate\Contracts\Auth\Authenticatable
     {
         Validator::make($input, [
             'name' => ['required', 'string', 'max:255'],
@@ -25,15 +25,19 @@ class CreateNewUser implements CreatesNewUsers
                 'string',
                 'email',
                 'max:255',
-                Rule::unique(User::class),
+                \Illuminate\Validation\Rule::unique('users'),
             ],
             'password' => $this->passwordRules(),
         ])->validate();
 
-        return User::create([
+        $userId = \Illuminate\Support\Facades\DB::table('users')->insertGetId([
             'name' => $input['name'],
             'email' => $input['email'],
             'password' => $input['password'],
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
+
+        return \App\Models\User::find($userId);
     }
 }

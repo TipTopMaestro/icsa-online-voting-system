@@ -4,8 +4,6 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Inertia\Inertia;
-use App\Models\Election;
-use App\Models\VoterProfile;
 use Illuminate\Support\Facades\DB;
 
 
@@ -47,7 +45,7 @@ class ElectionController extends Controller
 }
 
 
-    public function update(Request $request, Election $election) {
+    public function update(Request $request, $id) {
     $validated = $request->validate([
         'title' => 'required|string|max:255',
         'description' => 'nullable|string',
@@ -58,7 +56,7 @@ class ElectionController extends Controller
     try {
         // Call the stored procedure sp_UpdateElection
         DB::statement('CALL sp_UpdateElection(?, ?, ?, ?, ?)', [
-            $election->id,
+            $id,
             $validated['title'],
             $validated['description'],
             $validated['start_datetime'],
@@ -73,10 +71,10 @@ class ElectionController extends Controller
 }
 
 
-    public function destroy(Election $election) {
+    public function destroy($id) {
     try {
         // Call the stored procedure sp_DeleteElection
-        DB::statement('CALL sp_DeleteElection(?)', [$election->id]);
+        DB::statement('CALL sp_DeleteElection(?)', [$id]);
 
         return redirect()->back()->with('success', 'Election deleted successfully');
     } catch (\Exception $e) {
@@ -91,10 +89,10 @@ class ElectionController extends Controller
 }
 
 
-    public function activate(Election $election) {
+    public function activate($id) {
         try {
             // Call the stored procedure sp_ActivateElection
-            DB::statement('CALL sp_ActivateElection(?)', [$election->id]);
+            DB::statement('CALL sp_ActivateElection(?)', [$id]);
 
             return redirect()->back()->with('success', 'Election activated successfully');
         } catch (\Exception $e) {
@@ -103,10 +101,10 @@ class ElectionController extends Controller
         }
     }
 
-    public function deactivate(Election $election) {
+    public function deactivate($id) {
         try {
             // Call the stored procedure sp_DeactivateElection
-            DB::statement('CALL sp_DeactivateElection(?)', [$election->id]);
+            DB::statement('CALL sp_DeactivateElection(?)', [$id]);
 
             return redirect()->back()->with('success', 'Election ended successfully');
         } catch (\Exception $e) {
@@ -115,12 +113,14 @@ class ElectionController extends Controller
         }
     }
 
-    private function hasStarted($election) {
-        return $election->start_datetime && now()->greaterThanOrEqualTo($election->start_datetime);
+    private function hasStarted($id) {
+        $election = DB::table('elections')->where('id', $id)->first();
+        return $election && $election->start_datetime && now()->greaterThanOrEqualTo($election->start_datetime);
     }
 
-    private function getElectionStatus($election) {
-        if (!$election->start_datetime || !$election->end_datetime) {
+    private function getElectionStatus($id) {
+        $election = DB::table('elections')->where('id', $id)->first();
+        if (!$election || !$election->start_datetime || !$election->end_datetime) {
             return 'scheduled';
         }
 

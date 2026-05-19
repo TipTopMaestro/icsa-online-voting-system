@@ -3,9 +3,6 @@
 namespace App\Http\Controllers\auth;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
-use App\Models\ApprovedStudent;
-use App\Models\VoterProfile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
@@ -36,21 +33,21 @@ class RegisteredUserController extends Controller
                 $request->student_id
             ]);
 
-            // Fetch the newly created user to log them in
-            $user = User::where('email', $request->email)->first();
+            // Fetch the newly created user record to log them in
+            $userRecord = DB::table('users')->where('email', $request->email)->first();
 
-            if (!$user) {
+            if (!$userRecord) {
                 throw new \Exception('User creation failed: Record not found after procedure call.');
             }
 
-            Log::info('User registered via stored procedure', ['user_id' => $user->id]);
+            Log::info('User registered via stored procedure', ['user_id' => $userRecord->id]);
 
-            // Auto-login the user
-            Auth::login($user);
+            // Auto-login the user using their ID
+            Auth::loginUsingId($userRecord->id);
 
             return response()->json([
                 'message' => 'Registration successful.',
-                'user'    => $user,
+                'user'    => $userRecord,
                 'redirect' => '/voter/dashboard',
             ]);
 

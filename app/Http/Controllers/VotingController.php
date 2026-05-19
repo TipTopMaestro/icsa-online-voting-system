@@ -2,14 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Election;
-use App\Models\Position;
-use App\Models\Vote;
-use App\Models\Candidate;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
+use Carbon\Carbon;
 
 class VotingController extends Controller
 {
@@ -36,7 +33,7 @@ class VotingController extends Controller
         }
 
         // Check if user has already voted in this election
-        $hasVoted = Vote::where('user_id', $user->id)
+        $hasVoted = DB::table('votes')->where('user_id', $user->id)
             ->where('election_id', $election->id)
             ->exists();
 
@@ -50,11 +47,27 @@ class VotingController extends Controller
             ]);
         }
 
-        // Get positions with candidates
-        $positions = Position::where('election_id', $election->id)
-            ->with(['candidates.user'])
+        // Get positions with candidates using DB joins
+        $positions = DB::table('positions')
+            ->where('election_id', $election->id)
             ->orderBy('id')
-            ->get();
+            ->get()
+            ->map(function ($position) {
+                $position->candidates = DB::table('candidates')
+                    ->join('users', 'candidates.user_id', '=', 'users.id')
+                    ->where('candidates.position_id', $position->id)
+                    ->select('candidates.*', 'users.name', 'users.email')
+                    ->get()
+                    ->map(function ($candidate) {
+                        // Compatibility for nested user object
+                        $candidate->user = (object)[
+                            'name' => $candidate->name,
+                            'email' => $candidate->email
+                        ];
+                        return $candidate;
+                    });
+                return $position;
+            });
 
         return Inertia::render('voter/vote', [
             'election' => $election,
@@ -70,7 +83,7 @@ class VotingController extends Controller
     {
         $user = Auth::user();
         
-        // Validate request - keep this for immediate UI feedback
+        // Validate request - using DB table for existence checks
         $validated = $request->validate([
             'election_id' => 'required|exists:elections,id',
             'votes' => 'required|array|min:1',
@@ -95,7 +108,6 @@ class VotingController extends Controller
 
         } catch (\PDOException $e) {
             // The stored procedure raises errors using SIGNAL SQLSTATE '45000'
-            // We catch these and return them to the user
             \Log::error('Vote submission via procedure failed', [
                 'user_id' => $user->id,
                 'election_id' => $validated['election_id'],
@@ -131,18 +143,33 @@ class VotingController extends Controller
         $user = Auth::user();
         $electionId = $request->election_id;
 
-        // Get votes cast by user in this election
-        $votes = Vote::where('user_id', $user->id)
-            ->where('election_id', $electionId)
-            ->with(['candidate.user', 'candidate.position', 'candidate'])
-            ->get();
+        // Get votes cast by user in this election via DB join
+        $votes = DB::table('votes')
+            ->join('candidates', 'votes.candidate_id', '=', 'candidates.id')
+            ->join('users', 'candidates.user_id', '=', 'users.id')
+            ->join('positions', 'candidates.position_id', '=', 'positions.id')
+            ->where('votes.user_id', $user->id)
+            ->where('votes.election_id', $electionId)
+            ->select('votes.*', 'users.name as candidate_name', 'positions.name as position_name', 'candidates.photo as candidate_photo', 'candidates.partylist')
+            ->get()
+            ->map(function($vote) {
+                 // Compatibility mapping for receipt UI
+                 $vote->candidate = (object)[
+                     'name' => $vote->candidate_name,
+                     'partylist' => $vote->partylist,
+                     'photo' => $vote->candidate_photo,
+                     'position' => (object)['name' => $vote->position_name],
+                     'user' => (object)['name' => $vote->candidate_name]
+                 ];
+                 return $vote;
+            });
 
         if ($votes->isEmpty()) {
             return redirect()->route('voter.dashboard')
                 ->with('error', 'No voting record found.');
         }
 
-        $election = Election::findOrFail($electionId);
+        $election = DB::table('elections')->where('id', $electionId)->first();
 
         return Inertia::render('voter/receipt', [
             'election' => $election,
@@ -171,29 +198,28 @@ class VotingController extends Controller
             ]);
         }
 
-        // Get all candidates for this election with their position and user info
-        $candidates = Candidate::whereHas('position', function($query) use ($election) {
-                $query->where('election_id', $election->id);
-            })
-            ->with(['position', 'user'])
+        // Get all candidates for this election using the optimized candidates view
+        $candidates = DB::table('view_candidates_details')
+            ->where('election_id', $election->id)
             ->get()
             ->map(function($candidate) {
                 return [
                     'id' => $candidate->id,
-                    'name' => $candidate->user->name,
-                    'email' => $candidate->user->email,
-                    'position' => $candidate->position->name,
+                    'name' => $candidate->user_name,
+                    'email' => $candidate->user_email,
+                    'position' => $candidate->position_name,
                     'position_id' => $candidate->position_id,
-                    'party' => $candidate->party_affiliation,
+                    'party' => $candidate->partylist,
                     'platform' => $candidate->platform,
                     'image' => $candidate->photo ? '/storage/candidates/' . $candidate->photo : null,
-                    'course' => $candidate->program . ' ' . $candidate->year . $candidate->section,
-                    'quote' => $candidate->quote,
+                    'course' => $candidate->course . ' ' . $candidate->year_level . $candidate->section,
+                    'quote' => $candidate->platform, // Mapped platform to quote as fallback
                 ];
             });
 
         // Get unique positions for filter
-        $positions = Position::where('election_id', $election->id)
+        $positions = DB::table('positions')
+            ->where('election_id', $election->id)
             ->orderBy('id')
             ->get()
             ->map(function($position) {

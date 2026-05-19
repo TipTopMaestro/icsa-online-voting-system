@@ -5,11 +5,6 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
-use App\Models\Election;
-use App\Models\Announcement;
-use App\Models\User;
-use App\Models\Candidate;
-use App\Models\Position;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -23,9 +18,9 @@ class DashboardController extends Controller
         $activeElectionRecord = $allStats->firstWhere('is_active', 1);
         
         // Get overall statistics
-        $totalVoters = User::where('role', 'voter')->count();
+        $totalVoters = DB::table('users')->where('role', 'voter')->count();
         $activeElectionsCount = $activeElectionRecord ? 1 : 0;
-        $totalCandidates = Candidate::count();
+        $totalCandidates = DB::table('candidates')->count();
         
         // Calculate accurate turnout for active election from the view
         $totalVotes = $activeElectionRecord ? $activeElectionRecord->voted_count : 0;
@@ -68,7 +63,7 @@ class DashboardController extends Controller
         }
         
         // Recent voter registrations
-        $recentVoters = User::where('role', 'voter')
+        $recentVoters = DB::table('users')->where('role', 'voter')
             ->orderBy('created_at', 'desc')
             ->limit(2)
             ->get();
@@ -78,15 +73,15 @@ class DashboardController extends Controller
                 'type' => 'voter',
                 'title' => 'New voter registered',
                 'description' => $voter->name,
-                'time' => $voter->created_at->diffForHumans(),
-                'timestamp' => $voter->created_at->timestamp,
+                'time' => Carbon::parse($voter->created_at)->diffForHumans(),
+                'timestamp' => Carbon::parse($voter->created_at)->timestamp,
                 'icon' => 'userPlus',
                 'color' => 'blue'
             ];
         }
         
         // Recent announcements
-        $recentAnnouncement = Announcement::where('is_published', 1)
+        $recentAnnouncement = DB::table('announcements')->where('is_published', 1)
             ->orderBy('created_at', 'desc')
             ->first();
         
@@ -95,8 +90,8 @@ class DashboardController extends Controller
                 'type' => 'announcement',
                 'title' => 'New announcement published',
                 'description' => $recentAnnouncement->title,
-                'time' => $recentAnnouncement->created_at->diffForHumans(),
-                'timestamp' => $recentAnnouncement->created_at->timestamp,
+                'time' => Carbon::parse($recentAnnouncement->created_at)->diffForHumans(),
+                'timestamp' => Carbon::parse($recentAnnouncement->created_at)->timestamp,
                 'icon' => 'megaphone',
                 'color' => 'purple'
             ];
@@ -206,7 +201,7 @@ class DashboardController extends Controller
         }
         
         // Get recent announcements
-        $dashboardData['recentAnnouncements'] = Announcement::where('is_published', 1)
+        $dashboardData['recentAnnouncements'] = DB::table('announcements')->where('is_published', 1)
             ->orderBy('created_at', 'desc')
             ->take(3)
             ->get()
@@ -215,7 +210,7 @@ class DashboardController extends Controller
                     'id' => $announcement->id,
                     'title' => $announcement->title,
                     'content' => $announcement->content,
-                    'created_at' => $announcement->created_at->diffForHumans(),
+                    'created_at' => Carbon::parse($announcement->created_at)->diffForHumans(),
                 ];
             });
         
