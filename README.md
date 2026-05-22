@@ -1,8 +1,8 @@
 # 🗳️ ICSA Online Voting System
 
-A secure online voting platform for the Institute of Computing Student Association (ICSA) at Davao del Norte State College.
+A secure, high-performance online voting platform for the Institute of Computing Student Association (ICSA) at Davao del Norte State College.
 
-**Built with:** Laravel 12 • Vue.js 3 • Inertia.js • Tailwind CSS • MySQL
+**Built with:** Laravel 12 • Vue.js 3 • Inertia.js 2.0 • Tailwind CSS 4.0 • MySQL (Database-First Architecture)
 
 ---
 
@@ -18,8 +18,8 @@ A secure online voting platform for the Institute of Computing Student Associati
 1. **Clone the repository**
 ```bash
 cd C:\xampp\htdocs
-git clone https://github.com/carbajosafroyd/icsa-ovs-lara-vue.git
-cd icsa-ovs-lara-vue
+git clone https://github.com/carbajosafroyd/icsa-ovs-lara-vue.git icsa-online-voting-system
+cd icsa-online-voting-system
 ```
 
 2. **Install dependencies**
@@ -32,7 +32,6 @@ npm install
 ```bash
 copy .env.example .env
 php artisan key:generate
-npm install chart.js
 ```
 
 4. **Configure `.env` file**
@@ -41,31 +40,44 @@ DB_DATABASE=icsa_ovs_db
 DB_USERNAME=root
 DB_PASSWORD=
 
+# Required for correct time display
+APP_TIMEZONE=Asia/Manila
+
+# Email Configuration
+MAIL_MAILER=smtp
 MAIL_HOST=smtp.gmail.com
+MAIL_PORT=465
 MAIL_USERNAME=your-email@gmail.com
 MAIL_PASSWORD=your-app-password
+MAIL_ENCRYPTION=tls
+
+# Queue Configuration (Database driver)
+QUEUE_CONNECTION=database
 ```
 
-5. **Setup database**
+5. **Setup Database & Storage**
 - Create database `icsa_ovs_db` in phpMyAdmin
+- Run migrations and seed default accounts:
 ```bash
-php artisan migrate:fresh
 php artisan migrate:fresh --seed
 php artisan storage:link
 ```
 
-6. **Build and run**
+6. **Build and Run**
 ```bash
 npm run build
 ```
 
-Open **two terminals**:
+Open **three terminals**:
 ```bash
-# Terminal 1
+# Terminal 1: Web Server
 php artisan serve
 
-# Terminal 2
+# Terminal 2: Vite (Development)
 npm run dev
+
+# Terminal 3: Email Queue Worker (CRITICAL for sending credentials)
+php artisan queue:work
 ```
 
 Visit: **http://localhost:8000**
@@ -79,52 +91,39 @@ Visit: **http://localhost:8000**
 - Password: `password`
 
 **Voter Account:**
-- Register at `/register` using an approved student ID
+- Register at `/register` using an approved student ID (check `approved_students` table)
 
 ---
 
-## ✨ Features
+## ✨ Features & Architecture
 
-### Three User Roles
-- **Admin** - Manage elections, positions, candidates, and voters
-- **Voter** - Register, vote, and view results
-- **Candidate** - View profile, platform, and election progress
+### 🛡️ Database-First Architecture
+This system utilizes a professional **Database-First** approach to ensure data integrity and maximum performance:
+- **Stored Procedures:** 9 specialized procedures handle atomic operations (e.g., `sp_CastBallot`, `sp_CreateCandidate`, `sp_RegisterVoter`).
+- **Database Views:** 9 optimized views for real-time reporting, dashboards, and complex joins (e.g., `view_election_results`, `view_election_statistics`).
+- **Triggers:** Automatic vote count updates via `trg_UpdateVoteCount`.
 
-### Security
-- One vote per student per election
-- Password encryption
-
-### Real-time
-- Live vote counting
-- Dynamic charts
-- Instant result updates
+### 📧 Advanced Features
+- **Role-Based Access Control (RBAC):** Distinct interfaces for Admin, Voter, and Candidate roles.
+- **Background Email Queuing:** Candidate credentials and notifications are sent via Laravel Queues to prevent UI freezing.
+- **Timezone Sync:** Full synchronization between Laravel and MySQL for accurate "time ago" reporting (Asia/Manila).
+- **Responsive Charts:** Real-time election result visualization using Chart.js.
 
 ---
 
 ## 🐛 Common Issues
 
 **"Vite manifest not found"**
-```bash
-npm run build
-```
+- Run `npm run build` or ensure `npm run dev` is running.
 
-**"Access denied for database"**
-- Check `.env` DB credentials
-- Ensure MySQL is running in XAMPP
+**"Table 'cache' doesn't exist"**
+- Ensure you have run `php artisan migrate`.
 
-**"Images not loading"**
-```bash
-php artisan storage:link
-```
+**"Emails not sending"**
+- Ensure your `.env` credentials are correct and `php artisan queue:work` is running.
 
-**Port 8000 in use**
-```bash
-php artisan serve --port=8080
-```
-
-**White screen**
-- Check browser console (F12)
-- Ensure both `php artisan serve` and `npm run dev` are running
+**"Time is 8 hours ahead/behind"**
+- Ensure `APP_TIMEZONE=Asia/Manila` is set in `.env` and `timezone` is set to `+08:00` in `config/database.php`.
 
 ---
 
@@ -132,21 +131,21 @@ php artisan serve --port=8080
 
 ```
 app/
-├── Http/Controllers/    # Backend logic
-├── Models/             # Database models
-├── Mail/              # Email templates
+├── Http/Controllers/    # Backend logic (calls SPs and Views)
+├── Mail/              # Queuable Email classes
+├── Middleware/         # Role-based protection
 
 resources/
 ├── js/
-│   ├── pages/         # Vue pages (admin, voter, candidate)
-│   ├── components/    # Reusable Vue components
-│   └── layouts/       # Page layouts
-├── views/            # Landing pages (Blade)
-└── css/              # Styles
+│   ├── pages/         # Vue interfaces (admin/, voter/, candidate/)
+│   ├── components/    # Reusable UI components
+│   └── layouts/       # Shared layouts (AppShell, VoterLayout)
+├── views/            # Root Blade template (app.blade.php)
 
 database/
-├── migrations/       # Database schema
-└── seeders/         # Sample data
+├── migrations/       # Standard schema
+├── seeders/         # Whitelist and admin seeds
+└── icsa_ovs_db.sql   # Full optimized SQL dump (Procedures/Views)
 ```
 
 ---
@@ -154,10 +153,12 @@ database/
 ## 👥 Team
 
 **ICSA OVS Team**
-- Froyd Carbajosa
+- Froyd Carbajosa-(FORMER LEADER)
 - Kimbie Batilong
 - Liezel Tumagan
 - Felaura Vivien Golosino
+- Monch Walter P Quines (NEW MEMBER)
+- Bryl James Pagalan (NEW MEMBER)
 
 *Final Project - Institute of Computing, DNSC*
 

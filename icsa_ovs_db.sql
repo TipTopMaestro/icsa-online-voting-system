@@ -1094,9 +1094,16 @@ DROP TABLE IF EXISTS `view_voter_details`;
 
 CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `view_voter_details`  AS SELECT `u`.`id` AS `user_id`, `u`.`name` AS `name`, `u`.`email` AS `email`, `u`.`role` AS `role`, `u`.`photo` AS `photo`, `vp`.`id` AS `profile_id`, `vp`.`student_id` AS `student_id`, `vp`.`course` AS `course`, `vp`.`year_level` AS `year_level`, `vp`.`section` AS `section`, exists(select 1 from (`votes` `v` join `elections` `e` on(`v`.`election_id` = `e`.`id`)) where `v`.`user_id` = `u`.`id` and `e`.`is_active` = 1 limit 1) AS `has_voted_active`, `u`.`created_at` AS `created_at`, `u`.`updated_at` AS `updated_at` FROM (`users` `u` left join `voter_profiles` `vp` on(`u`.`id` = `vp`.`user_id`)) WHERE `u`.`role` = 'voter' ;
 
+-- --------------------------------------------------------
+
 --
--- Indexes for dumped tables
+-- Structure for view `view_voting_receipt`
 --
+DROP TABLE IF EXISTS `view_voting_receipt`;
+
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `view_voting_receipt`  AS SELECT `v`.`id` AS `id`, `v`.`user_id` AS `user_id`, `v`.`election_id` AS `election_id`, `v`.`candidate_id` AS `candidate_id`, `v`.`position_id` AS `position_id`, `v`.`created_at` AS `created_at`, `u`.`name` AS `candidate_name`, `c`.`photo` AS `candidate_photo`, `c`.`partylist` AS `partylist`, `p`.`name` AS `position_name` FROM (((`votes` `v` JOIN `candidates` `c` ON(`v`.`candidate_id` = `c`.`id`)) JOIN `users` `u` ON(`c`.`user_id` = `u`.`id`)) JOIN `positions` `p` ON(`v`.`position_id` = `p`.`id`)) ;
+
+-- --------------------------------------------------------
 
 --
 -- Indexes for table `announcements`
