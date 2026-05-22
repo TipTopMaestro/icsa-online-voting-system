@@ -143,10 +143,8 @@ class CandidateController extends Controller
         $filename = time() . '_' . $file->getClientOriginalName();
         $file->storeAs('candidates', $filename, 'public');
         
-        DB::table('candidates')->where('id', $candidate->id)->update([
-            'photo' => $filename,
-            'updated_at' => now()
-        ]);
+        // Use stored procedure sp_UpdateCandidatePhoto
+        DB::statement('CALL sp_UpdateCandidatePhoto(?, ?)', [$user->id, $filename]);
         
         return back()->with('success', 'Photo updated successfully');
     }
@@ -157,11 +155,8 @@ class CandidateController extends Controller
             'platform' => 'required|string|max:1000',
         ]);
         
-        $user = Auth::user();
-        DB::table('candidates')->where('user_id', $user->id)->update([
-            'platform' => $request->platform,
-            'updated_at' => now()
-        ]);
+        // Use stored procedure sp_UpdateCandidatePlatform
+        DB::statement('CALL sp_UpdateCandidatePlatform(?, ?)', [Auth::id(), $request->platform]);
         
         return back()->with('success', 'Platform updated successfully');
     }
@@ -231,7 +226,7 @@ class CandidateController extends Controller
                 ]);
             }
             
-            // Fetch pre-calculated results from our database view
+            // Fetch pre-calculated results from our database view (now includes photo and details)
             $viewResults = DB::table('view_election_results')
                 ->where('election_id', $election->id)
                 ->get();
@@ -242,22 +237,19 @@ class CandidateController extends Controller
             
             foreach ($groupedResults as $positionName => $candidates) {
                 $results[$positionName] = $candidates->map(function ($row) {
-                    // Fetch photo from candidates table
-                    $c = DB::table('candidates')->where('id', $row->candidate_id)->first();
-                    
                     return [
                         'id' => $row->candidate_id,
                         'name' => $row->candidate_name,
-                        'photo' => $c && $c->photo 
-                            ? asset('storage/candidates/' . $c->photo)
+                        'photo' => $row->candidate_photo 
+                            ? asset('storage/candidates/' . $row->candidate_photo)
                             : asset('images/profile.png'),
                         'votes' => (int) ($row->votes_count ?? 0),
                         'percentage' => (float) ($row->vote_percentage ?? 0),
                         'isWinner' => ($row->current_rank ?? 0) == 1 && ($row->votes_count ?? 0) > 0,
-                        'partylist' => $c->partylist ?? 'N/A',
-                        'course' => $c->course ?? 'N/A',
-                        'year_level' => $c->year_level ?? 'N/A',
-                        'section' => $c->section ?? 'N/A',
+                        'partylist' => $row->partylist ?? 'N/A',
+                        'course' => $row->course ?? 'N/A',
+                        'year_level' => $row->year_level ?? 'N/A',
+                        'section' => $row->section ?? 'N/A',
                     ];
                 })
                 ->values()
@@ -331,10 +323,11 @@ class CandidateController extends Controller
             'email' => 'required|email|unique:users,email,' . Auth::id(),
         ]);
         
-        DB::table('users')->where('id', Auth::id())->update([
-            'name' => $request->name,
-            'email' => $request->email,
-            'updated_at' => now()
+        // Use stored procedure sp_UpdateCandidateProfile
+        DB::statement('CALL sp_UpdateCandidateProfile(?, ?, ?)', [
+            Auth::id(),
+            $request->name,
+            $request->email
         ]);
         
         return back()->with('success', 'Profile updated successfully');
@@ -354,10 +347,10 @@ class CandidateController extends Controller
             return back()->withErrors(['current_password' => 'Current password is incorrect']);
         }
         
-        // Update password
-        DB::table('users')->where('id', Auth::id())->update([
-            'password' => Hash::make($request->new_password),
-            'updated_at' => now()
+        // Use stored procedure sp_UpdateUserPassword
+        DB::statement('CALL sp_UpdateUserPassword(?, ?)', [
+            Auth::id(),
+            Hash::make($request->new_password)
         ]);
         
         return back()->with('success', 'Password updated successfully');

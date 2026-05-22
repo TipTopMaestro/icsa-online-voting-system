@@ -10,17 +10,10 @@ use Illuminate\Support\Facades\DB;
 class PositionController extends Controller
 {
     public function position() {
-        // Fetch all positions with election details using DB join
-        $positions = DB::table('positions')
-            ->join('elections', 'positions.election_id', '=', 'elections.id')
-            ->select(
-                'positions.*', 
-                'elections.title as election_title', 
-                'elections.description as election_description', 
-                'elections.is_active as election_is_active'
-            )
-            ->orderBy('elections.title')
-            ->orderBy('positions.name')
+        // Use the newly created view view_positions_details
+        $positions = DB::table('view_positions_details')
+            ->orderBy('election_title')
+            ->orderBy('name')
             ->get()
             ->map(function ($row) {
                 return [
@@ -34,7 +27,7 @@ class PositionController extends Controller
                         'description' => $row->election_description,
                         'is_active' => (bool)$row->election_is_active,
                     ],
-                    'candidates_count' => DB::table('candidates')->where('position_id', $row->id)->count(),
+                    'candidates_count' => $row->candidates_count,
                     'created_at' => $row->created_at,
                 ];
             });

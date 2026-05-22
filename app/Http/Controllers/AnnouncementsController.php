@@ -65,11 +65,12 @@ class AnnouncementsController extends Controller
             'audience' => 'required|in:all,voters,candidates',
         ]);
 
-        DB::table('announcements')->where('id', $id)->update([
-            'title' => $validated['title'],
-            'content' => $validated['content'],
-            'audience' => $validated['audience'],
-            'updated_at' => now()
+        // Use stored procedure sp_UpdateAnnouncement
+        DB::statement('CALL sp_UpdateAnnouncement(?, ?, ?, ?)', [
+            $id,
+            $validated['title'],
+            $validated['content'],
+            $validated['audience']
         ]);
 
         return redirect()->back()->with('success', 'Announcement updated successfully');
@@ -77,29 +78,24 @@ class AnnouncementsController extends Controller
 
     public function destroy($id)
     {
-        DB::table('announcements')->where('id', $id)->delete();
+        // Use stored procedure sp_DeleteAnnouncement
+        DB::statement('CALL sp_DeleteAnnouncement(?)', [$id]);
 
         return redirect()->back()->with('success', 'Announcement deleted successfully');
     }
 
     public function publish($id)
     {
-        DB::table('announcements')->where('id', $id)->update([
-            'is_published' => 1,
-            'published_at' => now(),
-            'updated_at' => now()
-        ]);
+        // Use stored procedure sp_PublishAnnouncement
+        DB::statement('CALL sp_PublishAnnouncement(?)', [$id]);
 
         return redirect()->back()->with('success', 'Announcement published');
     }
 
     public function unpublish($id)
     {
-        DB::table('announcements')->where('id', $id)->update([
-            'is_published' => 0,
-            'published_at' => null,
-            'updated_at' => now()
-        ]);
+        // Use stored procedure sp_UnpublishAnnouncement
+        DB::statement('CALL sp_UnpublishAnnouncement(?)', [$id]);
 
         return redirect()->back()->with('success', 'Announcement unpublished');
     }

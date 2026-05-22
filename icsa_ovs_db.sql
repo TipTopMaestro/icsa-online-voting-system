@@ -356,6 +356,55 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_UpdateUserProfile` (IN `p_user_i
         COMMIT;
     END$$
 
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_UpdateAnnouncement` (IN `p_id` BIGINT, IN `p_title` VARCHAR(255), IN `p_content` TEXT, IN `p_audience` VARCHAR(50))   BEGIN
+        UPDATE announcements 
+        SET title = p_title, 
+            content = p_content, 
+            audience = p_audience, 
+            updated_at = NOW() 
+        WHERE id = p_id;
+    END$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_DeleteAnnouncement` (IN `p_id` BIGINT)   BEGIN
+        DELETE FROM announcements WHERE id = p_id;
+    END$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_PublishAnnouncement` (IN `p_id` BIGINT)   BEGIN
+        UPDATE announcements 
+        SET is_published = 1, 
+            published_at = NOW(), 
+            updated_at = NOW() 
+        WHERE id = p_id;
+    END$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_UnpublishAnnouncement` (IN `p_id` BIGINT)   BEGIN
+        UPDATE announcements 
+        SET is_published = 0, 
+            published_at = NULL, 
+            updated_at = NOW() 
+        WHERE id = p_id;
+    END$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_DeletePosition` (IN `p_id` BIGINT)   BEGIN
+        DELETE FROM positions WHERE id = p_id;
+    END$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_UpdateCandidatePhoto` (IN `p_user_id` BIGINT, IN `p_photo` VARCHAR(255))   BEGIN
+        UPDATE candidates SET photo = p_photo, updated_at = NOW() WHERE user_id = p_user_id;
+    END$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_UpdateCandidatePlatform` (IN `p_user_id` BIGINT, IN `p_platform` TEXT)   BEGIN
+        UPDATE candidates SET platform = p_platform, updated_at = NOW() WHERE user_id = p_user_id;
+    END$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_UpdateCandidateProfile` (IN `p_user_id` BIGINT, IN `p_name` VARCHAR(255), IN `p_email` VARCHAR(255))   BEGIN
+        UPDATE users SET name = p_name, email = p_email, updated_at = NOW() WHERE id = p_user_id;
+    END$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_UpdateUserPassword` (IN `p_user_id` BIGINT, IN `p_password` VARCHAR(255))   BEGIN
+        UPDATE users SET password = p_password, updated_at = NOW() WHERE id = p_user_id;
+    END$$
+
 DELIMITER ;
 
 -- --------------------------------------------------------
@@ -814,6 +863,11 @@ CREATE TABLE `view_candidate_dashboard` (
 CREATE TABLE `view_election_results` (
 `candidate_id` bigint(20) unsigned
 ,`candidate_name` varchar(255)
+,`candidate_photo` varchar(255)
+,`partylist` varchar(255)
+,`course` varchar(255)
+,`year_level` varchar(255)
+,`section` varchar(255)
 ,`position_name` varchar(255)
 ,`election_title` varchar(255)
 ,`election_id` bigint(20) unsigned
@@ -846,6 +900,33 @@ CREATE TABLE `view_election_statistics` (
 ,`updated_at` timestamp
 );
 
+CREATE TABLE `view_positions_details` (
+`id` bigint(20) unsigned
+,`name` varchar(255)
+,`max_selection` int(11)
+,`election_id` bigint(20) unsigned
+,`election_title` varchar(255)
+,`election_description` text
+,`election_is_active` tinyint(1)
+,`candidates_count` bigint(21)
+,`created_at` timestamp
+);
+
+-- --------------------------------------------------------
+
+--
+-- Stand-in structure for view `view_recent_votes`
+-- (See below for the actual view)
+--
+CREATE TABLE `view_recent_votes` (
+`id` bigint(20) unsigned
+,`voter_name` varchar(255)
+,`voter_photo` varchar(255)
+,`candidate_name` varchar(255)
+,`position_name` varchar(255)
+,`created_at` timestamp
+);
+
 -- --------------------------------------------------------
 
 --
@@ -866,6 +947,19 @@ CREATE TABLE `view_voter_details` (
 ,`has_voted_active` int(1)
 ,`created_at` timestamp
 ,`updated_at` timestamp
+);
+
+CREATE TABLE `view_voting_receipt` (
+`id` bigint(20) unsigned
+,`user_id` bigint(20) unsigned
+,`election_id` bigint(20) unsigned
+,`candidate_id` bigint(20) unsigned
+,`position_id` bigint(20) unsigned
+,`created_at` timestamp
+,`candidate_name` varchar(255)
+,`candidate_photo` varchar(255)
+,`partylist` varchar(255)
+,`position_name` varchar(255)
 );
 
 -- --------------------------------------------------------
@@ -962,7 +1056,7 @@ CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW 
 --
 DROP TABLE IF EXISTS `view_election_results`;
 
-CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `view_election_results`  AS SELECT `c`.`id` AS `candidate_id`, `u`.`name` AS `candidate_name`, `p`.`name` AS `position_name`, `e`.`title` AS `election_title`, `c`.`election_id` AS `election_id`, `c`.`position_id` AS `position_id`, `c`.`votes_count` AS `votes_count`, round(`c`.`votes_count` / sum(`c`.`votes_count`) over ( partition by `c`.`position_id`) * 100,2) AS `vote_percentage`, rank() over ( partition by `c`.`position_id` order by `c`.`votes_count` desc) AS `current_rank` FROM (((`candidates` `c` join `users` `u` on(`c`.`user_id` = `u`.`id`)) join `positions` `p` on(`c`.`position_id` = `p`.`id`)) join `elections` `e` on(`c`.`election_id` = `e`.`id`)) ;
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `view_election_results`  AS SELECT `c`.`id` AS `candidate_id`, `u`.`name` AS `candidate_name`, `c`.`photo` AS `candidate_photo`, `c`.`partylist` AS `partylist`, `c`.`course` AS `course`, `c`.`year_level` AS `year_level`, `c`.`section` AS `section`, `p`.`name` AS `position_name`, `e`.`title` AS `election_title`, `c`.`election_id` AS `election_id`, `c`.`position_id` AS `position_id`, `c`.`votes_count` AS `votes_count`, round(`c`.`votes_count` / nullif(sum(`c`.`votes_count`) over ( partition by `c`.`position_id`), 0) * 100,2) AS `vote_percentage`, rank() over ( partition by `c`.`position_id` order by `c`.`votes_count` desc) AS `current_rank` FROM (((`candidates` `c` join `users` `u` on(`c`.`user_id` = `u`.`id`)) join `positions` `p` on(`c`.`position_id` = `p`.`id`)) join `elections` `e` on(`c`.`election_id` = `e`.`id`)) ;
 
 -- --------------------------------------------------------
 
@@ -971,7 +1065,25 @@ CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW 
 --
 DROP TABLE IF EXISTS `view_election_statistics`;
 
-CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `view_election_statistics`  AS SELECT `e`.`id` AS `id`, `e`.`title` AS `title`, `e`.`description` AS `description`, `e`.`start_datetime` AS `start_datetime`, `e`.`end_datetime` AS `end_datetime`, `e`.`is_active` AS `is_active`, (select count(0) from `positions` `p` where `p`.`election_id` = `e`.`id`) AS `positions_count`, (select count(0) from `candidates` `c` where `c`.`election_id` = `e`.`id`) AS `candidates_count`, (select count(0) from `votes` `v` where `v`.`election_id` = `e`.`id`) AS `votes_count`, (select count(distinct `v`.`user_id`) from `votes` `v` where `v`.`election_id` = `e`.`id`) AS `voted_count`, (select count(0) from `voter_profiles`) AS `total_voters`, CASE WHEN `e`.`is_active` = 1 THEN 'active' WHEN current_timestamp() > `e`.`end_datetime` THEN 'ended' WHEN current_timestamp() < `e`.`start_datetime` THEN 'scheduled' ELSE 'scheduled' END AS `status`, `e`.`created_at` AS `created_at`, `e`.`updated_at` AS `updated_at` FROM `elections` AS `e` ;
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `view_election_statistics`  AS SELECT `e`.`id` AS `id`, `e`.`title` AS `title`, `e`.`description` AS `description`, `e`.`start_datetime` AS `start_datetime`, `e`.`end_datetime` AS `end_datetime`, `e`.`is_active` AS `is_active`, (select count(0) from `positions` `p` where `p`.`election_id` = `e`.`id`) AS `positions_count`, (select count(0) from `candidates` `c` where `c`.`election_id` = `e`.`id`) AS `candidates_count`, (select count(0) from `votes` `v` where `v`.`election_id` = `e`.`id`) AS `votes_count`, (select count(distinct `v`.`user_id`) from `votes` `v` where `v`.`election_id` = `e`.`id`) AS `voted_count`, (select count(0) from `voter_profiles`) AS `total_voters`, CASE WHEN `e`.`is_active` = 1 THEN 'active' COLLATE utf8mb4_unicode_ci WHEN current_timestamp() > `e`.`end_datetime` THEN 'ended' COLLATE utf8mb4_unicode_ci WHEN current_timestamp() < `e`.`start_datetime` THEN 'scheduled' COLLATE utf8mb4_unicode_ci ELSE 'scheduled' COLLATE utf8mb4_unicode_ci END AS `status`, `e`.`created_at` AS `created_at`, `e`.`updated_at` AS `updated_at` FROM `elections` AS `e` ;
+
+-- --------------------------------------------------------
+
+--
+-- Structure for view `view_positions_details`
+--
+DROP TABLE IF EXISTS `view_positions_details`;
+
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `view_positions_details`  AS SELECT `p`.`id` AS `id`, `p`.`name` AS `name`, `p`.`max_selection` AS `max_selection`, `p`.`election_id` AS `election_id`, `e`.`title` AS `election_title`, `e`.`description` AS `election_description`, `e`.`is_active` AS `election_is_active`, (select count(0) from `candidates` `c` where `c`.`position_id` = `p`.`id`) AS `candidates_count`, `p`.`created_at` AS `created_at` FROM (`positions` `p` join `elections` `e` on(`p`.`election_id` = `e`.`id`)) ;
+
+-- --------------------------------------------------------
+
+--
+-- Structure for view `view_recent_votes`
+--
+DROP TABLE IF EXISTS `view_recent_votes`;
+
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `view_recent_votes`  AS SELECT `v`.`id` AS `id`, `u`.`name` AS `voter_name`, `u`.`photo` AS `voter_photo`, `c_u`.`name` AS `candidate_name`, `p`.`name` AS `position_name`, `v`.`created_at` AS `created_at` FROM ((((`votes` `v` join `users` `u` on(`v`.`user_id` = `u`.`id`)) join `candidates` `c` on(`v`.`candidate_id` = `c`.`id`)) join `users` `c_u` on(`c`.`user_id` = `c_u`.`id`)) join `positions` `p` on(`v`.`position_id` = `p`.`id`)) ORDER BY `v`.`created_at` DESC ;
 
 -- --------------------------------------------------------
 

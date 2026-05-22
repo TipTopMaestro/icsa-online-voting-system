@@ -151,40 +151,38 @@ class ResultController extends Controller
             ->where('id', $electionId)
             ->first();
 
-        // Fetch pre-calculated results from our database view
+        // Fetch pre-calculated results from our database view (now includes photo and details)
         $viewResults = DB::table('view_election_results')
             ->where('election_id', $electionId)
             ->get();
 
-        // Get positions for this election
+        // Get results grouped by position name from the database view
+        $results = [];
+        $groupedResults = $viewResults->groupBy('position_name');
+        
+        foreach ($groupedResults as $positionName => $candidates) {
+            $results[$positionName] = $candidates->map(function ($row) {
+                return [
+                    'id' => $row->candidate_id,
+                    'name' => $row->candidate_name,
+                    'photo' => $row->candidate_photo 
+                        ? asset('storage/candidates/' . $row->candidate_photo)
+                        : asset('images/profile.png'),
+                    'votes' => (int) $row->votes_count,
+                    'percentage' => (float) $row->vote_percentage,
+                    'isWinner' => $row->current_rank == 1 && $row->votes_count > 0,
+                    'partylist' => $row->partylist ?? 'Independent',
+                ];
+            })
+            ->values()
+            ->toArray();
+        }
+
+        // Extract positions for the frontend mapping from the grouped keys
         $positions = DB::table('positions')->where('election_id', $electionId)
             ->select('id', 'name')
             ->orderBy('id')
             ->get();
-
-        // Group the view results by position name for the frontend
-        $results = [];
-        foreach ($positions as $position) {
-            $results[$position->name] = $viewResults->where('position_id', $position->id)
-                ->map(function ($row) {
-                    // Fetch the photo from the candidates table
-                    $candidate = DB::table('candidates')->where('id', $row->candidate_id)->first();
-
-                    return [
-                        'id' => $row->candidate_id,
-                        'name' => $row->candidate_name,
-                        'photo' => $candidate && $candidate->photo 
-                            ? asset('storage/candidates/' . $candidate->photo)
-                            : asset('images/profile.png'),
-                        'votes' => (int) $row->votes_count,
-                        'percentage' => (float) $row->vote_percentage,
-                        'isWinner' => $row->current_rank == 1 && $row->votes_count > 0,
-                        'partylist' => $candidate->partylist ?? 'Independent',
-                    ];
-                })
-                ->values()
-                ->toArray();
-        }
 
         // Statistics using values from our view
         $votedCount = (int)($electionStats->voted_count ?? 0);

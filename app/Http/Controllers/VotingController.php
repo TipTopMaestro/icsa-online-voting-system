@@ -47,25 +47,37 @@ class VotingController extends Controller
             ]);
         }
 
-        // Get positions with candidates using DB joins
+        // Get all candidates for the active election using optimized view
+        $allCandidates = DB::table('view_candidates_details')
+            ->where('election_id', $election->id)
+            ->get();
+
+        // Get positions for this election
         $positions = DB::table('positions')
             ->where('election_id', $election->id)
             ->orderBy('id')
             ->get()
-            ->map(function ($position) {
-                $position->candidates = DB::table('candidates')
-                    ->join('users', 'candidates.user_id', '=', 'users.id')
-                    ->where('candidates.position_id', $position->id)
-                    ->select('candidates.*', 'users.name', 'users.email')
-                    ->get()
+            ->map(function ($position) use ($allCandidates) {
+                $position->candidates = $allCandidates->where('position_id', $position->id)
                     ->map(function ($candidate) {
-                        // Compatibility for nested user object
-                        $candidate->user = (object)[
-                            'name' => $candidate->name,
-                            'email' => $candidate->email
+                        return [
+                            'id' => $candidate->id,
+                            'user_id' => $candidate->user_id,
+                            'position_id' => $candidate->position_id,
+                            'name' => $candidate->user_name,
+                            'email' => $candidate->user_email,
+                            'partylist' => $candidate->partylist,
+                            'platform' => $candidate->platform,
+                            'photo' => $candidate->photo,
+                            'course' => $candidate->course,
+                            'year_level' => $candidate->year_level,
+                            'section' => $candidate->section,
+                            'user' => (object)[
+                                'name' => $candidate->user_name,
+                                'email' => $candidate->user_email
+                            ]
                         ];
-                        return $candidate;
-                    });
+                    })->values();
                 return $position;
             });
 
@@ -143,14 +155,10 @@ class VotingController extends Controller
         $user = Auth::user();
         $electionId = $request->election_id;
 
-        // Get votes cast by user in this election via DB join
-        $votes = DB::table('votes')
-            ->join('candidates', 'votes.candidate_id', '=', 'candidates.id')
-            ->join('users', 'candidates.user_id', '=', 'users.id')
-            ->join('positions', 'candidates.position_id', '=', 'positions.id')
-            ->where('votes.user_id', $user->id)
-            ->where('votes.election_id', $electionId)
-            ->select('votes.*', 'users.name as candidate_name', 'positions.name as position_name', 'candidates.photo as candidate_photo', 'candidates.partylist')
+        // Get votes cast by user in this election via optimized view
+        $votes = DB::table('view_voting_receipt')
+            ->where('user_id', $user->id)
+            ->where('election_id', $electionId)
             ->get()
             ->map(function($vote) {
                  // Compatibility mapping for receipt UI

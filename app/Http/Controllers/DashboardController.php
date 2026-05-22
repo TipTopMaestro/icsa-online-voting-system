@@ -42,19 +42,16 @@ class DashboardController extends Controller
         // Get recent activities (last 5)
         $activities = [];
         
-        // Recent votes
-        $recentVotes = DB::table('votes')
-            ->join('elections', 'votes.election_id', '=', 'elections.id')
-            ->select('elections.title as election_name', 'votes.created_at')
-            ->orderBy('votes.created_at', 'desc')
-            ->limit(2)
+        // Recent votes using optimized view
+        $recentVotes = DB::table('view_recent_votes')
+            ->limit(3)
             ->get();
         
         foreach ($recentVotes as $vote) {
             $activities[] = [
                 'type' => 'vote',
                 'title' => 'New vote cast',
-                'description' => $vote->election_name,
+                'description' => $vote->voter_name . ' voted for ' . $vote->candidate_name . ' (' . $vote->position_name . ')',
                 'time' => Carbon::parse($vote->created_at)->diffForHumans(),
                 'timestamp' => Carbon::parse($vote->created_at)->timestamp,
                 'icon' => 'checkCircle',
