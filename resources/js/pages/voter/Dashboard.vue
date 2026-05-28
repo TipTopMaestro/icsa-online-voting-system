@@ -148,7 +148,7 @@ const formattedCountdown = computed(() => {
                             <!-- Actions -->
                             <div v-if="activeElection" class="mt-6 pt-6 border-t border-gray-100 flex gap-3">
                                 <Link v-if="!hasVoted" href="/voter/vote" 
-                                    class="flex-1 bg-purple-800 text-white px-4 py-2.5 rounded-md text-sm font-medium hover:bg-purple-700 transition text-center">
+                                    class="flex-1 bg-primary text-primary-foreground px-4 py-2.5 rounded-md text-sm font-medium hover:bg-primary/90 transition text-center">
                                     Cast Vote
                                 </Link>
                                 <Link href="/voter/candidates" 
@@ -174,14 +174,14 @@ const formattedCountdown = computed(() => {
                         <div class="bg-white border border-gray-200 rounded-lg p-6">
                             <div class="flex items-center justify-between mb-4">
                                 <h3 class="text-base font-semibold text-gray-900">Recent Announcements</h3>
-                                <Link href="/voter/announcements" class="text-sm text-purple-600 hover:text-purple-700">
+                                <Link href="/voter/announcements" class="text-sm text-accent hover:text-accent/90">
                                     View all
                                 </Link>
                             </div>
 
                             <div v-if="recentAnnouncements.length > 0" class="space-y-3">
                                 <div v-for="announcement in recentAnnouncements" :key="announcement.id" 
-                                    class="border-l-2 border-purple-600 pl-4 py-2">
+                                    class="border-l-2 border-primary pl-4 py-2">
                                     <h4 class="text-sm font-medium text-gray-900">{{ announcement.title }}</h4>
                                     <p class="text-sm text-gray-600 mt-1 line-clamp-2">{{ announcement.content }}</p>
                                     <p class="text-xs text-gray-500 mt-1">{{ announcement.created_at }}</p>

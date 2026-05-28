@@ -17,7 +17,7 @@
 
         /* Navbar Styles */
         .navbar-custom {
-            background: rgb(90, 45, 111,0.1);
+            background: rgba(92, 62, 148, 0.1);
             padding: 1rem 0;
             box-shadow: 0 2px 4px rgba(0,0,0,0.2);
             backdrop-filter: blur(10px);
@@ -50,7 +50,7 @@
 
         .navbar-custom .nav-link:hover,
         .navbar-custom .nav-link.active {
-            color: #FFC107 !important;
+            color: #F25912 !important;
         }
 
         .btn-login {
@@ -66,7 +66,7 @@
 
         .btn-login:hover {
             background-color: white;
-            color: #5A2D6F;
+            color: #5C3E94;
             transition: all 0.3s ease-in-out;
         }
 
@@ -156,7 +156,7 @@
             letter-spacing: 2px;
         }
         .hero-title span {
-            color: #FFC107;
+            color: #F25912;
         }
 
         .hero-subtitle {
@@ -169,7 +169,7 @@
         }
 
         .btn-register {
-            background-color: #FFC107;
+            background-color: #F25912;
             color: #000;
             padding: 0.8rem 3rem;
             border-radius: 25px;
@@ -229,7 +229,7 @@
         .feature-icon {
             width: 70px;
             height: 70px;
-            background-color: #FFC107;
+            background-color: #F25912;
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -266,7 +266,7 @@
         .step-number {
             width: 70px;
             height: 70px;
-            background-color: #5A2D6F;
+            background-color: #5C3E94;
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -293,7 +293,7 @@
 
         /* Footer */
         .footer {
-            background-color: #5A2D6F;
+            background-color: #5C3E94;
             color: white;
             padding: 3rem 0 1.5rem;
         }
@@ -335,7 +335,7 @@
         }
 
         .footer a:hover {
-            color: #FFC107;
+            color: #F25912;
         }
 
         .footer-bottom {

@@ -46,7 +46,7 @@ const getPhotoUrl = (photo: string) => {
 // Filter candidates
 const filteredCandidates = computed(() => {
   const term = searchTerm.value.trim().toLowerCase()
-  let list = props.candidates.filter(c => {
+  const list = props.candidates.filter(c => {
     if (!term) return true
     const hay = `${c.name ?? ''} ${c.position ?? ''} ${c.party ?? ''} ${c.course ?? ''} ${c.platform ?? ''}`.toLowerCase()
     return hay.includes(term)
