@@ -2,16 +2,19 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Announcement;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class AnnouncementsController extends Controller
 {
     public function index()
     {
-        $announcements = Announcement::with('creator')
-            ->latest()
+        $announcements = DB::table('announcements')
+            ->join('users', 'announcements.created_by', '=', 'users.id')
+            ->select('announcements.*', 'users.name as creator_name')
+            ->orderBy('created_at', 'desc')
             ->get();
 
         return Inertia::render('admin/announcements', [
@@ -28,18 +31,33 @@ class AnnouncementsController extends Controller
             'is_published' => 'boolean',
         ]);
 
-        $validated['created_by'] = auth()->id();
+        $userId = auth()->id();
         
+        // Use stored procedure sp_CreateAnnouncement
+        DB::statement('CALL sp_CreateAnnouncement(?, ?, ?, ?)', [
+            $validated['title'],
+            $validated['content'],
+            $validated['audience'],
+            $userId
+        ]);
+
+        // If is_published was true, we need an extra update since the procedure doesn't handle it
         if ($validated['is_published'] ?? false) {
-            $validated['published_at'] = now();
+             DB::table('announcements')
+                ->where('title', $validated['title'])
+                ->where('created_by', $userId)
+                ->orderBy('created_at', 'desc')
+                ->limit(1)
+                ->update([
+                    'is_published' => 1,
+                    'published_at' => now()
+                ]);
         }
 
-        Announcement::create($validated);
-
-        return redirect()->back();
+        return redirect()->back()->with('success', 'Announcement created successfully');
     }
 
-    public function update(Request $request, Announcement $announcement)
+    public function update(Request $request, $id)
     {
         $validated = $request->validate([
             'title' => 'required|string|max:255',
@@ -47,39 +65,50 @@ class AnnouncementsController extends Controller
             'audience' => 'required|in:all,voters,candidates',
         ]);
 
-        $announcement->update($validated);
+        // Use stored procedure sp_UpdateAnnouncement
+        DB::statement('CALL sp_UpdateAnnouncement(?, ?, ?, ?)', [
+            $id,
+            $validated['title'],
+            $validated['content'],
+            $validated['audience']
+        ]);
 
-        return redirect()->back();
+        return redirect()->back()->with('success', 'Announcement updated successfully');
     }
 
-    public function destroy(Announcement $announcement)
+    public function destroy($id)
     {
-        $announcement->delete();
+        // Use stored procedure sp_DeleteAnnouncement
+        DB::statement('CALL sp_DeleteAnnouncement(?)', [$id]);
 
-        return redirect()->back();
+        return redirect()->back()->with('success', 'Announcement deleted successfully');
     }
 
-    public function publish(Announcement $announcement)
+    public function publish($id)
     {
-        $announcement->publish();
+        // Use stored procedure sp_PublishAnnouncement
+        DB::statement('CALL sp_PublishAnnouncement(?)', [$id]);
 
-        return redirect()->back();
+        return redirect()->back()->with('success', 'Announcement published');
     }
 
-    public function unpublish(Announcement $announcement)
+    public function unpublish($id)
     {
-        $announcement->unpublish();
+        // Use stored procedure sp_UnpublishAnnouncement
+        DB::statement('CALL sp_UnpublishAnnouncement(?)', [$id]);
 
-        return redirect()->back();
+        return redirect()->back()->with('success', 'Announcement unpublished');
     }
 
     public function voterIndex()
     {
         // Get published announcements for voters (audience: all or voters)
-        $announcements = Announcement::with('creator')
+        $announcements = DB::table('announcements')
+            ->join('users', 'announcements.created_by', '=', 'users.id')
+            ->select('announcements.*', 'users.name as creator_name')
             ->where('is_published', true)
             ->whereIn('audience', ['all', 'voters'])
-            ->latest()
+            ->orderBy('created_at', 'desc')
             ->get();
 
         return Inertia::render('voter/announcement', [

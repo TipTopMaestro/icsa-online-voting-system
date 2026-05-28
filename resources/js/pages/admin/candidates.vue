@@ -193,8 +193,8 @@ const showPasswordModal = ref(false);
 const selectedCandidate = ref<Candidate | null>(null);
 const generatedPassword = ref<string>('');
 
-// Forms - simplified without Inertia useForm
-const createFormData = ref({
+// Forms - refactored to use Inertia useForm for better CSRF and multipart support
+const createForm = useForm({
   name: '',
   email: '',
   election_id: null as number | null,
@@ -204,11 +204,8 @@ const createFormData = ref({
   course: 'BSIT' as 'BSIT' | 'BSIS',
   year_level: '1',
   section: '',
+  photo: null as File | null,
 });
-
-const createFormPhoto = ref<File | null>(null);
-const createFormProcessing = ref(false);
-const createFormErrors = ref<Record<string, string>>({});
 
 const editForm = useForm({
   name: '',
@@ -224,10 +221,10 @@ const editForm = useForm({
 
 // Computed properties to filter positions based on selected election
 const availablePositionsForCreate = computed(() => {
-  if (!createFormData.value.election_id) {
+  if (!createForm.election_id) {
     return [];
   }
-  return props.positions.filter(position => position.election_id === createFormData.value.election_id);
+  return props.positions.filter(position => position.election_id === createForm.election_id);
 });
 
 const availablePositionsForEdit = computed(() => {
@@ -238,12 +235,16 @@ const availablePositionsForEdit = computed(() => {
 });
 
 // Watchers to reset position when election changes
-watch(() => createFormData.value.election_id, (newElectionId) => {
-  createFormData.value.position_id = null;
+watch(() => createForm.election_id, (newVal, oldVal) => {
+  if (oldVal && newVal !== oldVal) {
+    createForm.position_id = null;
+  }
 });
 
-watch(() => editForm.election_id, (newElectionId) => {
-  editForm.position_id = null;
+watch(() => editForm.election_id, (newVal, oldVal) => {
+  if (oldVal && newVal !== oldVal) {
+    editForm.position_id = null;
+  }
 });
 
 // Methods
@@ -274,111 +275,41 @@ function clearFilters() {
 }
 
 function openCreateModal() {
-  createFormData.value = {
-    name: '',
-    email: '',
-    election_id: null,
-    position_id: null,
-    partylist: '',
-    platform: '',
-    course: 'BSIT',
-    year_level: '1',
-    section: '',
-  };
-  createFormPhoto.value = null;
-  createFormErrors.value = {};
+  createForm.reset();
+  createForm.clearErrors();
   showCreateModal.value = true;
 }
 
 function closeCreateModal() {
   showCreateModal.value = false;
-  createFormData.value = {
-    name: '',
-    email: '',
-    election_id: null,
-    position_id: null,
-    partylist: '',
-    platform: '',
-    course: 'BSIT',
-    year_level: '1',
-    section: '',
-  };
-  createFormPhoto.value = null;
-  createFormErrors.value = {};
+  createForm.reset();
+  createForm.clearErrors();
 }
 
 function handlePhotoCreate(event: Event) {
   const target = event.target as HTMLInputElement;
   if (target.files && target.files[0]) {
-    createFormPhoto.value = target.files[0];
+    createForm.photo = target.files[0];
   }
 }
 
 function submitCreate() {
-  createFormProcessing.value = true;
-  createFormErrors.value = {};
-
-  const formData = new FormData();
-  formData.append('name', createFormData.value.name);
-  formData.append('email', createFormData.value.email);
-  formData.append('election_id', String(createFormData.value.election_id || ''));
-  formData.append('position_id', String(createFormData.value.position_id || ''));
-  formData.append('partylist', createFormData.value.partylist);
-  formData.append('platform', createFormData.value.platform);
-  formData.append('course', createFormData.value.course);
-  formData.append('year_level', createFormData.value.year_level);
-  formData.append('section', createFormData.value.section || '');
-  
-  if (createFormPhoto.value) {
-    formData.append('photo', createFormPhoto.value);
-  }
-
-  // Get CSRF token from the page
-  const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-  
-  console.log('Submitting with CSRF:', csrfToken);
-
-  fetch('/admin/candidates', {
-    method: 'POST',
-    body: formData,
-    headers: {
-      'X-CSRF-TOKEN': csrfToken || '',
-      'X-Requested-With': 'XMLHttpRequest',
-      'Accept': 'application/json',
-    },
-    credentials: 'same-origin',
-  })
-    .then(response => {
-      console.log('Response status:', response.status);
-      if (!response.ok) {
-        return response.json().then(data => {
-          throw data;
-        });
-      }
-      return response.json();
-    })
-    .then((data) => {
-      createFormProcessing.value = false;
-      closeCreateModal();
-      
-      // Show password modal with generated password
-      if (data.generated_password) {
-        generatedPassword.value = data.generated_password;
+  createForm.post('/admin/candidates', {
+    onSuccess: (page) => {
+      // Access the generated password from the shared props (flash)
+      const flash = page.props.flash as any;
+      if (flash && flash.generated_password) {
+        generatedPassword.value = flash.generated_password;
         showPasswordModal.value = true;
       }
       
-      // Reload the page to show new candidate
-      router.reload();
-    })
-    .catch(error => {
-      createFormProcessing.value = false;
-      console.error('Create error:', error);
-      if (error.errors) {
-        createFormErrors.value = error.errors;
-      } else {
-        alert('Failed to create candidate: ' + (error.message || 'Unknown error'));
-      }
-    });
+      closeCreateModal();
+    },
+    onError: (errors) => {
+      console.error('Create error:', errors);
+    },
+    forceFormData: true,
+  });
 }
 
 function openEditModal(candidate: Candidate) {
@@ -412,60 +343,19 @@ function handlePhotoEdit(event: Event) {
 function submitEdit() {
   if (!selectedCandidate.value) return;
 
-  editForm.processing = true;
-  editForm.clearErrors();
-
-  const formData = new FormData();
-  formData.append('_method', 'PUT');
-  formData.append('name', editForm.name);
-  formData.append('election_id', String(editForm.election_id || ''));
-  formData.append('position_id', String(editForm.position_id || ''));
-  formData.append('partylist', editForm.partylist);
-  formData.append('platform', editForm.platform);
-  formData.append('course', editForm.course);
-  formData.append('year_level', editForm.year_level);
-  formData.append('section', editForm.section || '');
-  
-  if (editForm.photo) {
-    formData.append('photo', editForm.photo);
-  }
-
-  const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-
-  fetch(`/admin/candidates/${selectedCandidate.value.id}`, {
-    method: 'POST',
-    body: formData,
-    headers: {
-      'X-CSRF-TOKEN': csrfToken || '',
-      'X-Requested-With': 'XMLHttpRequest',
-      'Accept': 'application/json',
-    },
-    credentials: 'same-origin',
-  })
-    .then(response => {
-      if (!response.ok) {
-        return response.json().then(data => {
-          throw data;
-        });
-      }
-      return response.json();
-    })
-    .then(() => {
-      editForm.processing = false;
+  // For file uploads in Laravel via PUT, we use POST with _method=PUT
+  editForm.transform((data) => ({
+    ...data,
+    _method: 'PUT',
+  })).post(`/admin/candidates/${selectedCandidate.value.id}`, {
+    onSuccess: () => {
       closeEditModal();
-      router.reload();
-    })
-    .catch(error => {
-      editForm.processing = false;
-      if (error.errors) {
-        Object.keys(error.errors).forEach(key => {
-          editForm.setError(key as any, error.errors[key][0]);
-
-        });
-      } else {
-        alert('Failed to update candidate: ' + (error.message || 'Unknown error'));
-      }
-    });
+    },
+    onError: (errors) => {
+      console.error('Edit error:', errors);
+    },
+    forceFormData: true,
+  });
 }
 
 function openDeleteModal(candidate: Candidate) {
@@ -481,32 +371,14 @@ function closeDeleteModal() {
 function confirmDelete() {
   if (!selectedCandidate.value) return;
 
-  const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-
-  fetch(`/admin/candidates/${selectedCandidate.value.id}`, {
-    method: 'DELETE',
-    headers: {
-      'X-CSRF-TOKEN': csrfToken || '',
-      'X-Requested-With': 'XMLHttpRequest',
-      'Accept': 'application/json',
-    },
-    credentials: 'same-origin',
-  })
-    .then(response => {
-      if (!response.ok) {
-        return response.json().then(data => {
-          throw data;
-        });
-      }
-      return response.json();
-    })
-    .then(() => {
+  router.delete(`/admin/candidates/${selectedCandidate.value.id}`, {
+    onSuccess: () => {
       closeDeleteModal();
-      router.reload();
-    })
-    .catch(error => {
-      alert('Failed to delete candidate: ' + (error.message || 'Unknown error'));
-    });
+    },
+    onError: (errors) => {
+      alert('Failed to delete candidate');
+    }
+  });
 }
 
 function openViewModal(candidate: Candidate) {
@@ -566,9 +438,9 @@ function copyPassword() {
       </div>
 
       <!-- Modern Search & Filters -->
-      <section class="bg-card rounded-xl shadow-sm border overflow-hidden mb-6">
+      <section :class="['bg-card rounded-xl shadow-sm border mb-6 relative transition-all duration-200', showFilters ? 'z-40 shadow-md' : 'z-10']">
         <!-- Search Bar -->
-        <div class="p-4">
+        <div class="p-4 relative z-20">
           <div class="flex items-center gap-3">
             <!-- Search Input -->
             <div class="flex-1 relative">
@@ -617,8 +489,6 @@ function copyPassword() {
             </button>
 
             <!-- Quick Actions -->
-            
-
             <button 
               v-if="hasActiveFilters"
               @click="clearFilters" 
@@ -659,18 +529,18 @@ function copyPassword() {
 
         <!-- Expandable Filters -->
         <transition
-          enter-active-class="transition-all duration-300 ease-out"
-          enter-from-class="opacity-0 max-h-0"
-          enter-to-class="opacity-100 max-h-96"
-          leave-active-class="transition-all duration-200 ease-in"
-          leave-from-class="opacity-100 max-h-96"
-          leave-to-class="opacity-0 max-h-0"
+          enter-active-class="transition-opacity duration-200 ease-out"
+          enter-from-class="opacity-0"
+          enter-to-class="opacity-100"
+          leave-active-class="transition-opacity duration-150 ease-in"
+          leave-from-class="opacity-100"
+          leave-to-class="opacity-0"
         >
-          <div v-show="showFilters" class="border-t bg-muted/50">
+          <div v-show="showFilters" class="border-t bg-muted/50 relative z-30">
             <div class="p-4">
               <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <!-- Election Filter -->
-                <div>
+                <div :class="['relative', electionDropdownOpen ? 'z-[60]' : 'z-10']">
                   <label class="block text-xs font-medium text-muted-foreground mb-1.5">Election</label>
                   <div class="relative">
                     <button type="button" @click.stop="toggleElectionDropdown()" class="w-full text-left px-3 py-2 pr-10 text-sm bg-background dark:bg-purple-950/40 border dark:border-purple-700 rounded-lg flex items-center justify-between dark:text-purple-100">
@@ -678,8 +548,8 @@ function copyPassword() {
                       <svg class="w-4 h-4 text-muted-foreground dark:text-purple-300 transition-transform duration-200" :class="{ 'rotate-180': electionDropdownOpen }" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                     </button>
 
-                    <div v-if="electionDropdownOpen" class="absolute right-0 mt-2 w-64 bg-white dark:bg-purple-900 border dark:border-purple-600 rounded-lg shadow-md z-20">
-                      <ul class="py-1">
+                    <div v-if="electionDropdownOpen" class="absolute left-0 mt-2 w-full bg-white dark:bg-purple-900 border-2 dark:border-purple-600 rounded-lg shadow-xl z-[100]">
+                      <ul class="py-1 max-h-60 overflow-y-auto">
                         <li v-for="opt in electionOptions" :key="String(opt.value)" class="px-3 py-2 hover:bg-primary/10 dark:hover:bg-purple-800 cursor-pointer text-sm dark:text-purple-100" @click="selectElectionOption(opt)">
                           {{ opt.label }}
                         </li>
@@ -689,7 +559,7 @@ function copyPassword() {
                 </div>
 
                 <!-- Position Filter -->
-                <div>
+                <div :class="['relative', positionDropdownOpen ? 'z-[60]' : 'z-10']">
                   <label class="block text-xs font-medium text-muted-foreground mb-1.5">Position</label>
                   <div class="relative">
                     <button type="button" @click.stop="togglePositionDropdown()" class="w-full text-left px-3 py-2 pr-10 text-sm bg-background dark:bg-purple-950/40 border dark:border-purple-700 rounded-lg flex items-center justify-between dark:text-purple-100">
@@ -697,8 +567,8 @@ function copyPassword() {
                       <svg class="w-4 h-4 text-muted-foreground dark:text-purple-300 transition-transform duration-200" :class="{ 'rotate-180': positionDropdownOpen }" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                     </button>
 
-                    <div v-if="positionDropdownOpen" class="absolute right-0 mt-2 w-64 bg-white dark:bg-purple-900 border dark:border-purple-600 rounded-lg shadow-md z-20">
-                      <ul class="py-1">
+                    <div v-if="positionDropdownOpen" class="absolute left-0 mt-2 w-full bg-white dark:bg-purple-900 border-2 dark:border-purple-600 rounded-lg shadow-xl z-[100]">
+                      <ul class="py-1 max-h-60 overflow-y-auto">
                         <li v-for="opt in positionOptions" :key="String(opt.value)" class="px-3 py-2 hover:bg-primary/10 dark:hover:bg-purple-800 cursor-pointer text-sm dark:text-purple-100" @click="selectPositionOption(opt)">
                           {{ opt.label }}
                         </li>
@@ -708,7 +578,7 @@ function copyPassword() {
                 </div>
 
                 <!-- Partylist Filter -->
-                <div>
+                <div class="relative z-10">
                   <label class="block text-xs font-medium text-muted-foreground mb-1.5">Partylist</label>
                   <input 
                     v-model="filterPartylist" 
@@ -720,7 +590,7 @@ function copyPassword() {
                 </div>
 
                 <!-- Course Filter -->
-                <div>
+                <div :class="['relative', courseDropdownOpen ? 'z-[60]' : 'z-10']">
                   <label class="block text-xs font-medium text-muted-foreground mb-1.5">Course</label>
                   <div class="relative">
                     <button type="button" @click.stop="toggleCourseDropdown()" class="w-full text-left px-3 py-2 pr-10 text-sm bg-background dark:bg-purple-950/40 border dark:border-purple-700 rounded-lg flex items-center justify-between dark:text-purple-100">
@@ -728,8 +598,8 @@ function copyPassword() {
                       <svg class="w-4 h-4 text-muted-foreground dark:text-purple-300 transition-transform duration-200" :class="{ 'rotate-180': courseDropdownOpen }" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                     </button>
 
-                    <div v-if="courseDropdownOpen" class="absolute right-0 mt-2 w-44 bg-white dark:bg-purple-900 border dark:border-purple-600 rounded-lg shadow-md z-20">
-                      <ul class="py-1">
+                    <div v-if="courseDropdownOpen" class="absolute left-0 mt-2 w-full bg-white dark:bg-purple-900 border-2 dark:border-purple-600 rounded-lg shadow-xl z-[100]">
+                      <ul class="py-1 max-h-60 overflow-y-auto">
                         <li v-for="opt in courseOptions" :key="String(opt.value)" class="px-3 py-2 hover:bg-primary/10 dark:hover:bg-purple-800 cursor-pointer text-sm dark:text-purple-100" @click="selectCourseOption(opt)">
                           {{ opt.label }}
                         </li>
@@ -739,7 +609,7 @@ function copyPassword() {
                 </div>
 
                 <!-- Year Level Filter -->
-                <div>
+                <div :class="['relative', yearDropdownOpen ? 'z-[60]' : 'z-10']">
                   <label class="block text-xs font-medium text-muted-foreground mb-1.5">Year Level</label>
                   <div class="relative">
                     <button type="button" @click.stop="toggleYearDropdown()" class="w-full text-left px-3 py-2 pr-10 text-sm bg-background dark:bg-purple-950/40 border dark:border-purple-700 rounded-lg flex items-center justify-between dark:text-purple-100">
@@ -747,8 +617,8 @@ function copyPassword() {
                       <svg class="w-4 h-4 text-muted-foreground dark:text-purple-300 transition-transform duration-200" :class="{ 'rotate-180': yearDropdownOpen }" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                     </button>
 
-                    <div v-if="yearDropdownOpen" class="absolute right-0 mt-2 w-44 bg-white dark:bg-purple-900 border dark:border-purple-600 rounded-lg shadow-md z-20">
-                      <ul class="py-1">
+                    <div v-if="yearDropdownOpen" class="absolute left-0 mt-2 w-full bg-white dark:bg-purple-900 border-2 dark:border-purple-600 rounded-lg shadow-xl z-[100]">
+                      <ul class="py-1 max-h-60 overflow-y-auto">
                         <li v-for="opt in yearOptions" :key="String(opt.value)" class="px-3 py-2 hover:bg-primary/10 dark:hover:bg-purple-800 cursor-pointer text-sm dark:text-purple-100" @click="selectYearOption(opt)">
                           {{ opt.label }}
                         </li>
@@ -938,23 +808,23 @@ function copyPassword() {
             <div>
               <label class="block text-sm font-medium mb-1">Name *</label>
               <input 
-                v-model="createFormData.name" 
+                v-model="createForm.name" 
                 type="text" 
                 required
                 class="w-full rounded-lg border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
               />
-              <div v-if="createFormErrors.name" class="text-red-600 dark:text-red-400 text-xs mt-1">{{ createFormErrors.name }}</div>
+              <div v-if="createForm.errors.name" class="text-red-600 dark:text-red-400 text-xs mt-1">{{ createForm.errors.name }}</div>
             </div>
 
             <div>
               <label class="block text-sm font-medium mb-1">Email *</label>
               <input 
-                v-model="createFormData.email" 
+                v-model="createForm.email" 
                 type="email" 
                 required
                 class="w-full rounded-lg border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
               />
-              <div v-if="createFormErrors.email" class="text-red-600 dark:text-red-400 text-xs mt-1">{{ createFormErrors.email }}</div>
+              <div v-if="createForm.errors.email" class="text-red-600 dark:text-red-400 text-xs mt-1">{{ createForm.errors.email }}</div>
             </div>
           </div>
 
@@ -962,7 +832,7 @@ function copyPassword() {
             <div>
               <label class="block text-sm font-medium mb-1">Election *</label>
               <select 
-                v-model="createFormData.election_id" 
+                v-model="createForm.election_id" 
                 required
                 class="w-full rounded-lg border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
               >
@@ -971,24 +841,24 @@ function copyPassword() {
                   {{ election.title }}
                 </option>
               </select>
-              <div v-if="createFormErrors.election_id" class="text-red-600 dark:text-red-400 text-xs mt-1">{{ createFormErrors.election_id }}</div>
+              <div v-if="createForm.errors.election_id" class="text-red-600 dark:text-red-400 text-xs mt-1">{{ createForm.errors.election_id }}</div>
             </div>
 
             <div>
               <label class="block text-sm font-medium mb-1">Position *</label>
               <select 
-                v-model="createFormData.position_id" 
+                v-model="createForm.position_id" 
                 required
-                :disabled="!createFormData.election_id"
+                :disabled="!createForm.election_id"
                 class="w-full rounded-lg border bg-background px-3 py-2 text-sm disabled:bg-muted disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-primary"
               >
-                <option :value="null">{{ createFormData.election_id ? 'Select position' : 'Select election first' }}</option>
+                <option :value="null">{{ createForm.election_id ? 'Select position' : 'Select election first' }}</option>
                 <option v-for="position in availablePositionsForCreate" :key="position.id" :value="position.id">
                   {{ position.name }}
                 </option>
               </select>
-              <div v-if="createFormErrors.position_id" class="text-red-600 dark:text-red-400 text-xs mt-1">{{ createFormErrors.position_id }}</div>
-              <p v-if="createFormData.election_id && availablePositionsForCreate.length === 0" class="text-amber-600 dark:text-amber-400 text-xs mt-1">
+              <div v-if="createForm.errors.position_id" class="text-red-600 dark:text-red-400 text-xs mt-1">{{ createForm.errors.position_id }}</div>
+              <p v-if="createForm.election_id && availablePositionsForCreate.length === 0" class="text-amber-600 dark:text-amber-400 text-xs mt-1">
                  No positions available for this election. Please add positions first.
               </p>
             </div>
@@ -997,24 +867,24 @@ function copyPassword() {
           <div>
             <label class="block text-sm font-medium mb-1">Partylist *</label>
             <input 
-              v-model="createFormData.partylist" 
+              v-model="createForm.partylist" 
               type="text" 
               required
               class="w-full rounded-lg border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
             />
-            <div v-if="createFormErrors.partylist" class="text-red-600 dark:text-red-400 text-xs mt-1">{{ createFormErrors.partylist }}</div>
+            <div v-if="createForm.errors.partylist" class="text-red-600 dark:text-red-400 text-xs mt-1">{{ createForm.errors.partylist }}</div>
           </div>
 
           <div>
             <label class="block text-sm font-medium mb-1">Platform *</label>
             <textarea 
-              v-model="createFormData.platform" 
+              v-model="createForm.platform" 
               required
               rows="4"
               placeholder="Minimum 50 characters"
               class="w-full rounded-lg border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
             ></textarea>
-            <div v-if="createFormErrors.platform" class="text-red-600 dark:text-red-400 text-xs mt-1">{{ createFormErrors.platform }}</div>
+            <div v-if="createForm.errors.platform" class="text-red-600 dark:text-red-400 text-xs mt-1">{{ createForm.errors.platform }}</div>
           </div>
 
           <div>
@@ -1026,14 +896,14 @@ function copyPassword() {
               required
               class="w-full rounded-lg border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
             />
-            <div v-if="createFormErrors.photo" class="text-red-600 dark:text-red-400 text-xs mt-1">{{ createFormErrors.photo }}</div>
+            <div v-if="createForm.errors.photo" class="text-red-600 dark:text-red-400 text-xs mt-1">{{ createForm.errors.photo }}</div>
           </div>
 
           <div class="grid grid-cols-3 gap-4">
             <div>
               <label class="block text-sm font-medium mb-1">Course *</label>
               <select 
-                v-model="createFormData.course" 
+                v-model="createForm.course" 
                 required
                 class="w-full rounded-lg border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
               >
@@ -1045,7 +915,7 @@ function copyPassword() {
             <div>
               <label class="block text-sm font-medium mb-1">Year *</label>
               <select 
-                v-model="createFormData.year_level" 
+                v-model="createForm.year_level" 
                 required
                 class="w-full rounded-lg border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
               >
@@ -1059,7 +929,7 @@ function copyPassword() {
             <div>
               <label class="block text-sm font-medium mb-1">Section</label>
               <input 
-                v-model="createFormData.section" 
+                v-model="createForm.section" 
                 type="text" 
                 placeholder="e.g., A"
                 class="w-full rounded-lg border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
@@ -1077,10 +947,10 @@ function copyPassword() {
             </button>
             <button 
               type="submit"
-              :disabled="createFormProcessing"
+              :disabled="createForm.processing"
               class="px-4 py-2 bg-[#5A2D6F] hover:bg-[#4b255c] text-white text-sm font-medium rounded-md transition"
             >
-              {{ createFormProcessing ? 'Creating...' : 'Create Candidate' }}
+              {{ createForm.processing ? 'Creating...' : 'Create Candidate' }}
             </button>
           </div>
         </form>
@@ -1310,7 +1180,7 @@ function copyPassword() {
           <!-- Platform -->
           <div>
             <label class="block text-sm font-medium mb-2">Platform / Agenda</label>
-            <div class="bg-muted/50 rounded-lg p-4 text-sm leading-relaxed">
+            <div class="bg-muted/50 rounded-lg p-4 text-sm leading-relaxed break-words whitespace-pre-wrap">
               {{ selectedCandidate.platform }}
             </div>
           </div>

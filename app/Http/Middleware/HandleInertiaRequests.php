@@ -44,7 +44,7 @@ class HandleInertiaRequests extends Middleware
         if ($user) {
             // For candidates, use photo from candidates table
             if ($user->role === 'candidate') {
-                $candidate = \App\Models\Candidate::where('user_id', $user->id)->first();
+                $candidate = \Illuminate\Support\Facades\DB::table('candidates')->where('user_id', $user->id)->first();
                 $userPhoto = $candidate && $candidate->photo 
                     ? asset('storage/candidates/' . $candidate->photo)
                     : null;
@@ -66,6 +66,11 @@ class HandleInertiaRequests extends Middleware
                     'photo' => $userPhoto,
                     'role' => $user->role,
                 ] : null,
+            ],
+            'flash' => [
+                'success' => $request->session()->get('success'),
+                'error' => $request->session()->get('error'),
+                'generated_password' => $request->session()->get('generated_password'),
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];

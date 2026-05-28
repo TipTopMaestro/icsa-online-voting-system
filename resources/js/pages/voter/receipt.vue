@@ -123,8 +123,8 @@ const groupedVotes = props.votes.reduce((acc, vote) => {
                     </div>
                 </div>
 
-                <<!-- Actions -->
-                <div class="flex flex-col sm:flex-row justify-center gap-3">
+                <!-- Actions -->
+                <div class="flex flex-col sm:flex-row justify-center gap-3 mt-3">
                     <Link href="/voter/dashboard">
                         <Button variant="outline" class="w-full sm:w-auto">
                             Back to Dashboard

@@ -2,11 +2,9 @@
 
 namespace App\Actions\Fortify;
 
-use App\Models\User;
-use App\Models\ApprovedStudent;
-use App\Models\VoterProfile;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
 
 
 class RegisterUser
@@ -21,33 +19,28 @@ class RegisterUser
             'student_id' => ['required', 'string'],
         ])->validate();
 
-        // 2. Check if student exists in approved_students
-        $approved = ApprovedStudent::where('student_id', $input['student_id'])->first();
+        // 2. Call the stored procedure sp_RegisterVoter
+        // This handles whitelist checking and double-insert into users/profiles
+        try {
+            DB::statement('CALL sp_RegisterVoter(?, ?, ?, ?)', [
+                $input['name'],
+                $input['email'],
+                Hash::make($input['password']),
+                $input['student_id']
+            ]);
 
-        if (!$approved) {
-            return response([
-                'error' => 'Your student ID is not recognized. Only BSIT/BSIS students may register.'
-            ], 422);
+            // 3. Fetch the newly created user record to return
+            $user = DB::table('users')->where('email', $input['email'])->first();
+
+            return $user;
+        } catch (\Exception $e) {
+            // Check for whitelist failure from SQL SIGNAL
+            if (str_contains($e->getMessage(), 'Student ID not recognized')) {
+                return response([
+                    'error' => 'Your student ID is not recognized. Only BSIT/BSIS students may register.'
+                ], 422);
+            }
+            throw $e;
         }
-
-        // 3. Create user (role = voter only)
-        $user = User::create([
-            'name'       => $input['name'],
-            'email'      => $input['email'],
-            'password'   => Hash::make($input['password']),
-            'role'       => 'voter',
-        ]);
-
-        // 4. Create voter profile
-        VoterProfile::create([
-            'user_id'    => $user->id,
-            'student_id' => $approved->student_id,
-            'course'     => $approved->course,
-            'year_level' => $approved->year_level,
-            'section'    => $approved->section,
-            'has_voted'  => false,
-        ]);
-
-        return $user;
     }
 }

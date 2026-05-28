@@ -3,9 +3,6 @@
 namespace App\Http\Controllers\auth;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
-use App\Models\ApprovedStudent;
-use App\Models\VoterProfile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
@@ -26,60 +23,66 @@ class RegisteredUserController extends Controller
             'student_id' => ['required', 'string'],
         ]);
 
-        // Check if student is in approved_students list
-        $approved = ApprovedStudent::where('student_id', $request->student_id)->first();
-
-        if (!$approved) {
-            throw ValidationException::withMessages([
-                'student_id' => 'Your student ID is not recognized. Only BSIT/BSIS students may register.',
-            ]);
-        }
-
         try {
-            DB::beginTransaction();
-
-            // Create user (role = voter)
-            $user = User::create([
-                'name'     => $request->name,
-                'email'    => $request->email,
-                'password' => Hash::make($request->password),
-                'role'     => 'voter',
+            // Call the stored procedure sp_RegisterVoter
+            // We hash the password in PHP before passing it to the database
+            DB::statement('CALL sp_RegisterVoter(?, ?, ?, ?)', [
+                $request->name,
+                $request->email,
+                Hash::make($request->password),
+                $request->student_id
             ]);
 
-            Log::info('User created', ['user_id' => $user->id]);
+            // Fetch the newly created user record to log them in
+            $userRecord = DB::table('users')->where('email', $request->email)->first();
 
-            // Create voter profile linked to user
-            $voterProfile = VoterProfile::create([
-                'user_id'    => $user->id,
-                'student_id' => $approved->student_id,
-                'course'     => $approved->course,
-                'year_level' => $approved->year_level,
-                'section'    => $approved->section ?? 'N/A',
-                'has_voted'  => false,
-            ]);
+            if (!$userRecord) {
+                throw new \Exception('User creation failed: Record not found after procedure call.');
+            }
 
-            Log::info('Voter profile created', ['voter_profile_id' => $voterProfile->id]);
+            Log::info('User registered via stored procedure', ['user_id' => $userRecord->id]);
 
-            DB::commit();
-
-            // Auto-login the user
-            Auth::login($user);
+            // Auto-login the user using their ID
+            Auth::loginUsingId($userRecord->id);
 
             return response()->json([
                 'message' => 'Registration successful.',
-                'user'    => $user,
+                'user'    => $userRecord,
                 'redirect' => '/voter/dashboard',
             ]);
-        } catch (\Exception $e) {
-            DB::rollBack();
-            Log::error('Registration failed', [
+
+        } catch (\Illuminate\Database\QueryException $e) {
+            // Handle errors from the stored procedure (e.g., Whitelist failure)
+            Log::error('Registration via procedure failed', [
                 'error' => $e->getMessage(),
-                'student_id' => $request->student_id,
-                'user_id' => $user->id ?? null,
+                'student_id' => $request->student_id
+            ]);
+
+            $errorMessage = 'Registration failed. Please try again.';
+            if ($e->getCode() == '45000') {
+                // QueryException appends the SQL query to the message, which we don't want to expose.
+                // We just want the clean message.
+                $errorMessage = 'Student ID not recognized in whitelist.';
+            }
+
+            // Return validation exception for recognized student_id errors
+            if (str_contains($errorMessage, 'Student ID not recognized')) {
+                throw ValidationException::withMessages([
+                    'student_id' => 'Student ID not recognized in our database. Please make sure you are an approved student.',
+                ]);
+            }
+
+            return response()->json([
+                'error' => $errorMessage,
+            ], 500);
+
+        } catch (\Exception $e) {
+            Log::error('Unexpected registration error', [
+                'error' => $e->getMessage()
             ]);
 
             return response()->json([
-                'error' => 'Registration failed: ' . $e->getMessage(),
+                'error' => 'An unexpected error occurred: ' . $e->getMessage(),
             ], 500);
         }
     }

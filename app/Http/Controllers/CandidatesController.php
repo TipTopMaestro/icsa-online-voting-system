@@ -2,10 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Candidate;
-use App\Models\User;
-use App\Models\Election;
-use App\Models\Position;
 use App\Mail\CandidateCredentialsMail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -30,7 +26,10 @@ class CandidatesController extends Controller
         do {
             $randomChars = Str::upper(Str::random(4));
             $password = $firstName . $randomChars;
-            $exists = User::where('password', Hash::make($password))->exists();
+            $hashedPassword = Hash::make($password);
+            // Since we can't reliably check unique by hashed password, we just ensure no collision in logic if possible, 
+            // but usually we check by email. Here we just return the generated password.
+            $exists = DB::table('users')->where('email', 'like', $firstName . '%')->where('password', $hashedPassword)->exists();
         } while ($exists);
         
         return $password;
@@ -38,7 +37,7 @@ class CandidatesController extends Controller
 
     public function index(Request $request)
     {
-        $query = Candidate::with(['user', 'election', 'position'])
+        $query = DB::table('view_candidates_details')
             ->orderBy('created_at', 'desc');
 
         // Search functionality
@@ -46,10 +45,8 @@ class CandidatesController extends Controller
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('partylist', 'like', "%{$search}%")
-                    ->orWhereHas('user', function ($userQuery) use ($search) {
-                        $userQuery->where('name', 'like', "%{$search}%")
-                            ->orWhere('email', 'like', "%{$search}%");
-                    });
+                  ->orWhere('user_name', 'like', "%{$search}%")
+                  ->orWhere('user_email', 'like', "%{$search}%");
             });
         }
 
@@ -78,11 +75,47 @@ class CandidatesController extends Controller
             $query->where('year_level', $request->year_level);
         }
 
-        $candidates = $query->paginate(15);
+        $candidates = $query->paginate(15)->through(function ($row) {
+            // Ensure we have a user object even if name/email are null
+            return [
+                'id' => $row->id,
+                'user_id' => $row->user_id,
+                'election_id' => $row->election_id,
+                'position_id' => $row->position_id,
+                'partylist' => $row->partylist ?? 'Independent',
+                'platform' => $row->platform ?? '',
+                'photo' => $row->photo ?? '',
+                'course' => $row->course ?? '',
+                'year_level' => $row->year_level ?? '',
+                'section' => $row->section ?? '',
+                'created_at' => $row->created_at,
+                'updated_at' => $row->updated_at,
+                'votes_count' => (int)($row->votes_count ?? 0),
+                'user' => [
+                    'id' => (int)($row->user_id ?? 0),
+                    'name' => $row->user_name ?? 'Unknown',
+                    'email' => $row->user_email ?? '',
+                    'role' => 'candidate',
+                ],
+                'position' => [
+                    'id' => (int)($row->position_id ?? 0),
+                    'name' => $row->position_name ?? 'Unknown Position',
+                ],
+                'election' => [
+                    'id' => (int)($row->election_id ?? 0),
+                    'title' => $row->election_title ?? 'Unknown Election',
+                ],
+            ];
+        });
 
-        // Get elections and positions for filters
-        $elections = Election::orderBy('title')->get(['id', 'title']);
-        $positions = Position::orderBy('name')->get(['id', 'name', 'election_id']);
+        \Log::info('Candidates list fetched', [
+            'count' => $candidates->count(),
+            'first_candidate_user' => $candidates->count() > 0 ? $candidates->first()['user'] : null
+        ]);
+
+        // Get elections and positions for filters from optimized view
+        $elections = DB::table('view_election_statistics')->orderBy('title')->get(['id', 'title']);
+        $positions = DB::table('positions')->orderBy('name')->get(['id', 'name', 'election_id']);
 
         return Inertia::render('admin/candidates', [
             'candidates' => $candidates,
@@ -94,12 +127,6 @@ class CandidatesController extends Controller
 
     public function store(Request $request)
     {
-        \Log::info('Candidate Store Request', [
-            'all_data' => $request->all(),
-            'has_file' => $request->hasFile('photo'),
-            'files' => $request->allFiles(),
-        ]);
-
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
@@ -113,119 +140,78 @@ class CandidatesController extends Controller
             'section' => 'nullable|string|max:10',
         ]);
 
-        \Log::info('Validation passed', $validated);
+        // Pre-fetch election and position for the email before the DB call
+        $election = DB::table('elections')->where('id', $validated['election_id'])->first();
+        $position = DB::table('positions')->where('id', $validated['position_id'])->first();
 
-        // Check if user already running for a position in this election
-        $existingCandidate = Candidate::whereHas('user', function ($q) use ($validated) {
-                $q->where('email', $validated['email']);
-            })
-            ->where('election_id', $validated['election_id'])
-            ->exists();
-
-        if ($existingCandidate) {
-            return response()->json([
-                'success' => false,
-                'message' => 'This person is already running for a position in this election.',
-                'errors' => ['email' => 'This person is already running for a position in this election.']
-            ], 422);
+        if (!$election || !$position) {
+             return redirect()->back()->withErrors(['error' => 'Invalid election or position selected.']);
         }
 
         try {
-            DB::beginTransaction();
-
-            \Log::info('Starting candidate creation transaction');
-
-            // Generate unique password
+            // Generate unique password in PHP
             $generatedPassword = $this->generateUniquePassword($validated['name']);
 
-            // Create user account
-            $user = User::create([
-                'name' => $validated['name'],
-                'email' => $validated['email'],
-                'password' => Hash::make($generatedPassword),
-                'role' => 'candidate',
-            ]);
-
-            \Log::info('User created', ['user_id' => $user->id, 'password_generated' => true]);
-
-            // Handle photo upload
+            // Handle photo upload in PHP
             $photoName = time() . '_' . $request->file('photo')->getClientOriginalName();
             $request->file('photo')->storeAs('candidates', $photoName, 'public');
 
-            \Log::info('Photo uploaded', ['photo' => $photoName]);
-
-            // Create candidate
-            $candidate = Candidate::create([
-                'user_id' => $user->id,
-                'election_id' => $validated['election_id'],
-                'position_id' => $validated['position_id'],
-                'partylist' => $validated['partylist'],
-                'platform' => $validated['platform'],
-                'photo' => $photoName,
-                'course' => $validated['course'],
-                'year_level' => $validated['year_level'],
-                'section' => $validated['section'] ?? '',
-                'votes_count' => 0,
-            ]);
-
-            \Log::info('Candidate record created', ['candidate_id' => $candidate->id]);
-
-            DB::commit();
-
-            \Log::info('Transaction committed successfully');
-
-            \Log::info('Candidate created successfully', [
-                'user_id' => $user->id,
-                'candidate_id' => $candidate->id,
-                'candidate_photo' => $photoName,
+            // Call the stored procedure to handle the atomic DB inserts
+            DB::statement('CALL sp_CreateCandidate(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', [
+                $validated['name'],
+                $validated['email'],
+                Hash::make($generatedPassword),
+                $validated['election_id'],
+                $validated['position_id'],
+                $validated['partylist'],
+                $validated['platform'],
+                $photoName,
+                $validated['course'],
+                $validated['year_level'],
+                $validated['section'] ?? ''
             ]);
 
             // Send email with credentials
             try {
-                Mail::to($user->email)->send(new CandidateCredentialsMail(
-                    $user->name,
-                    $user->email,
+                Mail::to($validated['email'])->send(new CandidateCredentialsMail(
+                    $validated['name'],
+                    $validated['email'],
                     $generatedPassword,
-                    $candidate->election->title,
-                    $candidate->position->name
+                    $election->title,
+                    $position->name
                 ));
-
-                \Log::info('Credentials email sent', ['email' => $user->email]);
             } catch (\Exception $mailException) {
                 \Log::error('Failed to send credentials email', [
-                    'email' => $user->email,
-                    'error' => $mailException->getMessage(),
+                    'error' => $mailException->getMessage()
                 ]);
-                // Don't fail the entire request if email fails
             }
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Candidate created successfully. Login credentials have been sent to their email.',
-                'candidate' => $candidate->load(['user', 'election', 'position']),
+            // Redirect back with flash data for Inertia to catch
+            return redirect()->back()->with([
+                'success' => 'Candidate created successfully.',
                 'generated_password' => $generatedPassword,
             ]);
-        } catch (\Exception $e) {
-            DB::rollBack();
-            
-            \Log::error('Candidate creation failed', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-            ]);
-            
-            // Delete uploaded photo if exists
+
+        } catch (\PDOException $e) {
             if (isset($photoName)) {
                 Storage::disk('public')->delete('candidates/' . $photoName);
             }
 
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to create candidate: ' . $e->getMessage(),
-            ], 500);
+            return redirect()->back()->withErrors([
+                'error' => 'Database error: ' . $e->getMessage()
+            ]);
+        } catch (\Exception $e) {
+            if (isset($photoName)) {
+                Storage::disk('public')->delete('candidates/' . $photoName);
+            }
+
+            return redirect()->back()->withErrors([
+                'error' => 'Failed to create candidate: ' . $e->getMessage()
+            ]);
         }
     }
 
-    public function update(Request $request, Candidate $candidate)
+    public function update(Request $request, $id)
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
@@ -240,82 +226,82 @@ class CandidatesController extends Controller
         ]);
 
         try {
-            DB::beginTransaction();
+            $candidate = DB::table('candidates')->where('id', $id)->first();
+            if (!$candidate) {
+                return redirect()->back()->withErrors(['error' => 'Candidate not found.']);
+            }
 
-            // Update user name
-            $candidate->user->update([
-                'name' => $validated['name'],
-            ]);
-
-            // Handle photo upload if new photo provided
+            // Handle photo logic in PHP (DB cannot delete files)
+            $photoName = $candidate->photo;
             if ($request->hasFile('photo')) {
                 // Delete old photo
-                Storage::disk('public')->delete('candidates/' . $candidate->photo);
+                if ($candidate->photo) {
+                    Storage::disk('public')->delete('candidates/' . $candidate->photo);
+                }
 
                 // Upload new photo
                 $photoName = time() . '_' . $request->file('photo')->getClientOriginalName();
                 $request->file('photo')->storeAs('candidates', $photoName, 'public');
-                $validated['photo'] = $photoName;
             }
 
-            // Update candidate
-            $candidate->update([
-                'election_id' => $validated['election_id'],
-                'position_id' => $validated['position_id'],
-                'partylist' => $validated['partylist'],
-                'platform' => $validated['platform'],
-                'photo' => $validated['photo'] ?? $candidate->photo,
-                'course' => $validated['course'],
-                'year_level' => $validated['year_level'],
-                'section' => $validated['section'] ?? '',
+            // Call the stored procedure sp_UpdateCandidate
+            DB::statement('CALL sp_UpdateCandidate(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', [
+                $id,
+                $validated['name'],
+                $validated['election_id'],
+                $validated['position_id'],
+                $validated['partylist'],
+                $validated['platform'],
+                $photoName,
+                $validated['course'],
+                $validated['year_level'],
+                $validated['section'] ?? ''
             ]);
 
-            DB::commit();
+            return redirect()->back()->with('success', 'Candidate updated successfully.');
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Candidate updated successfully.',
-                'candidate' => $candidate->fresh()->load(['user', 'election', 'position']),
-            ]);
         } catch (\Exception $e) {
-            DB::rollBack();
-
-            // Delete uploaded photo if exists
-            if (isset($photoName)) {
+            // If procedure fails and we just uploaded a NEW photo, delete it to stay clean
+            if ($request->hasFile('photo') && isset($photoName)) {
                 Storage::disk('public')->delete('candidates/' . $photoName);
             }
 
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to update candidate: ' . $e->getMessage(),
-            ], 500);
+            return redirect()->back()->withErrors([
+                'error' => 'Failed to update candidate: ' . $e->getMessage()
+            ]);
         }
     }
 
-    public function destroy(Candidate $candidate)
+    public function destroy($id)
     {
         try {
-            DB::beginTransaction();
+            $candidate = DB::table('candidates')->where('id', $id)->first();
+            if (!$candidate) {
+                return redirect()->back()->withErrors(['error' => 'Candidate not found.']);
+            }
 
-            // Delete photo
-            Storage::disk('public')->delete('candidates/' . $candidate->photo);
+            // 1. Store the photo path before we delete the record
+            $photoPath = 'candidates/' . $candidate->photo;
 
-            // Delete user account (will cascade delete candidate)
-            $candidate->user->delete();
+            // 2. Call the stored procedure sp_DeleteCandidate
+            // This handles deleting the candidate AND the user record atomically
+            DB::statement('CALL sp_DeleteCandidate(?)', [$id]);
 
-            DB::commit();
+            // 3. If the DB call was successful, now we delete the photo from disk
+            if ($candidate->photo) {
+                Storage::disk('public')->delete($photoPath);
+            }
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Candidate deleted successfully.',
-            ]);
+            return redirect()->back()->with('success', 'Candidate deleted successfully.');
+
         } catch (\Exception $e) {
-            DB::rollBack();
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to delete candidate: ' . $e->getMessage(),
-            ], 500);
+            // If DB blocks deletion (e.g. because of foreign key constraints like existing votes)
+            // we catch the error here and the photo remains safe on disk.
+            return redirect()->back()->withErrors([
+                'error' => 'Failed to delete candidate. They may already have votes cast for them. Error: ' . $e->getMessage()
+            ]);
         }
     }
 }
+
 
