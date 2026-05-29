@@ -38,15 +38,15 @@ const mainNavItems: NavItem[] = [
         href: admin.position.url(),
         icon: Briefcase,
     },
-     {
-        title: 'Voters',
-        href: admin.voters.url(),
-        icon: Users,
-    },
     {
         title: 'Candidates',
         href: admin.candidates.url(),
         icon: User,
+    },
+     {
+        title: 'Voters',
+        href: admin.voters.url(),
+        icon: Users,
     },
     {
         title: 'Announcement',

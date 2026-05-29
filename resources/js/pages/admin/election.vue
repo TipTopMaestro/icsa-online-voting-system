@@ -80,22 +80,22 @@ const openDeactivateConfirm = (election: Election) => {
     deactivateConfirmOpen.value = true;
 };
 
+const closeModal = () => {
+    open.value = false;
+    form.reset();
+    selectedElection.value = null;
+};
+
 const submitForm = () => {
     if (editMode.value && selectedElection.value) {
         form.put(`/admin/election/${selectedElection.value.id}`, {
             preserveScroll: true,
-            onSuccess: () => {
-                open.value = false;
-                form.reset();
-            },
+            onSuccess: () => closeModal(),
         });
     } else {
         form.post('/admin/election', {
             preserveScroll: true,
-            onSuccess: () => {
-                open.value = false;
-                form.reset();
-            },
+            onSuccess: () => closeModal(),
         });
     }
 };
@@ -247,7 +247,7 @@ const getStatusBadge = (election: Election) => {
                                 <button @click="openDeactivateConfirm(election)" class="w-full sm:w-auto px-6 py-2.5 bg-red-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-red-700 transition-all active:scale-95">Force End Election</button>
                             </div>
                             <div v-else class="w-full sm:w-auto">
-                                <button @click="openDeleteConfirm(election)" class="w-full sm:w-auto px-6 py-2.5 bg-gray-100 dark:bg-muted text-gray-400 rounded-xl text-[10px] font-black uppercase tracking-widest hover:text-red-600 transition-all">Archive Data</button>
+                                <button @click="openDeleteConfirm(election)" class="w-full sm:w-auto px-6 py-2.5 bg-gray-100 dark:bg-muted text-gray-400 rounded-xl text-[10px] font-black uppercase tracking-widest hover:text-red-600 transition-all">Delete Election</button>
                             </div>
                         </div>
                     </div>
@@ -308,10 +308,6 @@ const getStatusBadge = (election: Election) => {
                                 <span>Created: {{ formatDate(election.created_at) }}</span>
                             </div>
                         </div>
-                        <Link :href="`/admin/result?election_id=${election.id}`" class="text-[10px] font-black text-primary uppercase tracking-widest hover:underline flex items-center gap-1.5">
-                            Real-time Analytics
-                            <Icon name="arrowRight" class="w-3.5 h-3.5" />
-                        </Link>
                     </div>
                 </div>
             </div>
@@ -358,7 +354,7 @@ const getStatusBadge = (election: Election) => {
                         </div>
 
                         <div class="flex flex-col sm:flex-row justify-end gap-3 pt-8 border-t dark:border-border">
-                            <button @click="open = false" type="button" class="h-12 px-6 rounded-2xl text-[10px] font-black uppercase tracking-widest text-gray-400 hover:bg-gray-50 transition-all order-2 sm:order-1">Discard</button>
+                            <button @click="closeModal" type="button" class="h-12 px-6 rounded-2xl text-[10px] font-black uppercase tracking-widest text-gray-400 hover:bg-gray-50 transition-all order-2 sm:order-1">Discard</button>
                             <button type="submit" :disabled="form.processing" class="h-12 px-10 rounded-2xl bg-primary text-primary-foreground font-black text-[10px] uppercase tracking-widest hover:bg-primary/90 transition-all disabled:opacity-50 order-1 sm:order-2">
                                 {{ form.processing ? 'Syncing...' : (editMode ? 'Save' : 'Save') }}
                             </button>

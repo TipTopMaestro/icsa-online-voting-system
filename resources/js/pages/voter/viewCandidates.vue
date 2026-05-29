@@ -53,6 +53,36 @@ const filteredCandidates = computed(() => {
   return list
 })
 
+// Group candidates by position
+const groupedCandidates = computed(() => {
+  const groups: Record<string, any[]> = {}
+  
+  // Get unique positions from the filtered list
+  filteredCandidates.value.forEach(c => {
+    if (!groups[c.position]) {
+      groups[c.position] = []
+    }
+    groups[c.position].push(c)
+  })
+  
+  // Sort positions based on the order they appear in props.positions
+  const sortedGroups: Record<string, any[]> = {}
+  props.positions.forEach(p => {
+    if (groups[p.label]) {
+      sortedGroups[p.label] = groups[p.label]
+    }
+  })
+
+  // Catch any positions not in the props.positions list (though there shouldn't be any)
+  Object.keys(groups).forEach(pos => {
+    if (!sortedGroups[pos]) {
+      sortedGroups[pos] = groups[pos]
+    }
+  })
+  
+  return sortedGroups
+})
+
 const selectedCandidate = ref<any | null>(null)
 
 const initials = (name: string) => name.split(' ').map(s => s[0]).slice(0,2).join('').toUpperCase()
@@ -142,66 +172,79 @@ const closeModal = () => {
                 </div>
             </div>
 
-            <!-- Candidates Grid -->
-            <div v-if="filteredCandidates.length > 0" class="grid gap-x-6 gap-y-12 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                <div 
-                    v-for="c in filteredCandidates" 
-                    :key="c.id" 
-                    class="group flex flex-col items-center bg-white dark:bg-card rounded-2xl shadow-sm border border-gray-100 dark:border-border pt-14 pb-6 px-5 text-center hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-1 transition-all relative"
-                >
-                    <!-- Avatar -->
-                    <div class="absolute -top-10 left-1/2 -translate-x-1/2">
-                        <div class="relative">
-                            <img 
-                                v-if="c.image" 
-                                :src="c.image" 
-                                class="h-20 w-20 md:h-24 md:w-24 rounded-full object-cover ring-4 ring-white dark:ring-card shadow-lg border-2 border-primary/20 group-hover:border-primary/50 transition-colors" 
-                            />
-                            <div v-else class="h-20 w-20 md:h-24 md:w-24 rounded-full bg-gradient-to-tr from-primary/10 to-primary/30 flex items-center justify-center text-primary font-black text-2xl md:text-3xl ring-4 ring-white dark:ring-card shadow-lg">
-                                {{ initials(c.name) }}
-                            </div>
-                            <!-- Icon/Badge for group -->
-                            <div class="absolute -bottom-1 -right-1 bg-white dark:bg-purple-800 rounded-full p-1.5 shadow-md border dark:border-purple-600">
-                                <Award class="w-3.5 h-3.5 text-accent" />
+            <!-- Candidates Grouped by Position -->
+            <div v-if="Object.keys(groupedCandidates).length > 0" class="space-y-20 pb-1">
+                <div v-for="(candidates, positionName) in groupedCandidates" :key="positionName" class="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    <!-- Group Header -->
+                    <div class="flex items-center gap-6 mb-10 relative z-10">
+                        <div class="flex-shrink-0 w-16 h-16 rounded-3xl bg-primary/10 flex items-center justify-center border border-primary/20 shadow-md">
+                            <Award class="w-8 h-8 text-primary" />
+                        </div>
+                        <div class="flex flex-col gap-1.5">
+                            <h2 class="text-2xl md:text-2xl font-black text-gray-900 dark:text-foreground uppercase tracking-tighter leading-none">{{ positionName }}</h2>
+                            <div class="flex items-center gap-3">
+                                <div class="w-2.5 h-2.5 rounded-full bg-primary animate-pulse"></div>
+                                <p class="text-[11px] md:text-xs font-black text-primary/70 uppercase tracking-[0.25em]">{{ candidates.length }} Nominee{{ candidates.length > 1 ? 's' : '' }}</p>
                             </div>
                         </div>
+                        <div class="flex-1 h-px bg-gradient-to-r from-gray-200 to-transparent dark:from-border/50 dark:to-transparent ml-8"></div>
                     </div>
 
-                    <!-- Name and Title -->
-                    <div class="flex-1">
-                        <h3 class="text-base md:text-lg font-black text-gray-900 dark:text-foreground leading-snug group-hover:text-primary transition-colors">{{ c.name }}</h3>
-                        <p class="text-[10px] md:text-xs font-bold text-gray-400 dark:text-muted-foreground uppercase tracking-widest mt-1.5">{{ c.position }}</p>
-                        
-                        <div class="mt-4 flex flex-wrap justify-center gap-1.5">
-                            <span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-primary/10 text-primary border border-primary/10">
-                                {{ c.course || 'IT' }}
-                            </span>
-                            <span v-if="c.party" class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-accent/10 text-accent border border-accent/10 uppercase">
-                                {{ c.party }}
-                            </span>
+                    <!-- Candidates Grid for this Position -->
+                    <div class="grid gap-x-8 gap-y-20 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                        <div 
+                            v-for="c in candidates" 
+                            :key="c.id" 
+                            class="group flex flex-col items-center bg-white dark:bg-card rounded-2xl shadow-sm border border-gray-100 dark:border-border pt-14 pb-6 px-5 text-center hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-1 transition-all relative"
+                        >
+                            <!-- Avatar -->
+                            <div class="absolute -top-10 left-1/2 -translate-x-1/2">
+                                <div class="relative">
+                                    <img 
+                                        v-if="c.image" 
+                                        :src="c.image" 
+                                        class="h-20 w-20 md:h-24 md:w-24 rounded-full object-cover ring-4 ring-white dark:ring-card shadow-lg border-2 border-primary/20 group-hover:border-primary/50 transition-colors" 
+                                    />
+                                    <div v-else class="h-20 w-20 md:h-24 md:w-24 rounded-full bg-gradient-to-tr from-primary/10 to-primary/30 flex items-center justify-center text-primary font-black text-2xl md:text-3xl ring-4 ring-white dark:ring-card shadow-lg">
+                                        {{ initials(c.name) }}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Name and Title -->
+                            <div class="flex-1">
+                                <h3 class="text-base md:text-lg font-black text-gray-900 dark:text-foreground leading-snug group-hover:text-primary transition-colors">{{ c.name }}</h3>
+                                <p class="text-[10px] md:text-xs font-bold text-gray-400 dark:text-muted-foreground uppercase tracking-widest mt-1.5">{{ c.party || 'Independent' }}</p>
+                                
+                                <div class="mt-4 flex flex-wrap justify-center gap-1.5">
+                                    <span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-primary/10 text-primary border border-primary/10 uppercase">
+                                        {{ c.course || 'IT' }}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Actions -->
+                            <div class="flex gap-2 mt-6 w-full">
+                                <button 
+                                    @click="openModal(c)" 
+                                    class="flex-1 px-3 py-2 bg-gray-50 dark:bg-muted/50 text-gray-700 dark:text-foreground rounded-xl font-bold text-[11px] hover:bg-primary/10 hover:text-primary transition-all border border-transparent hover:border-primary/10"
+                                >
+                                    <div class="flex items-center justify-center gap-1.5">
+                                        <Info class="w-3.5 h-3.5" />
+                                        VIEW INFO
+                                    </div>
+                                </button>
+                                <Link 
+                                    :href="`/voter/vote?highlight=${c.id}`" 
+                                    class="flex-1 px-3 py-2 bg-primary text-primary-foreground rounded-xl font-bold text-[11px] hover:bg-primary/90 transition-all shadow-md shadow-primary/10"
+                                >
+                                    <div class="flex items-center justify-center gap-1.5">
+                                        <Vote class="w-3.5 h-3.5" />
+                                        VOTE NOW
+                                    </div>
+                                </Link>
+                            </div>
                         </div>
-                    </div>
-
-                    <!-- Actions -->
-                    <div class="flex gap-2 mt-6 w-full">
-                        <button 
-                            @click="openModal(c)" 
-                            class="flex-1 px-3 py-2 bg-gray-50 dark:bg-muted/50 text-gray-700 dark:text-foreground rounded-xl font-bold text-[11px] hover:bg-primary/10 hover:text-primary transition-all border border-transparent hover:border-primary/10"
-                        >
-                            <div class="flex items-center justify-center gap-1.5">
-                                <Info class="w-3.5 h-3.5" />
-                                VIEW INFO
-                            </div>
-                        </button>
-                        <Link 
-                            :href="`/voter/vote?highlight=${c.id}`" 
-                            class="flex-1 px-3 py-2 bg-primary text-primary-foreground rounded-xl font-bold text-[11px] hover:bg-primary/90 transition-all shadow-md shadow-primary/10"
-                        >
-                            <div class="flex items-center justify-center gap-1.5">
-                                <Vote class="w-3.5 h-3.5" />
-                                VOTE NOW
-                            </div>
-                        </Link>
                     </div>
                 </div>
             </div>

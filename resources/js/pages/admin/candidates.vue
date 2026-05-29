@@ -191,6 +191,7 @@ const createForm = useForm({
 });
 
 const editForm = useForm({
+  _method: 'PUT',
   name: '',
   email: '',
   election_id: null as number | null,
@@ -246,6 +247,7 @@ function openCreateModal() {
 
 function closeCreateModal() {
   showCreateModal.value = false;
+  createForm.reset();
 }
 
 function handlePhotoCreate(e: Event) {
@@ -258,7 +260,7 @@ function submitCreate() {
     onSuccess: (page) => {
         if (page.props.flash?.candidate_password) {
             generatedPassword.value = page.props.flash.candidate_password as string;
-            showCreateModal.value = false;
+            closeCreateModal();
             showPasswordModal.value = true;
         } else {
             closeCreateModal();
@@ -285,6 +287,7 @@ function openEditModal(candidate: Candidate) {
 function closeEditModal() {
   showEditModal.value = false;
   selectedCandidate.value = null;
+  editForm.reset();
 }
 
 function handlePhotoEdit(e: Event) {
@@ -294,6 +297,7 @@ function handlePhotoEdit(e: Event) {
 
 function submitEdit() {
   if (!selectedCandidate.value) return;
+  // Use .post() with _method: 'PUT' for multipart/form-data compatibility in Laravel
   editForm.post(`/admin/candidates/${selectedCandidate.value.id}`, {
     forceFormData: true,
     onSuccess: () => {
@@ -574,7 +578,8 @@ function formatDate(dateString: string) {
               </div>
               <div>
                 <label class="block text-sm font-medium mb-1">Email *</label>
-                <input v-model="createForm.email" type="email" required class="w-full rounded-lg border bg-background px-3 py-2 text-sm" />
+                <input v-model="createForm.email" type="email" required class="w-full rounded-lg border bg-background px-3 py-2 text-sm" :class="{'border-red-500': createForm.errors.email}" />
+                <p v-if="createForm.errors.email" class="text-[10px] text-red-500 font-bold mt-1 uppercase">{{ createForm.errors.email }}</p>
               </div>
             </div>
 
@@ -642,7 +647,8 @@ function formatDate(dateString: string) {
               </div>
               <div>
                 <label class="block text-sm font-medium mb-1">Email *</label>
-                <input v-model="editForm.email" type="email" required class="w-full rounded-lg border bg-background px-3 py-2 text-sm" />
+                <input v-model="editForm.email" type="email" required class="w-full rounded-lg border bg-background px-3 py-2 text-sm" :class="{'border-red-500': editForm.errors.email}" />
+                <p v-if="editForm.errors.email" class="text-[10px] text-red-500 font-bold mt-1 uppercase">{{ editForm.errors.email }}</p>
               </div>
             </div>
 

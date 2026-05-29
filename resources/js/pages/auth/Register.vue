@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { router } from '@inertiajs/vue3';
 import axios from 'axios';
 import InputError from '@/components/InputError.vue';
@@ -11,7 +11,7 @@ import { Spinner } from '@/components/ui/spinner';
 import AuthBase from '@/layouts/AuthLayout.vue';
 import { login } from '@/routes';
 import { Head } from '@inertiajs/vue3';
-import { CheckCircle2 } from 'lucide-vue-next';
+import { CheckCircle2, XCircle } from 'lucide-vue-next';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/vue/24/outline';
 
 const form = ref({
@@ -28,7 +28,17 @@ const processing = ref(false);
 const showPassword = ref(false);
 const showPasswordConfirmation = ref(false);
 
+const passwordsMatch = computed(() => {
+    if (!form.value.password_confirmation) return true;
+    return form.value.password === form.value.password_confirmation;
+});
+
 const submit = async () => {
+    if (!passwordsMatch.value) {
+        errors.value = { password_confirmation: ['The password confirmation does not match.'] };
+        return;
+    }
+
     processing.value = true;
     errors.value = {};
     success.value = '';
@@ -152,6 +162,7 @@ const submit = async () => {
                             placeholder="Minimum 8 characters"
                             :disabled="processing"
                             class="h-11 pr-10"
+                            :class="{ 'border-red-500 focus-visible:ring-red-500': !passwordsMatch }"
                         />
                         <button
                             type="button"
@@ -181,6 +192,7 @@ const submit = async () => {
                             placeholder="Re-enter your password"
                             :disabled="processing"
                             class="h-11 pr-10"
+                            :class="{ 'border-red-500 focus-visible:ring-red-500': !passwordsMatch }"
                         />
                         <button
                             type="button"
@@ -193,13 +205,18 @@ const submit = async () => {
                             <EyeSlashIcon v-else class="h-5 w-5" />
                         </button>
                     </div>
+                    <div v-if="!passwordsMatch" class="flex items-center gap-1.5 mt-1 animate-in fade-in slide-in-from-top-1 duration-200">
+                        <XCircle class="h-3.5 w-3.5 text-red-500" />
+                        <span class="text-[11px] font-bold text-red-500 uppercase tracking-tight">Passwords do not match</span>
+                    </div>
+                    <InputError :message="errors.password_confirmation?.[0]" />
                 </div>
 
                 <Button
                     type="submit"
                     class="w-full h-11 text-white btn-custom"
                     :tabindex="6"
-                    :disabled="processing"
+                    :disabled="processing || !passwordsMatch"
                 >
                     <Spinner v-if="processing" />
                     Create Account

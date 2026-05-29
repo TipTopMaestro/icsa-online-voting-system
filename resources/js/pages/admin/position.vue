@@ -69,22 +69,22 @@ const openDeleteConfirm = (position: Position) => {
     deleteConfirmOpen.value = true;
 };
 
+const closeModal = () => {
+    open.value = false;
+    form.reset();
+    selectedPosition.value = null;
+};
+
 const submitForm = () => {
     if (editMode.value && selectedPosition.value) {
         form.put(`/admin/position/${selectedPosition.value.id}`, {
             preserveScroll: true,
-            onSuccess: () => {
-                open.value = false;
-                form.reset();
-            }
+            onSuccess: () => closeModal()
         });
     } else {
         form.post('/admin/position', {
             preserveScroll: true,
-            onSuccess: () => {
-                open.value = false;
-                form.reset();
-            }
+            onSuccess: () => closeModal()
         });
     }
 };
@@ -205,7 +205,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                                         ]"
                                     >
                                         <span class="h-1.5 w-1.5 rounded-full" :class="position.election?.is_active ? 'bg-current animate-pulse' : 'bg-current'" />
-                                        {{ position.election?.is_active ? 'Live' : 'Archived' }}
+                                        {{ position.election?.is_active ? 'Live' : 'Inactive' }}
                                     </span>
                                 </div>
                             </div>
@@ -244,7 +244,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                         </div>
 
                         <div class="flex flex-col sm:flex-row justify-end gap-3 pt-8 border-t dark:border-border">
-                            <button @click="open = false" type="button" class="h-12 px-6 rounded-2xl text-[10px] font-black uppercase tracking-widest text-gray-400 hover:bg-gray-50 transition-all order-2 sm:order-1">Discard</button>
+                            <button @click="closeModal" type="button" class="h-12 px-6 rounded-2xl text-[10px] font-black uppercase tracking-widest text-gray-400 hover:bg-gray-50 transition-all order-2 sm:order-1">Discard</button>
                             <button type="submit" :disabled="form.processing" class="h-12 px-10 rounded-2xl bg-primary text-primary-foreground font-black text-[10px] uppercase tracking-widest shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all disabled:opacity-50 order-1 sm:order-2">
                                 {{ form.processing ? 'Syncing...' : (editMode ? 'Update Position' : 'Save Role') }}
                             </button>

@@ -409,10 +409,10 @@ function getPositionStatistics(positionName: string, candidates: Candidate[]) {
 
                     <!-- Performance Stats (Desktop) -->
                     <div class="hidden sm:flex flex-shrink-0 items-center gap-8 px-8 py-4">
-                      <div class="text-right">
+                      <!-- <div class="text-right">
                         <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-0.5">Statistical Share</p>
                         <p class="text-lg font-black text-gray-900 dark:text-foreground leading-none">{{ candidate.percentage }}%</p>
-                      </div>
+                      </div> -->
                       <div class="text-right">
                         <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-0.5">Verified Ballots</p>
                         <div class="flex items-center justify-end gap-2">
