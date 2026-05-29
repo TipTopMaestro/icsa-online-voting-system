@@ -26,6 +26,7 @@ These are actively called by the Laravel application (Controllers and Actions).
 | `sp_DeleteElection` | Removes an electoral system and cascades associated data. | `ElectionController` |
 | `sp_CreatePosition` | Defines a new role (e.g., President) within an election. | `PositionController` |
 | `sp_UpdatePosition` | Modifies position names and max selection counts. | `PositionController` |
+| `sp_DeletePosition` | Safely removes a position from the system. | `PositionController` |
 | `sp_UpdateUserProfile` | Synchronized update of user info and voter profile details. | `ProfileController` |
 | `sp_CreateAnnouncement` | Creates and automatically publishes a new system announcement. | `AnnouncementsController` |
 | `sp_UpdateAnnouncement` | Modifies existing announcement content and target audience. | `AnnouncementsController` |
@@ -43,7 +44,6 @@ These exist in the schema but are not currently called by the application (logic
 | Procedure | Reason for Non-use |
 | :--- | :--- |
 | `sp_GetAllPositions` | The application currently uses direct queries on `view_positions_details` or standard Eloquent patterns. |
-| `sp_DeletePosition` | `PositionController` currently executes a raw `DELETE FROM positions` statement instead of calling this procedure. |
 
 ---
 

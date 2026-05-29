@@ -227,10 +227,6 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_DeleteElection` (IN `p_id` BIGIN
     COMMIT;
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_GetAllPositions` ()   BEGIN
-        -- Returns all positions for the admin filter dropdowns
-        SELECT id, name, election_id FROM positions ORDER BY name ASC;
-    END$$
 
 CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_GetElectionStatistics` ()   BEGIN
     SELECT * FROM view_election_statistics ORDER BY created_at DESC;

@@ -59,7 +59,7 @@ const mainNavItems: NavItem[] = [
 const footerNavItems: NavItem[] = [
     {
         title: 'Github Repo',
-        href: 'https://github.com/carbajosafroyd/icsa-ovs-lara-vue',
+        href: 'https://github.com/TipTopMaestro/icsa-online-voting-system',
         icon: Folder,
     },
 ];

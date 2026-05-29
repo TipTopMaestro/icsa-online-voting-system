@@ -18,7 +18,7 @@ A secure, high-performance online voting platform for the Institute of Computing
 1. **Clone the repository**
 ```bash
 cd C:\xampp\htdocs
-git clone https://github.com/carbajosafroyd/icsa-ovs-lara-vue.git icsa-online-voting-system
+git clone https://github.com/TipTopMaestro/icsa-online-voting-system icsa-online-voting-system
 cd icsa-online-voting-system
 ```
 

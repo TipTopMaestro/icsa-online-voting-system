@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Head } from '@inertiajs/vue3';
 import VoterLayout from '@/layouts/VoterLayout.vue';
+import Modal from '@/components/Modal.vue';
 import { ref, computed } from 'vue';
 import { Bell, BellOff, CheckCircle2, MoreHorizontal, X, Clock, Inbox } from 'lucide-vue-next';
 
@@ -26,8 +27,9 @@ const props = defineProps<{
 // Add read tracking to announcements
 const announcementList = ref(props.announcements.map(a => ({ ...a, read: false })));
 
-// Active modal ID for announcement details
-const activeModal = ref<number | null>(null);
+// Active modal state
+const showModal = ref(false);
+const selectedAnnouncement = ref<Announcement | null>(null);
 
 // Computed unread count
 const unreadCount = computed(() => announcementList.value.filter(a => !a.read).length);
@@ -44,15 +46,21 @@ const snackbar = ref<{ show: boolean; message: string; tone?: 'success' | 'muted
 let snackbarTimer: number | null = null;
 
 const openModal = (id: number) => {
-    activeModal.value = id;
     const item = announcementList.value.find(a => a.id === id);
-    if (item && !item.read) {
-        item.read = true;
+    if (item) {
+        selectedAnnouncement.value = item;
+        showModal.value = true;
+        if (!item.read) {
+            item.read = true;
+        }
     }
 };
 
 const closeModal = () => {
-    activeModal.value = null;
+    showModal.value = false;
+    setTimeout(() => {
+        selectedAnnouncement.value = null;
+    }, 300);
 };
 
 // Toggle read/unread for single announcement
@@ -211,57 +219,53 @@ function formatDate(dateString: string) {
                 </div>
             </div>
 
-            <!-- Details Modal (High-end) -->
-            <div v-for="item in announcementList" :key="'modal-' + item.id">
-                <div v-if="activeModal === item.id" class="fixed inset-0 z-[100] flex items-center justify-center p-4 animate-in fade-in duration-300">
-                    <div class="fixed inset-0 bg-black/60 backdrop-blur-sm" @click="closeModal"></div>
+            <!-- Details Modal (Unified) -->
+            <Modal v-model="showModal" :padding="false">
+                <div v-if="selectedAnnouncement" class="relative bg-white dark:bg-card overflow-hidden flex flex-col">
+                    <div class="h-2 bg-primary"></div>
                     
-                    <div class="relative bg-white dark:bg-card w-full max-w-xl rounded-3xl overflow-hidden flex flex-col border dark:border-border shadow-2xl animate-in zoom-in-95 duration-300">
-                        <div class="h-2 bg-primary"></div>
+                    <div class="p-8">
+                        <div class="flex justify-between items-start mb-6">
+                            <div class="flex items-center gap-3 text-primary">
+                                <Bell class="w-6 h-6" />
+                                <span class="text-[10px] font-black uppercase tracking-widest">Election Update</span>
+                            </div>
+                            <button @click="closeModal" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-muted text-gray-400 transition-colors">
+                                <X class="w-5 h-5" />
+                            </button>
+                        </div>
+
+                        <h2 class="text-2xl font-black text-gray-900 dark:text-foreground leading-tight mb-4 uppercase tracking-tight">{{ selectedAnnouncement.title }}</h2>
                         
-                        <div class="p-8">
-                            <div class="flex justify-between items-start mb-6">
-                                <div class="flex items-center gap-3 text-primary">
-                                    <Bell class="w-6 h-6" />
-                                    <span class="text-[10px] font-black uppercase tracking-widest">Election Update</span>
+                        <div class="p-6 rounded-2xl bg-gray-50 dark:bg-muted/30 border dark:border-border mb-8">
+                            <p class="text-base text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">{{ selectedAnnouncement.content }}</p>
+                        </div>
+
+                        <div class="flex flex-col sm:flex-row items-center justify-between gap-6 pt-6 border-t dark:border-border">
+                            <div class="flex items-center gap-2">
+                                <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                                    <Inbox class="w-5 h-5" />
                                 </div>
-                                <button @click="closeModal" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-muted text-gray-400 transition-colors">
-                                    <X class="w-5 h-5" />
+                                <div>
+                                    <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none">Released On</p>
+                                    <p class="text-xs font-bold text-gray-900 dark:text-foreground mt-1">{{ formatDate(selectedAnnouncement.published_at || selectedAnnouncement.created_at) }}</p>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center gap-3 w-full sm:w-auto">
+                                <button
+                                    class="flex-1 sm:flex-none h-12 px-6 rounded-2xl border-2 transition-all font-black text-[10px] uppercase tracking-widest active:scale-95"
+                                    :class="selectedAnnouncement.read ? 'border-gray-100 text-gray-400 hover:bg-gray-50' : 'border-primary/20 text-primary hover:bg-primary/5'"
+                                    @click="toggleRead(selectedAnnouncement.id)"
+                                >
+                                    {{ selectedAnnouncement.read ? 'Keep as Unread' : 'Mark as Read' }}
                                 </button>
-                            </div>
-
-                            <h2 class="text-2xl font-black text-gray-900 dark:text-foreground leading-tight mb-4 uppercase tracking-tight">{{ item.title }}</h2>
-                            
-                            <div class="p-6 rounded-2xl bg-gray-50 dark:bg-muted/30 border dark:border-border mb-8">
-                                <p class="text-base text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">{{ item.content }}</p>
-                            </div>
-
-                            <div class="flex flex-col sm:flex-row items-center justify-between gap-6 pt-6 border-t dark:border-border">
-                                <div class="flex items-center gap-2">
-                                    <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-                                        <Inbox class="w-5 h-5" />
-                                    </div>
-                                    <div>
-                                        <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none">Released On</p>
-                                        <p class="text-xs font-bold text-gray-900 dark:text-foreground mt-1">{{ formatDate(item.published_at || item.created_at) }}</p>
-                                    </div>
-                                </div>
-
-                                <div class="flex items-center gap-3 w-full sm:w-auto">
-                                    <button
-                                        class="flex-1 sm:flex-none h-12 px-6 rounded-2xl border-2 transition-all font-black text-[10px] uppercase tracking-widest active:scale-95"
-                                        :class="item.read ? 'border-gray-100 text-gray-400 hover:bg-gray-50' : 'border-primary/20 text-primary hover:bg-primary/5'"
-                                        @click="toggleRead(item.id)"
-                                    >
-                                        {{ item.read ? 'Keep as Unread' : 'Mark as Read' }}
-                                    </button>
-                                    <button class="flex-1 sm:flex-none h-12 px-8 bg-gray-900 dark:bg-primary text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:opacity-90 active:scale-95 transition-all shadow-lg shadow-gray-200 dark:shadow-primary/20" @click="closeModal">Dismiss</button>
-                                </div>
+                                <button class="flex-1 sm:flex-none h-12 px-8 bg-gray-900 dark:bg-primary text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:opacity-90 active:scale-95 transition-all shadow-lg shadow-gray-200 dark:shadow-primary/20" @click="closeModal">Dismiss</button>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            </Modal>
         </div>
 
         <!-- Minimal snackbar -->

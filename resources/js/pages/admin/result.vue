@@ -279,7 +279,7 @@ function getPositionStatistics(positionName: string, candidates: Candidate[]) {
                   <ModalTrigger v-model="showElectionModal">
                     <button class="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-gray-50 dark:bg-muted text-gray-600 dark:text-gray-300 border-2 border-gray-100 dark:border-border rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-gray-100 transition-all">
                       <Calendar class="w-4 h-4" />
-                      Switch System
+                      Switch Election
                     </button>
                   </ModalTrigger>
 
@@ -323,7 +323,7 @@ function getPositionStatistics(positionName: string, candidates: Candidate[]) {
           </div>
 
           <!-- Results Section -->
-          <div class="space-y-8 pb-12">
+          <div class="space-y-4 pb-12">
             <!-- Empty State -->
             <div v-if="sortedResults.length === 0" class="flex flex-col items-center justify-center p-20 border-2 border-dashed border-gray-100 dark:border-border rounded-3xl bg-white dark:bg-card/50 shadow-sm">
               <div class="rounded-2xl bg-gray-50 dark:bg-muted/50 p-6 mb-6">

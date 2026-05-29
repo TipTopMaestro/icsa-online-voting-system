@@ -5,7 +5,8 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/vue3';
 import Icon from '@/components/Icon.vue';
-import { Bell, BellOff, CheckCircle2, MoreHorizontal, X, Clock, Inbox, Plus, PencilLine, Trash, Eye, Megaphone, Send, Globe, Users, User, ArrowUpRight } from 'lucide-vue-next';
+import Modal from '@/components/Modal.vue';
+import { Bell, BellOff, CheckCircle2, MoreHorizontal, X, Clock, Inbox, Plus, PencilLine, Trash, Eye, Megaphone, Send, Globe, Users, User, ArrowUpRight, ChevronDown } from 'lucide-vue-next';
 
 // TypeScript Interfaces
 interface User {
@@ -24,7 +25,7 @@ interface Announcement {
     created_by: number;
     created_at: string;
     updated_at: string;
-    creator?: User;
+    creator_name?: string;
 }
 
 // Props
@@ -292,7 +293,7 @@ function getAudienceBadge(audience: string) {
         <!-- Modals -->
         <!-- Compose/Edit Modal -->
         <Modal v-model="showModal">
-            <div class="p-6 md:p-8">
+            <div class="md:p-2">
                 <h2 class="text-2xl font-black text-gray-900 dark:text-foreground uppercase tracking-tight mb-8">{{ editMode ? 'Modify Bulletin' : 'Compose Bulletin' }}</h2>
 
                 <form @submit.prevent="saveAnnouncement" class="space-y-6">
@@ -337,8 +338,8 @@ function getAudienceBadge(audience: string) {
         </Modal>
 
         <!-- View Modal -->
-        <Modal v-model="showViewModal">
-            <div class="relative bg-white dark:bg-card rounded-3xl overflow-hidden flex flex-col">
+        <Modal v-model="showViewModal" :padding="false">
+            <div class="relative bg-white dark:bg-card overflow-hidden flex flex-col">
                 <div class="h-24 bg-gradient-to-r from-primary to-purple-600 relative">
                     <button @click="closeViewModal" class="absolute top-4 right-4 p-2 bg-white/20 hover:bg-white/30 backdrop-blur-md rounded-full text-white transition-colors"><X class="w-5 h-5" /></button>
                 </div>
@@ -359,7 +360,7 @@ function getAudienceBadge(audience: string) {
                             <div class="flex items-center justify-between pt-6 border-t dark:border-border">
                                 <div class="flex items-center gap-2">
                                     <div class="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary"><User class="w-4 h-4" /></div>
-                                    <span class="text-[10px] font-black uppercase tracking-widest text-gray-400">Authored By {{ selectedAnnouncement.creator?.name }}</span>
+                                    <span class="text-[10px] font-black uppercase tracking-widest text-gray-400">Authored By {{ selectedAnnouncement.creator_name }}</span>
                                 </div>
                                 <button @click="togglePublish(selectedAnnouncement)" :class="[
                                     'px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-95',
@@ -374,14 +375,14 @@ function getAudienceBadge(audience: string) {
 
         <!-- Delete Modal -->
         <Modal v-model="showDeleteModal">
-            <div class="p-8 text-center">
+            <div class="text-center">
                 <div class="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/20 mb-6">
                     <Trash class="h-10 w-10 text-red-600" />
                 </div>
                 <h3 class="text-xl font-black text-gray-900 dark:text-foreground uppercase tracking-tight mb-2">Retract Bulletin?</h3>
                 <p class="text-sm text-gray-500 font-medium mb-8">This will permanently delete the announcement from the system archives. This action is terminal.</p>
                 <div class="flex flex-col gap-3">
-                    <button @click="confirmDelete" class="h-14 w-full bg-red-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-red-100 hover:bg-red-700 transition-all">TERMINATE ANNOUNCEMENT</button>
+                    <button @click="confirmDelete" class="h-14 w-full bg-red-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-red-100 hover:bg-red-700 transition-all">TERMINATE ANNOUNCEMENT</button>
                     <button @click="closeDeleteModal" class="h-10 w-full text-[10px] font-black text-gray-400 uppercase tracking-widest">Abort Action</button>
                 </div>
             </div>

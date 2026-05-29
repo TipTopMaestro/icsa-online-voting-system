@@ -375,7 +375,7 @@ function selectElection(election: Election) {
                                                     {{ candidate.name }}
                                                 </span>
                                                 <span v-if="index === 0" class="flex-shrink-0 px-2 py-0.5 rounded bg-accent/10 text-accent text-[9px] font-black uppercase tracking-widest border border-accent/20">
-                                                    Winner
+                                                    Leading
                                                 </span>
                                             </div>
                                             <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
