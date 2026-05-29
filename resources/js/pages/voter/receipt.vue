@@ -131,7 +131,7 @@ const groupedVotes = props.votes.reduce((acc, vote) => {
                         </Button>
                     </Link>
                     <Link href="/voter/result">
-                        <Button class="w-full sm:w-auto" style="background-color: #5A2D6F;">
+                        <Button class="w-full sm:w-auto bg-primary hover:bg-primary/90">
                             View Live Results
                         </Button>
                     </Link>
@@ -140,3 +140,4 @@ const groupedVotes = props.votes.reduce((acc, vote) => {
         
     </VoterLayout>
 </template>
+

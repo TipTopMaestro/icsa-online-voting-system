@@ -17,7 +17,7 @@
 
         /* Navbar Styles */
         .navbar-custom {
-            background: rgba(92, 62, 148, 0.1);
+            background: rgba(90, 45, 111,0.1);
             padding: 1rem 0;
             box-shadow: 0 2px 4px rgba(0,0,0,0.2);
             backdrop-filter: blur(10px);
@@ -50,7 +50,7 @@
 
         .navbar-custom .nav-link:hover,
         .navbar-custom .nav-link.active {
-            color: #F25912 !important;
+            color: #FFC107 !important;
         }
 
         .btn-login {
@@ -66,7 +66,7 @@
 
         .btn-login:hover {
             background-color: white;
-            color: #5C3E94;
+            color: #5A2D6F;
             transition: all 0.3s ease-in-out;
         }
 
@@ -109,34 +109,37 @@
         /* Hero Section */
         .hero-section {
             /* Gradient overlay on top of the hero background image. Adjust the image filename if needed. */
-            background: linear-gradient(rgba(90, 45, 111, 0.69), rgba(90, 45, 111, 0.69)), url('../images/homebg.jpg');
+            background: linear-gradient(rgba(90, 45, 111, 0.72), rgba(90, 45, 111, 0.72)), url('../images/homebg.jpg');
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
             color: white;
-            padding: 10rem 0 6rem;
+            padding: 8rem 0 4rem;
             text-align: center;
             margin-top: 0;
-            height: 100vh;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .hero-logos {
             display: flex;
             justify-content: center;
-            gap: 0.5rem;
-            margin-bottom: 2.5rem;
+            gap: 1rem;
+            margin-bottom: 2rem;
         }
 
         .hero-logo {
-            width: 12rem;
-            height: 12rem;
+            width: clamp(80px, 20vw, 160px);
+            height: clamp(80px, 20vw, 160px);
             background-color: transparent;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 0;
-            
+            filter: drop-shadow(0 10px 15px rgba(0,0,0,0.3));
         }
 
         .hero-logo img {
@@ -147,45 +150,72 @@
         }
 
         .hero-title {
-            font-size: 3.8rem;
-            font-weight: 700;
+            font-size: clamp(2rem, 8vw, 3.8rem);
+            font-weight: 800;
             color: white;
             text-transform: uppercase;
-            line-height: 1.1;
+            line-height: 1.05;
             margin-bottom: 1.5rem;
-            letter-spacing: 2px;
+            letter-spacing: -1px;
+            text-shadow: 0 4px 12px rgba(0,0,0,0.3);
         }
         .hero-title span {
-            color: #F25912;
+            color: #FFC107;
         }
 
         .hero-subtitle {
-            font-size: 1rem;
+            font-size: clamp(0.9rem, 2vw, 1.1rem);
             margin-bottom: 2.5rem;
-            max-width: 750px;
+            max-width: 800px;
             margin-left: auto;
             margin-right: auto;
             line-height: 1.6;
+            color: rgba(255,255,255,0.9);
+            padding: 0 1rem;
         }
 
         .btn-register {
-            background-color: #F25912;
+            background-color: #FFC107;
             color: #000;
-            padding: 0.8rem 3rem;
-            border-radius: 25px;
-            font-weight: 700;
+            padding: 1rem 3.5rem;
+            border-radius: 50px;
+            font-weight: 800;
             border: none;
             font-size: 1rem;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 1px;
+            box-shadow: 0 10px 20px rgba(255,193,7,0.25);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .btn-register:hover {
-            background-color: #e0a800;
-            color: #000;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(255,193,7,0.4);
-            transition: all 0.3s ease-in-out;
+            background-color: #fff;
+            color: #5A2D6F;
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(255,255,255,0.2);
+        }
+
+        .btn-register:active {
+            transform: translateY(-1px);
+        }
+
+        /* Navbar responsive tweak */
+        @media (max-width: 991px) {
+            .navbar-collapse {
+                background: #5A2D6F;
+                margin: 0.5rem -1rem -1rem;
+                padding: 1.5rem;
+                border-radius: 0 0 20px 20px;
+                border-top: 1px solid rgba(255,255,255,0.1);
+            }
+            .nav-link {
+                padding: 0.8rem 0;
+                text-align: center;
+            }
+            .btn-login {
+                margin-top: 1rem;
+                width: 100%;
+            }
         }
 
         /* Why Use Section */
@@ -229,7 +259,7 @@
         .feature-icon {
             width: 70px;
             height: 70px;
-            background-color: #F25912;
+            background-color: #FFC107;
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -266,7 +296,7 @@
         .step-number {
             width: 70px;
             height: 70px;
-            background-color: #5C3E94;
+            background-color: #5A2D6F;
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -293,7 +323,7 @@
 
         /* Footer */
         .footer {
-            background-color: #5C3E94;
+            background-color: #5A2D6F;
             color: white;
             padding: 3rem 0 1.5rem;
         }
@@ -335,7 +365,7 @@
         }
 
         .footer a:hover {
-            color: #F25912;
+            color: #FFC107;
         }
 
         .footer-bottom {

@@ -116,7 +116,7 @@ function formatDate(dateString: string) {
     <CandidateLayout>
         <Head title="Announcements" />
 
-        <div class="max-w-5xl mx-auto p-6 space-y-6 bg-gray-50">
+        <div class="max-w-5xl mx-auto p-6 space-y-6">
             <!-- Header with Actions -->
             <div class="flex items-center justify-between">
                 <h1 class="text-2xl font-semibold text-slate-900 dark:text-foreground">Announcements</h1>
@@ -128,7 +128,7 @@ function formatDate(dateString: string) {
                             <span class="text-sm text-slate-500 dark:text-muted-foreground">Unread</span>
                             <span
                                 class="inline-flex items-center justify-center min-w-[28px] h-6 px-2 rounded-full text-sm font-medium"
-                                :class="unreadCount > 0 ? 'bg-[#5A2D6F] text-white' : 'bg-slate-100 dark:bg-muted text-slate-600 dark:text-muted-foreground'"
+                                :class="unreadCount > 0 ? 'bg-primary text-primary-foreground' : 'bg-slate-100 dark:bg-muted text-slate-600 dark:text-muted-foreground'"
                             >
                                 {{ unreadCount }}
                             </span>
@@ -147,36 +147,36 @@ function formatDate(dateString: string) {
                         </button>
                     </div>
 
-                    <!-- popover (styled like the sort panel) -->
-                    <div v-show="actionsOpen" class="absolute right-0 top-full mt-2 w-56 z-50 rounded-xl border-2 border-purple-800 bg-white dark:bg-card shadow-xl overflow-hidden ring-1 ring-purple-50">
-                        <div @click="handleMarkAllRead" class="px-4 py-2 cursor-pointer hover:bg-purple-100 text-sm flex items-center gap-3">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-purple-600 dark:text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <!-- popover (styled like the admin portal) -->
+                    <div v-show="actionsOpen" class="absolute right-0 top-full mt-2 w-56 z-50 bg-white dark:bg-purple-900 border-2 border-slate-200 dark:border-purple-600 rounded-xl shadow-xl overflow-hidden ring-1 ring-primary/10">
+                        <div @click="handleMarkAllRead" class="px-4 py-2 cursor-pointer hover:bg-primary/10 dark:hover:bg-purple-800 transition-colors text-sm flex items-center gap-3 dark:text-purple-100">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
                             </svg>
                             <span class="truncate dark:text-foreground">Mark all as read</span>
                             <span class="ml-auto text-xs text-slate-400 dark:text-muted-foreground" v-if="unreadCount === 0">none</span>
                         </div>
 
-                        <div @click="handleMarkAllUnread" class="px-4 py-2 cursor-pointer hover:bg-purple-100 text-sm flex items-center gap-3">
+                        <div @click="handleMarkAllUnread" class="px-4 py-2 cursor-pointer hover:bg-primary/10 dark:hover:bg-purple-800 transition-colors text-sm flex items-center gap-3 dark:text-purple-100">
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-slate-500 dark:text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v8m-4-4h8" />
                             </svg>
                             <span class="truncate dark:text-foreground">Mark all as unread</span>
                         </div>
 
-                        <div class="border-t border-purple-100 dark:border-border mt-1"></div>
+                        <div class="border-t border-slate-100 dark:border-purple-700 mt-1"></div>
 
-                        <div @click="() => { actionsOpen = false }" class="px-4 py-2 cursor-pointer hover:bg-purple-100 text-sm text-slate-500 dark:text-muted-foreground">Close</div>
+                        <div @click="() => { actionsOpen = false }" class="px-4 py-2 cursor-pointer hover:bg-primary/10 dark:hover:bg-purple-800 transition-colors text-sm text-slate-500 dark:text-muted-foreground">Close</div>
                     </div>
                 </div>
             </div>
 
             <!-- No Announcements -->
-            <div v-if="announcementList.length === 0" class="text-center py-12 bg-gray-50 dark:bg-muted/50 rounded-lg">
+            <div v-if="announcementList.length === 0" class="text-center py-12 bg-white dark:bg-card border dark:border-border rounded-xl shadow-sm">
                 <svg class="mx-auto h-12 w-12 text-gray-400 dark:text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
                 </svg>
-                <p class="mt-4 text-gray-600 dark:text-muted-foreground">No announcements available</p>
+                <p class="mt-4 text-gray-600 dark:text-muted-foreground font-medium">No announcements available</p>
             </div>
 
             <!-- Announcements List -->
@@ -186,20 +186,20 @@ function formatDate(dateString: string) {
                     :key="item.id"
                     :class="[
                         'w-full rounded-xl border border-slate-200 dark:border-border bg-white dark:bg-card p-6 shadow-sm hover:shadow-md transition',
-                        !item.read ? 'ring-1 ring-purple-200 dark:ring-primary/30' : ''
+                        !item.read ? 'ring-1 ring-primary/20 dark:ring-primary/30' : ''
                     ]"
                 >
                     <div class="flex justify-between items-start">
                         <div class="space-y-1 max-w-[80%]">
                             <div class="flex items-center gap-3">
                                 <h2 class="text-lg font-semibold text-slate-900 dark:text-foreground truncate">{{ item.title }}</h2>
-                                <span v-if="!item.read" class="text-xs bg-purple-100 dark:bg-primary/20 text-purple-700 dark:text-primary px-2 py-0.5 rounded-full">Unread</span>
+                                <span v-if="!item.read" class="text-xs bg-primary/10 dark:bg-primary/20 text-primary px-2 py-0.5 rounded-full font-medium">Unread</span>
                             </div>
 
                             <p class="text-sm text-slate-600 dark:text-muted-foreground leading-relaxed truncate">{{ item.content }}</p>
 
                             <div class="mt-2 flex items-center gap-3">
-                                <button class="text-indigo-600 dark:text-blue-400 text-sm font-medium hover:underline" @click="openModal(item.id)">
+                                <button class="text-primary hover:text-primary/80 text-sm font-medium hover:underline transition-all" @click="openModal(item.id)">
                                     See full details
                                 </button>
                             </div>
@@ -212,17 +212,17 @@ function formatDate(dateString: string) {
 
             <!-- Modals -->
             <div v-for="item in announcementList" :key="'modal-' + item.id">
-                <div v-if="activeModal === item.id" class="fixed inset-0 bg-black/40 dark:bg-black/70 flex items-center justify-center p-4 z-50">
-                    <div class="bg-white dark:bg-card w-full max-w-lg rounded-xl p-6 shadow-lg space-y-4">
-                        <h2 class="text-xl font-semibold text-slate-900 dark:text-foreground">{{ item.title }}</h2>
+                <div v-if="activeModal === item.id" class="fixed inset-0 bg-black/50 dark:bg-black/80 flex items-center justify-center p-4 z-50 transition-opacity">
+                    <div class="bg-white dark:bg-card w-full max-w-lg rounded-xl p-6 shadow-2xl space-y-4 border dark:border-border animate-in fade-in zoom-in duration-300">
+                        <h2 class="text-xl font-bold text-slate-900 dark:text-foreground">{{ item.title }}</h2>
                         <p class="text-slate-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">{{ item.content }}</p>
-                        <p class="text-sm text-slate-500 dark:text-muted-foreground">Published on {{ formatDate(item.published_at || item.created_at) }}</p>
+                        <p class="text-sm text-slate-500 dark:text-muted-foreground font-medium">Published on {{ formatDate(item.published_at || item.created_at) }}</p>
 
-                        <div class="flex justify-between items-center gap-2 pt-4">
+                        <div class="flex justify-between items-center gap-2 pt-4 border-t dark:border-border">
                             <div>
                                 <button
-                                    class="px-3 py-2 rounded-md border text-sm"
-                                    :class="item.read ? 'bg-white dark:bg-card border-slate-200 dark:border-border text-slate-900 dark:text-foreground' : 'bg-purple-600 dark:bg-primary text-white'"
+                                    class="px-4 py-2 rounded-lg border text-sm font-medium transition-all shadow-sm"
+                                    :class="item.read ? 'bg-white dark:bg-card border-slate-200 dark:border-border text-slate-900 dark:text-foreground hover:bg-slate-50 dark:hover:bg-accent' : 'bg-primary dark:bg-primary text-primary-foreground hover:bg-primary/90'"
                                     @click="toggleRead(item.id)"
                                 >
                                     {{ item.read ? 'Mark as unread' : 'Mark as read' }}
@@ -230,7 +230,7 @@ function formatDate(dateString: string) {
                             </div>
 
                             <div class="flex justify-end gap-2">
-                                <button class="px-4 py-2 rounded-lg bg-slate-200 dark:bg-muted text-slate-700 dark:text-foreground hover:bg-slate-300 dark:hover:bg-muted/80" @click="closeModal">Close</button>
+                                <button class="px-4 py-2 rounded-lg bg-slate-100 dark:bg-muted text-slate-700 dark:text-foreground hover:bg-slate-200 dark:hover:bg-muted/80 font-medium transition-colors" @click="closeModal">Close</button>
                             </div>
                         </div>
                     </div>
@@ -243,12 +243,12 @@ function formatDate(dateString: string) {
             <div
                 v-if="snackbar.show"
                 :class="[
-                    'fixed right-4 bottom-6 z-50 rounded-lg px-4 py-2 text-sm shadow-md flex items-center gap-3',
-                    snackbar.tone === 'success' ? 'bg-white dark:bg-card border border-green-100 dark:border-green-900 text-slate-800 dark:text-foreground' : 'bg-white dark:bg-card border border-slate-200 dark:border-border text-slate-700 dark:text-foreground'
+                    'fixed right-4 bottom-6 z-50 rounded-lg px-4 py-2.5 text-sm shadow-lg border flex items-center gap-3',
+                    snackbar.tone === 'success' ? 'bg-white dark:bg-card border-green-100 dark:border-green-900/50 text-slate-800 dark:text-foreground' : 'bg-white dark:bg-card border-slate-200 dark:border-border text-slate-700 dark:text-foreground'
                 ]"
             >
                 <svg v-if="snackbar.tone === 'success'" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                <span>{{ snackbar.message }}</span>
+                <span class="font-medium">{{ snackbar.message }}</span>
             </div>
         </transition>
     </CandidateLayout>

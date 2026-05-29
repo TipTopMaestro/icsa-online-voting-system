@@ -14,7 +14,7 @@
 
         /* Navbar Styles */
         .navbar-custom {
-            background-color: #412B6B;
+            background-color: #4B1D63;
             padding: 1rem 0;
         }
 
@@ -44,7 +44,7 @@
 
         .navbar-custom .nav-link:hover,
         .navbar-custom .nav-link.active {
-            color: #F25912 !important;
+            color: #FFC107 !important;
         }
 
         .btn-login {
@@ -59,7 +59,7 @@
 
         .btn-login:hover {
             background-color: white;
-            color: #5C3E94;
+            color: #5A2D6F;
             transition: all 0.3s ease-in-out;
         }
 

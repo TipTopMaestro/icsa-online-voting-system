@@ -5,6 +5,7 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/vue3';
 import Icon from '@/components/Icon.vue';
+import { Bell, BellOff, CheckCircle2, MoreHorizontal, X, Clock, Inbox, Plus, PencilLine, Trash, Eye, Megaphone, Send, Globe, Users, User, ArrowUpRight } from 'lucide-vue-next';
 
 // TypeScript Interfaces
 interface User {
@@ -49,15 +50,13 @@ const sortDropdownOpen = ref(false);
 const audienceDropdownOpen = ref(false);
 
 function toggleSortDropdown() {
-    const next = !sortDropdownOpen.value;
-    sortDropdownOpen.value = next;
-    if (next) audienceDropdownOpen.value = false;
+    sortDropdownOpen.value = !sortDropdownOpen.value;
+    audienceDropdownOpen.value = false;
 }
 
 function toggleAudienceDropdown() {
-    const next = !audienceDropdownOpen.value;
-    audienceDropdownOpen.value = next;
-    if (next) sortDropdownOpen.value = false;
+    audienceDropdownOpen.value = !audienceDropdownOpen.value;
+    sortDropdownOpen.value = false;
 }
 
 const sortOptions: { label: string; value: 'newest' | 'oldest' }[] = [
@@ -66,7 +65,7 @@ const sortOptions: { label: string; value: 'newest' | 'oldest' }[] = [
 ];
 
 const audienceOptions: { label: string; value: 'all' | 'voters' | 'candidates' }[] = [
-    { label: 'Everyone', value: 'all' },
+    { label: 'Global Audience', value: 'all' },
     { label: 'Voters Only', value: 'voters' },
     { label: 'Candidates Only', value: 'candidates' },
 ];
@@ -92,15 +91,9 @@ const form = useForm({
 // Computed
 const filtered = computed(() => {
     let list = props.announcements;
+    if (activeFilter.value === 'published') list = list.filter(a => a.is_published);
+    else if (activeFilter.value === 'draft') list = list.filter(a => !a.is_published);
     
-    // Filter
-    if (activeFilter.value === 'published') {
-        list = list.filter(a => a.is_published);
-    } else if (activeFilter.value === 'draft') {
-        list = list.filter(a => !a.is_published);
-    }
-    
-    // Sort
     return list.slice().sort((a, b) => {
         const dateA = new Date(a.created_at).getTime();
         const dateB = new Date(b.created_at).getTime();
@@ -113,31 +106,18 @@ const draftCount = computed(() => props.announcements.filter(a => !a.is_publishe
 
 // Methods
 function formatDate(iso: string) {
-    try {
-        return new Date(iso).toLocaleDateString(undefined, { 
-            year: 'numeric', 
-            month: 'short', 
-            day: 'numeric' 
-        });
-    } catch {
-        return iso;
-    }
+    return new Date(iso).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
 }
 
 function openCreateModal() {
     editMode.value = false;
     form.reset();
-    form.clearErrors();
     form.is_published = false;
     showModal.value = true;
 }
 
 function openEditModal(announcement: Announcement) {
-    if (announcement.is_published) {
-        alert('Cannot edit published announcements. Unpublish first.');
-        return;
-    }
-    
+    if (announcement.is_published) return;
     editMode.value = true;
     selectedAnnouncement.value = announcement;
     form.title = announcement.title;
@@ -150,27 +130,14 @@ function openEditModal(announcement: Announcement) {
 function closeModal() {
     showModal.value = false;
     form.reset();
-    form.clearErrors();
     selectedAnnouncement.value = null;
 }
 
 function saveAnnouncement() {
     if (editMode.value && selectedAnnouncement.value) {
-        // Update
-        form.put(`/admin/announcements/${selectedAnnouncement.value.id}`, {
-            preserveScroll: true,
-            onSuccess: () => {
-                closeModal();
-            },
-        });
+        form.put(`/admin/announcements/${selectedAnnouncement.value.id}`, { onSuccess: () => closeModal() });
     } else {
-        // Create
-        form.post('/admin/announcements', {
-            preserveScroll: true,
-            onSuccess: () => {
-                closeModal();
-            },
-        });
+        form.post('/admin/announcements', { onSuccess: () => closeModal() });
     }
 }
 
@@ -186,15 +153,9 @@ function saveAndPublish() {
 
 function togglePublish(announcement: Announcement) {
     const action = announcement.is_published ? 'unpublish' : 'publish';
-    
     router.post(`/admin/announcements/${announcement.id}/${action}`, {}, {
         preserveScroll: true,
-        onSuccess: () => {
-            // Close view modal if it's open
-            if (showViewModal.value) {
-                closeViewModal();
-            }
-        },
+        onSuccess: () => { if (showViewModal.value) closeViewModal(); }
     });
 }
 
@@ -220,452 +181,216 @@ function closeViewModal() {
 
 function confirmDelete() {
     if (!selectedAnnouncement.value) return;
-    
-    router.delete(`/admin/announcements/${selectedAnnouncement.value.id}`, {
-        preserveScroll: true,
-        onSuccess: () => {
-            closeDeleteModal();
-        },
-    });
+    router.delete(`/admin/announcements/${selectedAnnouncement.value.id}`, { onSuccess: () => closeDeleteModal() });
 }
 
-function getAudienceBadgeColor(audience: string) {
-    const colors = {
-        all: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300',
-        voters: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300',
-        candidates: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300',
+function getAudienceBadge(audience: string) {
+    const map = {
+        all: { label: 'Global', icon: Globe, class: 'bg-blue-50 text-blue-600 border-blue-100' },
+        voters: { label: 'Voters', icon: Users, class: 'bg-emerald-50 text-emerald-600 border-emerald-100' },
+        candidates: { label: 'Candidates', icon: User, class: 'bg-accent/5 text-accent border-accent/10' }
     };
-    return colors[audience as keyof typeof colors] || colors.all;
+    return map[audience as keyof typeof map] || map.all;
 }
 </script>
 
 <template>
-    <Head title="Announcements" />
+    <Head title="Press & Announcements" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
-        <main class="p-6">
-            <div class="max-w-7xl mx-auto">
-                <!-- Header -->
-                <div class="mb-6 flex items-center justify-between">
-                    <div>
-                        <h1 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">Announcements</h1>
-                        <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">Create and manage announcements for your institution.</p>
-                    </div>
+        <div class="flex h-full flex-1 flex-col gap-4 md:gap-8 p-4 md:p-8 min-h-[calc(100vh-64px)]">
+            <!-- Header Section -->
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                    <h1 class="text-xl md:text-3xl font-black text-gray-900 dark:text-foreground uppercase tracking-tight">Press Center</h1>
+                    <p class="text-muted-foreground mt-1 text-[11px] md:text-sm font-medium">Broadcast critical updates and election guidelines.</p>
+                </div>
 
-                    <div class="flex items-center gap-3">
-                        <div class="relative">
-                            <button type="button" @click.stop="toggleSortDropdown()" class="w-full flex items-center justify-between px-4 py-2 rounded-xl border border-slate-300 dark:border-purple-700 bg-white dark:bg-purple-950/40 dark:text-purple-100 text-left shadow-sm focus:ring-2 focus:ring-purple-800 text-sm">
-                                <span>{{ sortOptions.find(o => o.value === sortOrder)?.label ?? 'Newest First' }}</span>
-                                <svg class="w-4 h-4 text-slate-600 dark:text-purple-300 transition-transform duration-200" :class="{ 'rotate-180': sortDropdownOpen }" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                            </button>
-
-                            <div v-if="sortDropdownOpen" class="absolute z-50 mt-2 w-48 rounded-xl border-2 border-purple-800 dark:border-purple-600 bg-white dark:bg-purple-900 shadow-xl overflow-hidden">
-                                <div v-for="opt in sortOptions" :key="opt.value" class="px-4 py-2 text-sm hover:bg-purple-100 dark:hover:bg-purple-800 dark:text-purple-100 cursor-pointer" @click="selectSort(opt)">
-                                    {{ opt.label }}
-                                </div>
+                <div class="flex flex-wrap items-center gap-3">
+                    <div class="relative">
+                        <button @click="toggleSortDropdown" class="h-11 px-4 rounded-xl border-2 border-gray-100 dark:border-border bg-white dark:bg-card text-[10px] font-black uppercase tracking-widest flex items-center gap-3 dark:text-foreground hover:border-primary/50 transition-all shadow-sm">
+                            <Clock class="w-3.5 h-3.5 text-primary" />
+                            <span>{{ sortOptions.find(o => o.value === sortOrder)?.label }}</span>
+                            <ChevronDown class="w-3.5 h-3.5 opacity-50" :class="{ 'rotate-180': sortDropdownOpen }" />
+                        </button>
+                        <div v-if="sortDropdownOpen" class="absolute z-50 mt-2 right-0 w-48 bg-white dark:bg-purple-900 border-2 border-slate-100 dark:border-purple-600 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200" @click.outside="sortDropdownOpen = false">
+                            <div class="py-1">
+                                <div v-for="opt in sortOptions" :key="opt.value" @click="selectSort(opt)" class="px-4 py-3 cursor-pointer hover:bg-primary/10 dark:hover:bg-purple-800 transition-colors text-[10px] font-black uppercase tracking-widest" :class="sortOrder === opt.value ? 'text-primary bg-primary/5' : 'text-gray-700 dark:text-purple-100'">{{ opt.label }}</div>
                             </div>
                         </div>
-
-                        <button 
-                            @click="openCreateModal" 
-                            type="button" 
-                            class="inline-flex items-center gap-2 px-4 py-2 bg-[#5A2D6F] hover:bg-[#4b255c] dark:bg-[#5A2D6F] dark:hover:bg-[#4b255c] text-white text-sm font-medium rounded-md transition-colors"
-                        >
-                            <Icon name="plus" class="h-4 w-4" />
-                            Create Announcement
-                        </button>
                     </div>
-                </div>
 
-                <!-- Filters -->
-                <div class="mb-6 inline-flex gap-2 p-1 bg-gray-100 dark:bg-purple-950/30 rounded-lg">
-                    <button 
-                        @click="activeFilter = 'all'" 
-                        :class="[
-                            'px-4 py-2 text-sm font-medium rounded-md transition-colors',
-                            activeFilter === 'all' 
-                                ? 'bg-white dark:bg-purple-800 text-gray-900 dark:text-white shadow-sm' 
-                                : 'text-gray-600 dark:text-purple-300 hover:text-gray-900 dark:hover:text-purple-100'
-                        ]"
-                    >
-                        All ({{ announcements.length }})
-                    </button>
-                    <button 
-                        @click="activeFilter = 'published'" 
-                        :class="[
-                            'px-4 py-2 text-sm font-medium rounded-md transition-colors',
-                            activeFilter === 'published' 
-                                ? 'bg-white dark:bg-purple-800 text-gray-900 dark:text-white shadow-sm' 
-                                : 'text-gray-600 dark:text-purple-300 hover:text-gray-900 dark:hover:text-purple-100'
-                        ]"
-                    >
-                        Published ({{ publishedCount }})
-                    </button>
-                    <button 
-                        @click="activeFilter = 'draft'" 
-                        :class="[
-                            'px-4 py-2 text-sm font-medium rounded-md transition-colors',
-                            activeFilter === 'draft' 
-                                ? 'bg-white dark:bg-purple-800 text-gray-900 dark:text-white shadow-sm' 
-                                : 'text-gray-600 dark:text-purple-300 hover:text-gray-900 dark:hover:text-purple-100'
-                        ]"
-                    >
-                        Draft ({{ draftCount }})
+                    <button @click="openCreateModal" class="flex items-center justify-center gap-2 rounded-xl px-6 py-2.5 text-[10px] font-black uppercase tracking-widest bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all active:scale-95">
+                        <Plus class="h-4 w-4" />
+                        Compose
                     </button>
                 </div>
-
-                <!-- Grid -->
-                <section>
-                    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                        <template v-if="filtered.length">
-                            <article 
-                                v-for="announcement in filtered" 
-                                :key="announcement.id" 
-                                class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:border-gray-300 dark:hover:border-gray-600 transition-colors"
-                            >
-                                <!-- Header -->
-                                <div class="flex items-start justify-between gap-3 mb-3">
-                                    <div class="flex-1 min-w-0 mb-3">
-                                        <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100 truncate">
-                                            {{ announcement.title }}
-                                        </h3>
-                                        <!-- Date and Audience -->
-                                         
-                                        <div class="flex items-center gap-2 mt-1 flex-wrap">
-                                            <span class="text-xs text-gray-500 dark:text-gray-400">
-                                                {{ formatDate(announcement.created_at) }}
-                                            </span>
-                                            <span class="text-xs text-gray-400 dark:text-gray-600">•</span>
-                                            <span :class="['inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded', getAudienceBadgeColor(announcement.audience)]">
-                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
-                                                </svg>
-                                                {{ announcement.audience === 'all' ? 'Everyone' : announcement.audience.charAt(0).toUpperCase() + announcement.audience.slice(1) }}
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    <button 
-                                        @click="togglePublish(announcement)"
-                                        :class="[
-                                            'px-2 py-1 text-xs font-medium rounded transition-colors whitespace-nowrap',
-                                            announcement.is_published 
-                                                ? 'bg-green-50 text-green-700 hover:bg-green-100 dark:bg-green-900/20 dark:text-green-400 dark:hover:bg-green-900/30' 
-                                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-400 dark:hover:bg-gray-600'
-                                        ]"
-                                    >
-                                        {{ announcement.is_published ? 'Published' : 'Draft' }}
-                                    </button>
-                                </div>
-
-                                <!-- Content Preview -->
-                                <p class="text-sm text-gray-600 dark:text-gray-400 line-clamp-3 mb-4">
-                                    {{ announcement.content }}
-                                </p>
-
-                                <!-- Footer -->
-                                <div class="flex items-center justify-between pt-3 border-t border-gray-100 dark:border-gray-700">
-                                    <span class="text-xs text-gray-500 dark:text-gray-400">
-                                        By {{ announcement.creator?.name || 'Admin' }}
-                                    </span>
-                                    <div class="flex items-center gap-1">
-                                        <button 
-                                            @click="openViewModal(announcement)"
-                                            type="button" 
-                                            class="px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
-                                        >
-                                            View
-                                        </button>
-                                        <button 
-                                            v-if="!announcement.is_published"
-                                            @click="openEditModal(announcement)"
-                                            type="button" 
-                                            class="px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
-                                        >
-                                            Edit
-                                        </button>
-                                        <button 
-                                            @click="openDeleteModal(announcement)"
-                                            type="button" 
-                                            class="px-3 py-1.5 text-xs font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
-                                        >
-                                            Delete
-                                        </button>
-                                    </div>
-                                </div>
-                            </article>
-                        </template>
-
-                        <template v-else>
-                            <div class="col-span-1 md:col-span-2 lg:col-span-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-12 text-center">
-                                <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
-                                    <svg class="w-8 h-8 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/>
-                                    </svg>
-                                </div>
-                                <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">No announcements yet</h3>
-                                <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Get started by creating your first announcement.</p>
-                                <button 
-                                    @click="openCreateModal" 
-                                    type="button" 
-                                    class="inline-flex items-center gap-2 px-4 py-2 bg-[#5A2D6F] hover:bg-[#4b255c] dark:bg-[#5A2D6F] dark:hover:bg-[#4b255c] text-white text-sm font-medium rounded-md transition-colors"
-                                >
-                                    <Icon name="plus" class="h-4 w-4" />
-                                    Create Announcement
-                                </button>
-                            </div>
-                        </template>
-                    </div>
-                </section>
             </div>
-        </main>
-    </AppLayout>
 
-    <!-- Create/Edit Modal -->
-    <transition name="fade">
-        <div v-if="showModal" class="fixed inset-0 z-40 flex items-center justify-center p-4">
-            <div class="absolute inset-0 bg-black/50" @click="closeModal"></div>
+            <!-- Dashboard Filters -->
+            <div class="flex flex-wrap gap-2 p-1.5 bg-white dark:bg-card border border-gray-100 dark:border-border rounded-2xl shadow-sm w-fit">
+                <button v-for="filter in ['all', 'published', 'draft']" :key="filter" @click="activeFilter = filter as any" :class="[
+                    'px-5 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all',
+                    activeFilter === filter ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'
+                ]">
+                    {{ filter }} ({{ filter === 'all' ? announcements.length : filter === 'published' ? publishedCount : draftCount }})
+                </button>
+            </div>
 
-            <div class="relative z-50 w-full max-w-2xl bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700">
-                <!-- Header -->
-                <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                    <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                        {{ editMode ? 'Edit Announcement' : 'Create Announcement' }}
-                    </h2>
-                    <button @click="closeModal" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                        </svg>
-                    </button>
+            <!-- Grid Layout -->
+            <div v-if="filtered.length > 0" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+                <article v-for="a in filtered" :key="a.id" class="group relative flex flex-col bg-white dark:bg-card rounded-3xl border border-gray-100 dark:border-border p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all">
+                    <!-- Status Header -->
+                    <div class="flex items-center justify-between mb-6">
+                        <span :class="[
+                            'inline-flex items-center gap-1.5 px-3 py-1 text-[9px] font-black uppercase tracking-widest rounded-full border',
+                            a.is_published ? 'bg-green-50 text-green-700 border-green-100' : 'bg-gray-50 text-gray-500 border-gray-100'
+                        ]">
+                            <div class="w-1 h-1 rounded-full bg-current" :class="{ 'animate-pulse': a.is_published }"></div>
+                            {{ a.is_published ? 'Live On Feed' : 'Draft Copy' }}
+                        </span>
+                        
+                        <div class="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button @click="openViewModal(a)" class="p-2 bg-gray-50 dark:bg-muted text-gray-400 rounded-xl hover:text-primary transition-colors"><Eye class="w-4 h-4" /></button>
+                            <button v-if="!a.is_published" @click="openEditModal(a)" class="p-2 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-100 transition-colors"><PencilLine class="w-4 h-4" /></button>
+                            <button @click="openDeleteModal(a)" class="p-2 bg-red-50 text-red-600 rounded-xl hover:bg-red-100 transition-colors"><Trash class="w-4 h-4" /></button>
+                        </div>
+                    </div>
+
+                    <div class="flex-1 min-w-0 mb-6">
+                        <h2 class="text-base md:text-lg font-black text-gray-900 dark:text-foreground leading-tight uppercase tracking-tight line-clamp-2 group-hover:text-primary transition-colors">{{ a.title }}</h2>
+                        <p class="text-sm text-gray-500 dark:text-muted-foreground mt-4 line-clamp-3 leading-relaxed font-medium">{{ a.content }}</p>
+                    </div>
+
+                    <!-- Footer Meta -->
+                    <div class="pt-6 border-t dark:border-border mt-auto flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <div class="w-8 h-8 rounded-lg bg-gray-50 dark:bg-muted flex items-center justify-center">
+                                <component :is="getAudienceBadge(a.audience).icon" class="w-3.5 h-3.5 text-gray-400" />
+                            </div>
+                            <span class="text-[9px] font-black text-gray-400 uppercase tracking-widest">{{ getAudienceBadge(a.audience).label }}</span>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-[8px] font-black text-gray-300 uppercase tracking-widest leading-none">Released</p>
+                            <p class="text-[10px] font-bold text-gray-400 uppercase mt-1">{{ formatDate(a.created_at) }}</p>
+                        </div>
+                    </div>
+                </article>
+            </div>
+
+            <!-- Empty State -->
+            <div v-else class="flex flex-col items-center justify-center p-12 md:p-20 border-2 border-dashed border-gray-100 dark:border-border rounded-3xl bg-white dark:bg-card/50 shadow-sm max-w-2xl mx-auto w-full">
+                <div class="rounded-2xl bg-gray-50 dark:bg-muted/50 p-6 mb-6">
+                    <Megaphone class="h-12 w-12 text-gray-300" />
                 </div>
+                <h3 class="text-xl font-bold text-gray-900 dark:text-foreground">Press Feed Offline</h3>
+                <p class="text-sm text-gray-500 mb-8 text-center max-w-xs font-medium">No announcements found matching the current criteria. Broadcast your first update to the association.</p>
+                <button @click="openCreateModal" class="px-8 py-3 bg-primary text-primary-foreground rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-primary/90 transition-all shadow-lg shadow-primary/20">Compose Now</button>
+            </div>
+        </div>
 
-                <!-- Form -->
-                <form @submit.prevent="saveAndPublish" class="p-6 space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                            Title <span class="text-red-500">*</span>
-                        </label>
-                        <input 
-                            v-model="form.title" 
-                            type="text" 
-                            required
-                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent" 
-                            placeholder="Enter announcement title" 
-                        />
-                        <div v-if="form.errors.title" class="text-red-500 text-xs mt-1">{{ form.errors.title }}</div>
+        <!-- Modals -->
+        <!-- Compose/Edit Modal -->
+        <Modal v-model="showModal">
+            <div class="p-6 md:p-8">
+                <h2 class="text-2xl font-black text-gray-900 dark:text-foreground uppercase tracking-tight mb-8">{{ editMode ? 'Modify Bulletin' : 'Compose Bulletin' }}</h2>
+
+                <form @submit.prevent="saveAnnouncement" class="space-y-6">
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Announcement Title</label>
+                        <input v-model="form.title" required placeholder="e.g., Mandatory Candidate Assembly" class="w-full h-12 px-4 border-2 border-gray-100 dark:border-border rounded-2xl text-sm font-bold bg-white dark:bg-background focus:ring-2 focus:ring-primary/20 transition-all" />
                     </div>
 
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                            Content <span class="text-red-500">*</span>
-                        </label>
-                        <textarea 
-                            v-model="form.content" 
-                            rows="5" 
-                            required
-                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none" 
-                            placeholder="Write your announcement..."
-                        ></textarea>
-                        <div v-if="form.errors.content" class="text-red-500 text-xs mt-1">{{ form.errors.content }}</div>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                            Audience <span class="text-red-500">*</span>
-                        </label>
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Target Audience</label>
                         <div class="relative">
-                            <button type="button" @click.stop="toggleAudienceDropdown()" class="w-full flex items-center justify-between px-4 py-2 rounded-xl border border-slate-300 bg-white text-left shadow-sm focus:ring-2 focus:ring-purple-800 text-sm">
-                                <span>{{ audienceOptions.find(o => o.value === form.audience)?.label ?? 'Everyone' }}</span>
-                                <svg class="w-4 h-4 text-slate-600 transition-transform duration-200" :class="{ 'rotate-180': audienceDropdownOpen }" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                            <button type="button" @click="toggleAudienceDropdown" class="w-full h-12 px-4 border-2 border-gray-100 dark:border-border rounded-2xl bg-white dark:bg-background text-left text-xs font-bold uppercase tracking-widest flex items-center justify-between shadow-sm">
+                                <span class="flex items-center gap-2">
+                                    <component :is="getAudienceBadge(form.audience).icon" class="w-4 h-4 text-primary" />
+                                    {{ audienceOptions.find(o => o.value === form.audience)?.label }}
+                                </span>
+                                <ChevronDown class="w-4 h-4 opacity-50" :class="{ 'rotate-180': audienceDropdownOpen }" />
                             </button>
-
-                            <div v-if="audienceDropdownOpen" class="absolute z-50 mt-2 w-56 rounded-xl border-2 border-purple-800 bg-white shadow-xl overflow-hidden">
-                                <div v-for="opt in audienceOptions" :key="opt.value" class="px-4 py-2 text-sm hover:bg-purple-100 cursor-pointer" @click="selectAudience(opt)">
-                                    {{ opt.label }}
+                            <div v-if="audienceDropdownOpen" class="absolute z-50 mt-2 w-full bg-white dark:bg-purple-900 border-2 border-slate-100 dark:border-purple-600 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200" @click.outside="audienceDropdownOpen = false">
+                                <div class="py-1">
+                                    <div v-for="opt in audienceOptions" :key="opt.value" @click="selectAudience(opt)" class="px-4 py-3 cursor-pointer hover:bg-primary/10 dark:hover:bg-purple-800 transition-colors text-[10px] font-black uppercase tracking-widest" :class="form.audience === opt.value ? 'text-primary bg-primary/5' : 'text-gray-700 dark:text-purple-100'">{{ opt.label }}</div>
                                 </div>
                             </div>
                         </div>
-                        <div v-if="form.errors.audience" class="text-red-500 text-xs mt-1">{{ form.errors.audience }}</div>
                     </div>
 
-                    <!-- Footer -->
-                    <div class="flex items-center justify-end gap-2 pt-4 border-t border-gray-200 dark:border-gray-700">
-                        <button 
-                            type="button" 
-                            @click="closeModal" 
-                            class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
-                        >
-                            Cancel
-                        </button>
-                        <button 
-                            type="button" 
-                            @click="saveDraft" 
-                            :disabled="form.processing"
-                            class="px-4 py-2 text-sm font-medium bg-gray-600 hover:bg-gray-700 dark:bg-gray-600 dark:hover:bg-gray-500 text-white rounded-md disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                        >
-                            Save as Draft
-                        </button>
-                        <button 
-                            type="submit" 
-                            :disabled="form.processing"
-                            class="px-4 py-2 bg-[#5A2D6F] hover:bg-[#4b255c] text-white text-sm font-medium rounded-md transition"
-                        >
-                            {{ editMode ? 'Update' : 'Publish' }}
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Detailed Bulletin</label>
+                        <textarea v-model="form.content" required rows="6" class="w-full p-6 border-2 border-gray-100 dark:border-border rounded-3xl text-sm font-medium bg-white dark:bg-background focus:ring-2 focus:ring-primary/20 transition-all resize-none" placeholder="Draft your message with clarity and precision..."></textarea>
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row justify-end gap-3 pt-8 border-t dark:border-border">
+                        <button @click="closeModal" type="button" class="h-12 px-6 rounded-2xl text-[10px] font-black uppercase tracking-widest text-gray-400 hover:bg-gray-50 transition-all order-3 sm:order-1">Discard</button>
+                        <button @click="saveDraft" type="button" :disabled="form.processing" class="h-12 px-6 rounded-2xl border-2 border-gray-100 dark:border-border font-black text-[10px] uppercase tracking-widest hover:bg-gray-50 transition-all order-2 sm:order-2 disabled:opacity-50">Save as Draft</button>
+                        <button @click="saveAndPublish" type="button" :disabled="form.processing" class="h-12 px-10 rounded-2xl bg-primary text-primary-foreground font-black text-[10px] uppercase tracking-widest shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all flex items-center justify-center gap-2 order-1 sm:order-3 disabled:opacity-50">
+                            <Send class="w-4 h-4" />
+                            Broadcast Now
                         </button>
                     </div>
                 </form>
             </div>
-        </div>
-    </transition>
+        </Modal>
 
-    <!-- Delete Confirmation Modal -->
-    <transition name="fade">
-        <div v-if="showDeleteModal" class="fixed inset-0 z-40 flex items-center justify-center p-4">
-            <div class="absolute inset-0 bg-black/50" @click="closeDeleteModal"></div>
-
-            <div class="relative z-50 w-full max-w-md bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700">
-                <div class="p-6">
-                    <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Delete Announcement</h3>
-                    
-                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-6">
-                        Are you sure you want to delete "{{ selectedAnnouncement?.title }}"? This action cannot be undone.
-                    </p>
-
-                    <div class="flex justify-end gap-2">
-                        <button 
-                            @click="closeDeleteModal" 
-                            class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
-                        >
-                            Cancel
-                        </button>
-                        <button 
-                            @click="confirmDelete"
-                            class="px-4 py-2 text-sm font-medium bg-red-600 hover:bg-red-700 text-white rounded-md transition-colors"
-                        >
-                            Delete
-                        </button>
-                    </div>
+        <!-- View Modal -->
+        <Modal v-model="showViewModal">
+            <div class="relative bg-white dark:bg-card rounded-3xl overflow-hidden flex flex-col">
+                <div class="h-24 bg-gradient-to-r from-primary to-purple-600 relative">
+                    <button @click="closeViewModal" class="absolute top-4 right-4 p-2 bg-white/20 hover:bg-white/30 backdrop-blur-md rounded-full text-white transition-colors"><X class="w-5 h-5" /></button>
                 </div>
-            </div>
-        </div>
-    </transition>
-
-    <!-- View Modal -->
-    <transition name="fade">
-        <div v-if="showViewModal && selectedAnnouncement" class="fixed inset-0 z-40 flex items-center justify-center">
-            <div class="absolute inset-0 bg-black/40" @click="closeViewModal"></div>
-
-            <div class="relative z-50 w-full max-w-3xl mx-4 max-h-[90vh] overflow-y-auto">
-                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700">
-                    <!-- Header -->
-                    <div class="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center justify-between">
-                        <div class="flex items-center gap-3">
-                            <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-100">Announcement Details</h2>
-                            <span 
-                                :class="[
-                                    'px-2 py-1 text-xs rounded-md font-medium',
-                                    selectedAnnouncement.is_published 
-                                        ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300' 
-                                        : 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300'
-                                ]"
-                            >
-                                {{ selectedAnnouncement.is_published ? 'Published' : 'Draft' }}
-                            </span>
-                        </div>
-                        <button @click="closeViewModal" class="text-gray-500 dark:text-gray-300 hover:text-gray-700">
-                            <span class="sr-only">Close</span>
-                            ✕
-                        </button>
-                    </div>
-
-                    <!-- Content -->
-                    <div class="p-6 space-y-6">
-                        <!-- Title -->
-                        <div>
-                            <h3 class="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                                {{ selectedAnnouncement.title }}
-                            </h3>
-                        </div>
-
-                        <!-- Meta Information -->
-                        <div class="flex flex-wrap items-center gap-4 pb-4 border-b border-gray-200 dark:border-gray-700">
-                            <div class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                                </svg>
-                                <span>{{ selectedAnnouncement.creator?.name || 'Admin' }}</span>
+                <div class="p-8 -mt-10 relative z-10">
+                    <div class="bg-white dark:bg-card p-8 rounded-3xl shadow-xl border dark:border-border">
+                        <div v-if="selectedAnnouncement" class="space-y-6">
+                            <div class="flex items-center gap-3">
+                                <span :class="[
+                                    'inline-flex items-center gap-1.5 px-3 py-1 text-[9px] font-black uppercase tracking-widest rounded-full border',
+                                    selectedAnnouncement.is_published ? 'bg-green-50 text-green-700' : 'bg-gray-50 text-gray-400'
+                                ]">{{ selectedAnnouncement.is_published ? 'Live Broadcast' : 'Draft Copy' }}</span>
+                                <span class="text-[9px] font-black text-gray-400 uppercase tracking-widest">Released: {{ formatDate(selectedAnnouncement.created_at) }}</span>
                             </div>
-                            
-                            <div class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                                </svg>
-                                <span>{{ formatDate(selectedAnnouncement.created_at) }}</span>
+                            <h2 class="text-2xl font-black text-gray-900 dark:text-foreground uppercase tracking-tight leading-tight">{{ selectedAnnouncement.title }}</h2>
+                            <div class="p-6 rounded-2xl bg-gray-50 dark:bg-muted/30 border dark:border-border">
+                                <p class="text-sm md:text-base text-gray-700 dark:text-gray-300 leading-relaxed italic whitespace-pre-wrap">"{{ selectedAnnouncement.content }}"</p>
                             </div>
-
-                            <span :class="['inline-flex items-center text-xs px-2 py-1 rounded-md', getAudienceBadgeColor(selectedAnnouncement.audience)]">
-                                <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
-                                </svg>
-                                {{ selectedAnnouncement.audience === 'all' ? 'Everyone' : selectedAnnouncement.audience.charAt(0).toUpperCase() + selectedAnnouncement.audience.slice(1) }}
-                            </span>
-
-                            <span v-if="selectedAnnouncement.is_published && selectedAnnouncement.published_at" class="text-xs text-gray-500 dark:text-gray-400">
-                                Published: {{ formatDate(selectedAnnouncement.published_at) }}
-                            </span>
-                        </div>
-
-                        <!-- Content Body -->
-                        <div class="prose prose-sm dark:prose-invert max-w-none">
-                            <div class="text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed">
-                                {{ selectedAnnouncement.content }}
+                            <div class="flex items-center justify-between pt-6 border-t dark:border-border">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary"><User class="w-4 h-4" /></div>
+                                    <span class="text-[10px] font-black uppercase tracking-widest text-gray-400">Authored By {{ selectedAnnouncement.creator?.name }}</span>
+                                </div>
+                                <button @click="togglePublish(selectedAnnouncement)" :class="[
+                                    'px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-95',
+                                    selectedAnnouncement.is_published ? 'bg-gray-100 text-gray-400 hover:bg-red-50 hover:text-red-600' : 'bg-emerald-600 text-white shadow-lg shadow-emerald-100'
+                                ]">{{ selectedAnnouncement.is_published ? 'Take Offline' : 'Release to Feed' }}</button>
                             </div>
-                        </div>
-                    </div>
-
-                    <!-- Footer Actions -->
-                    <div class="sticky bottom-0 bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center justify-between">
-                        <div class="flex items-center gap-2">
-                            <button 
-                                @click="togglePublish(selectedAnnouncement)"
-                                :class="[
-                                    'px-4 py-2 text-sm rounded-md font-medium transition-colors',
-                                    selectedAnnouncement.is_published 
-                                        ? 'bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600' 
-                                        : 'bg-green-600 text-white hover:bg-green-700'
-                                ]"
-                            >
-                                {{ selectedAnnouncement.is_published ? 'Unpublish' : 'Publish' }}
-                            </button>
-                        </div>
-
-                        <div class="flex items-center gap-2">
-                            <button 
-                                v-if="!selectedAnnouncement.is_published"
-                                @click="openEditModal(selectedAnnouncement); closeViewModal()"
-                                class="px-4 py-2 text-sm bg-transparent border border-gray-300 dark:border-gray-600 rounded-md text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
-                            >
-                                Edit
-                            </button>
-                            <button 
-                                @click="closeViewModal" 
-                                class="px-4 py-2 text-sm bg-gray-600 hover:bg-gray-700 text-white rounded-md"
-                            >
-                                Close
-                            </button>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </transition>
+        </Modal>
+
+        <!-- Delete Modal -->
+        <Modal v-model="showDeleteModal">
+            <div class="p-8 text-center">
+                <div class="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/20 mb-6">
+                    <Trash class="h-10 w-10 text-red-600" />
+                </div>
+                <h3 class="text-xl font-black text-gray-900 dark:text-foreground uppercase tracking-tight mb-2">Retract Bulletin?</h3>
+                <p class="text-sm text-gray-500 font-medium mb-8">This will permanently delete the announcement from the system archives. This action is terminal.</p>
+                <div class="flex flex-col gap-3">
+                    <button @click="confirmDelete" class="h-14 w-full bg-red-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-red-100 hover:bg-red-700 transition-all">TERMINATE ANNOUNCEMENT</button>
+                    <button @click="closeDeleteModal" class="h-10 w-full text-[10px] font-black text-gray-400 uppercase tracking-widest">Abort Action</button>
+                </div>
+            </div>
+        </Modal>
+    
+</AppLayout>
 </template>
 
 <style scoped>
-.fade-enter-active, .fade-leave-active {
-    transition: opacity 0.2s;
-}
-.fade-enter-from, .fade-leave-to {
-    opacity: 0;
-}
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 </style>

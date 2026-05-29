@@ -1,34 +1,67 @@
-<script setup>
+<script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue'
 import { Head, router } from '@inertiajs/vue3'
 import { ref, computed } from 'vue'
 import Icon from '@/components/Icon.vue';
 import Modal from '@/components/Modal.vue'
 import ModalTrigger from '@/components/ModalTrigger.vue'
+import { ChevronDown, Calendar, Printer, Clock, Inbox, CheckCircle2, BarChart2, X, CheckCircle, Flag } from 'lucide-vue-next';
+
+// Interfaces for TS
+interface User {
+  id: number;
+  name: string;
+  email: string;
+}
+
+interface Election {
+  id: number;
+  title: string;
+  description: string;
+  status: string;
+  startDate: string;
+  start_date: string;
+  end_date: string;
+  is_active: boolean;
+}
+
+interface Candidate {
+  id: number;
+  name: string;
+  photo: string;
+  votes: number;
+  percentage: number;
+  partylist: string | null;
+  course: string;
+  year_level: string;
+  section: string;
+  isWinner: boolean;
+}
+
+interface Position {
+  id: number;
+  name: string;
+}
+
+interface Statistics {
+  totalVoters: number;
+  votedCount: number;
+  abstainedCount: number;
+  turnoutPercentage: number;
+  totalPositions: number;
+  totalCandidates: number;
+}
+
+type ResultMap = Record<string, Candidate[]>;
 
 // Props from backend
-const props = defineProps({
-    elections: {
-        type: Array,
-        default: () => []
-    },
-    selectedElection: {
-        type: Object,
-        default: null
-    },
-    positions: {
-        type: Array,
-        default: () => []
-    },
-    results: {
-        type: Object,
-        default: () => ({})
-    },
-    statistics: {
-        type: Object,
-        default: null
-    }
-})
+const props = defineProps<{
+    elections: Election[];
+    selectedElection: Election | null;
+    positions: Position[];
+    results: ResultMap;
+    statistics: Statistics | null;
+}>()
 
 const breadcrumbs = [
     { 
@@ -55,12 +88,12 @@ const sortOptions = [
   { value: 'votes', label: 'Sort by Total Votes' }
 ]
 
-function selectPositionOption(option) {
+function selectPositionOption(option: { value: string; label: string }) {
   selectedPosition.value = option.value
   positionDropdownOpen.value = false
 }
 
-function selectSortOption(option) {
+function selectSortOption(option: { value: string; label: string }) {
   sortBy.value = option.value
   sortDropdownOpen.value = false
 }
@@ -97,7 +130,7 @@ const lastUpdated = computed(() => {
 const filteredResults = computed(() => {
     if (selectedPosition.value === 'all') return props.results
     
-    const filtered = {}
+    const filtered: ResultMap = {}
     if (props.results[selectedPosition.value]) {
         filtered[selectedPosition.value] = props.results[selectedPosition.value]
     }
@@ -120,7 +153,7 @@ const sortedResults = computed(() => {
 })
 
 // Select different election
-function selectElection(election) {
+function selectElection(election: Election) {
     router.get('/admin/result', { election_id: election.id }, {
         preserveState: false,
         preserveScroll: false
@@ -129,7 +162,7 @@ function selectElection(election) {
 }
 
 // Get candidate photo URL with fallback
-function getCandidatePhoto(photo) {
+function getCandidatePhoto(photo: string | null) {
     return photo || '/images/profile.png'
 }
 
@@ -139,7 +172,7 @@ function printResults() {
 }
 
 // Format date for print
-function formatPrintDate(date) {
+function formatPrintDate(date: string | Date | null | undefined) {
     if (!date) return ''
     return new Date(date).toLocaleDateString('en-US', { 
         year: 'numeric', 
@@ -159,7 +192,7 @@ const documentRefNumber = computed(() => {
 })
 
 // Calculate position-specific statistics
-function getPositionStatistics(positionName, candidates) {
+function getPositionStatistics(positionName: string, candidates: Candidate[]) {
     const totalVotes = candidates.reduce((sum, c) => sum + c.votes, 0)
     return {
         totalVotes,
@@ -178,7 +211,7 @@ function getPositionStatistics(positionName, candidates) {
       <div v-if="!selectedElection" class="flex items-center justify-center min-h-[60vh]">
         <div class="text-center">
           <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-800 mb-4">
-            <Icon name="bar-chart-2" class="w-8 h-8 text-gray-400 dark:text-gray-500" />
+            <BarChart2 class="w-8 h-8 text-gray-400 dark:text-gray-500" />
           </div>
           <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">No Election Selected</h3>
           <p class="text-sm text-gray-500 dark:text-gray-400">Please select an election to view results</p>
@@ -188,167 +221,211 @@ function getPositionStatistics(positionName, candidates) {
       <!-- Election Results (Screen Only) -->
       <template v-else>
         <div class="screen-only">
-        <!-- Header Section -->
-        <div class="mb-6">
-          <div class="flex items-center justify-between mb-2">
-            <div class="flex items-center gap-3">
-              <h1 class="text-2xl font-semibold text-gray-900 dark:text-gray-100">
-                {{ currentElection.title }}
-              </h1>
-              <span 
-                :class="[
-                  'inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-md',
-                  currentElection.is_active 
-                    ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                    : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
-                ]"
-              >
-                <span v-if="currentElection.is_active" class="w-1.5 h-1.5 rounded-full bg-green-600 dark:bg-green-400 animate-pulse" />
-                {{ currentElection.is_active ? 'Live' : 'Ended' }}
-              </span>
-            </div>
-
-            <div class="flex items-center gap-2">
-              <!-- Position Filter (styled dropdown) -->
-              <div class="relative w-full sm:w-44">
-                <button @click="togglePositionDropdown()" class="w-full flex items-center justify-between px-4 py-2 rounded-xl border border-slate-300 dark:border-purple-700 bg-white dark:bg-purple-950/40 dark:text-purple-100 text-left shadow-sm focus:ring-2 focus:ring-purple-800 text-sm">
-                  <span>{{ positionOptions.find(o => o.value === selectedPosition)?.label || 'All Positions' }}</span>
-                  <svg class="w-4 h-4 text-slate-600 dark:text-purple-300 transition-transform duration-200" :class="{ 'rotate-180': positionDropdownOpen }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                  </svg>
-                </button>
-
-                <div v-show="positionDropdownOpen" class="absolute z-50 mt-2 w-full rounded-xl border-2 border-purple-800 dark:border-purple-600 bg-white dark:bg-purple-900 shadow-xl overflow-hidden">
-                  <div v-for="opt in positionOptions" :key="opt.value" @click="selectPositionOption(opt)" class="px-4 py-2 cursor-pointer hover:bg-purple-100 dark:hover:bg-purple-800 dark:text-purple-100 text-sm">
-                    {{ opt.label }}
-                  </div>
-                </div>
-              </div>
-
-              <!-- Sort Dropdown (styled) -->
-              <div class="relative w-full sm:w-44">
-                <button @click="toggleSortDropdown()" class="w-full flex items-center justify-between px-4 py-2 rounded-xl border border-slate-300 dark:border-purple-700 bg-white dark:bg-purple-950/40 dark:text-purple-100 text-left shadow-sm focus:ring-2 focus:ring-purple-800 text-sm">
-                  <span>{{ sortOptions.find(o => o.value === sortBy)?.label }}</span>
-                  <svg class="w-4 h-4 text-slate-600 dark:text-purple-300 transition-transform duration-200" :class="{ 'rotate-180': sortDropdownOpen }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                  </svg>
-                </button>
-
-                <div v-show="sortDropdownOpen" class="absolute z-50 mt-2 w-full rounded-xl border-2 border-purple-800 dark:border-purple-600 bg-white dark:bg-purple-900 shadow-xl overflow-hidden">
-                  <div v-for="opt in sortOptions" :key="opt.value" @click="selectSortOption(opt)" class="px-4 py-2 cursor-pointer hover:bg-purple-100 dark:hover:bg-purple-800 dark:text-purple-100 text-sm">
-                    {{ opt.label }}
-                  </div>
-                </div>
-              </div>
-
-              <!-- Election Selector -->
-              <ModalTrigger v-model="showElectionModal">
-                <button
-                  class="inline-flex items-center justify-center gap-2 w-44 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-900 border border-slate-300 dark:border-gray-700 rounded-xl shadow-sm hover:bg-gray-50 dark:hover:bg-gray-800 focus:ring-2 focus:ring-purple-800 transition-colors"
+          <!-- Header Section -->
+          <div class="mb-8">
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-4">
+              <div class="flex flex-col sm:flex-row sm:items-center gap-3">
+                <h1 class="text-xl md:text-3xl font-black text-gray-900 dark:text-foreground uppercase tracking-tight">
+                  {{ currentElection.title }}
+                </h1>
+                <span 
+                  :class="[
+                    'inline-flex items-center gap-1.5 px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-full border',
+                    currentElection.is_active 
+                      ? 'bg-green-50 text-green-700 border-green-100 dark:bg-green-500/10 dark:text-green-400 dark:border-green-500/20'
+                      : 'bg-gray-50 text-gray-600 border-gray-100 dark:bg-muted dark:text-gray-400 dark:border-border'
+                  ]"
                 >
-                  <Icon name="calendar" class="w-4 h-4" />
-                  Change Election
-                </button>
-              </ModalTrigger>
-
-              <!-- Print Button -->
-              <button
-                @click="printResults"
-                
-                class="inline-flex items-center gap-2 px-4 py-2 bg-[#5A2D6F] hover:bg-[#4b255c] dark:bg-[#5A2D6F] dark:hover:bg-[#4b255c] text-white text-sm font-medium rounded-md transition-colors"
-              >
-                <Icon name="printer" class="w-4 h-4" />
-                Print Results
-              </button>
-            </div>
-          </div>
-
-          <div class="flex items-center justify-between">
-            <p class="text-sm text-gray-500 dark:text-gray-400">
-              {{ currentElection.description }}
-            </p>
-            <p class="text-xs text-gray-400 dark:text-gray-500">
-              Last updated: {{ lastUpdated }}
-            </p>
-          </div>
-        </div>
-
-        <!-- Results Section -->
-        <div class="space-y-6">
-          <!-- Empty State -->
-          <div v-if="sortedResults.length === 0" class="flex items-center justify-center min-h-[40vh]">
-            <div class="text-center">
-              <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-800 mb-4">
-                <Icon name="inbox" class="w-8 h-8 text-gray-400 dark:text-gray-500" />
-              </div>
-              <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">No Results Found</h3>
-              <p class="text-sm text-gray-500 dark:text-gray-400">No results available for the selected filter</p>
-            </div>
-          </div>
-
-          <!-- Results Cards -->
-          <div v-for="[positionName, candidates] in sortedResults" :key="positionName" class="bg-white dark:bg-purple-950/20 rounded-lg shadow-sm border border-gray-200 dark:border-purple-800/30 overflow-hidden">
-            <!-- Position Header -->
-            <div class="px-6 py-4 bg-gray-50 dark:bg-purple-900/30 border-b border-gray-200 dark:border-purple-800/50">
-              <h3 class="text-1xl font-bold text-gray-900 dark:text-purple-100 uppercase">{{ positionName }}</h3>
-            </div>
-
-            <!-- Candidates List -->
-            <div class="divide-y divide-gray-200 dark:divide-purple-800/30">
-              <div v-if="candidates.length === 0" class="px-6 py-12 text-center">
-                <p class="text-sm text-gray-500 dark:text-purple-300">No candidates for this position</p>
+                  <span v-if="currentElection.is_active" class="w-1.5 h-1.5 rounded-full bg-current animate-pulse" />
+                  {{ currentElection.is_active ? 'Live Polls' : 'Election Ended' }}
+                </span>
               </div>
 
-              <div 
-                v-for="(candidate, index) in candidates" 
-                :key="candidate.id"
-                class="relative overflow-hidden hover:bg-gray-50 dark:hover:bg-purple-900/20 transition-colors"
-              >
-                <!-- Progress Bar Background -->
-                <div class="absolute inset-0 flex items-center">
-                  <div 
-                    :class="[
-                      'h-full transition-all duration-500',
-                      index === 0 ? 'bg-purple-100 dark:bg-purple-800/40' : 'bg-gray-100 dark:bg-purple-900/20'
-                    ]"
-                    :style="{ width: candidate.percentage + '%' }"
-                  ></div>
+              <div class="flex flex-wrap items-center gap-3">
+                <!-- Position Filter -->
+                <div class="relative w-full sm:w-auto min-w-[160px]">
+                  <button @click="togglePositionDropdown()" class="w-full flex items-center justify-between px-4 py-2.5 rounded-xl border-2 border-gray-100 dark:border-border bg-white dark:bg-card text-left shadow-sm hover:border-primary/50 transition-all text-[10px] font-black uppercase tracking-widest dark:text-foreground">
+                    <span class="truncate">{{ positionOptions.find(o => o.value === selectedPosition)?.label || 'All Positions' }}</span>
+                    <ChevronDown class="w-3.5 h-3.5 text-primary transition-transform duration-200" :class="{ 'rotate-180': positionDropdownOpen }" />
+                  </button>
+
+                  <div v-show="positionDropdownOpen" class="absolute z-[120] mt-2 w-full min-w-[200px] rounded-2xl border-2 border-slate-100 dark:border-border bg-white dark:bg-purple-900 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                    <div class="max-h-60 overflow-y-auto py-1">
+                      <div v-for="opt in positionOptions" :key="opt.value" @click="selectPositionOption(opt)" class="px-4 py-3 cursor-pointer hover:bg-primary/10 dark:hover:bg-purple-800 transition-colors text-[10px] font-black uppercase tracking-widest" :class="selectedPosition === opt.value ? 'text-primary bg-primary/5' : 'text-gray-700 dark:text-purple-100'">
+                        {{ opt.label }}
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
-                <!-- Content (above progress bar) -->
-                <div class="relative flex items-center">
-                  <!-- Rank Number -->
-                  <div 
-                    :class="[
-                      'flex-shrink-0 w-10 h-15 flex items-center justify-center font-bold text-xl',
-                      index === 0 ? 'bg-purple-800 dark:bg-purple-700 text-white' : 'bg-gray-300 dark:bg-purple-900/50 text-gray-700 dark:text-purple-200'
-                    ]"
-                  >
-                    {{ index + 1 }}
-                  </div>
+                <!-- Sort Dropdown -->
+                <div class="relative w-full sm:w-auto min-w-[160px]">
+                  <button @click="toggleSortDropdown()" class="w-full flex items-center justify-between px-4 py-2.5 rounded-xl border-2 border-gray-100 dark:border-border bg-white dark:bg-card text-left shadow-sm hover:border-primary/50 transition-all text-[10px] font-black uppercase tracking-widest dark:text-foreground">
+                    <span class="truncate">{{ sortOptions.find(o => o.value === sortBy)?.label }}</span>
+                    <ChevronDown class="w-3.5 h-3.5 text-primary transition-transform duration-200" :class="{ 'rotate-180': sortDropdownOpen }" />
+                  </button>
 
-                  <!-- Candidate Name & Party -->
-                  <div class="flex-1 px-6 py-4">
-                    <span class="text-lg font-bold text-gray-900 dark:text-purple-100 uppercase">
-                      {{ candidate.name }}
-                    </span>
-                    <span class="ml-2 text-base text-gray-600 dark:text-purple-300">
-                      ({{ candidate.partylist || 'IND' }})
-                    </span>
+                  <div v-show="sortDropdownOpen" class="absolute z-[120] mt-2 w-full min-w-[200px] rounded-2xl border-2 border-slate-100 dark:border-border bg-white dark:bg-purple-900 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                    <div class="py-1">
+                      <div v-for="opt in sortOptions" :key="opt.value" @click="selectSortOption(opt)" class="px-4 py-3 cursor-pointer hover:bg-primary/10 dark:hover:bg-purple-800 transition-colors text-[10px] font-black uppercase tracking-widest" :class="sortBy === opt.value ? 'text-primary bg-primary/5' : 'text-gray-700 dark:text-purple-100'">
+                        {{ opt.label }}
+                      </div>
+                    </div>
                   </div>
+                </div>
 
-                  <!-- Vote Count -->
-                  <div class="flex-shrink-0 px-6 py-4 flex items-center gap-3">
-                    <span class="text-lg font-bold text-gray-900 dark:text-purple-100">
-                      {{ candidate.votes.toLocaleString() }}
-                    </span>
-                    <Icon name="flag" class="w-5 h-5 text-gray-400 dark:text-purple-400" />
-                  </div>
+                <!-- Action Buttons -->
+                <div class="flex items-center gap-2 w-full sm:w-auto">
+                  <ModalTrigger v-model="showElectionModal">
+                    <button class="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-gray-50 dark:bg-muted text-gray-600 dark:text-gray-300 border-2 border-gray-100 dark:border-border rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-gray-100 transition-all">
+                      <Calendar class="w-4 h-4" />
+                      Switch System
+                    </button>
+                  </ModalTrigger>
+
+                  <button @click="printResults" class="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-primary text-primary-foreground rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-primary/90 transition-all">
+                    <Printer class="w-4 h-4" />
+                    Print Official Report
+                  </button>
                 </div>
               </div>
             </div>
+
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-t dark:border-border pt-4">
+              <p class="text-xs font-medium text-gray-500 dark:text-muted-foreground italic">
+                {{ currentElection.description }}
+              </p>
+              <div class="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                <Clock class="w-3.5 h-3.5" />
+                <span>Last Updated: {{ lastUpdated }}</span>
+              </div>
+            </div>
           </div>
-        </div>
+
+          <!-- Statistics Grid -->
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <div class="p-4 rounded-3xl bg-white dark:bg-card border border-gray-100 dark:border-border shadow-sm">
+              <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Total Population</p>
+              <p class="text-xl font-black text-gray-900 dark:text-foreground">{{ totalVoters.toLocaleString() }}</p>
+            </div>
+            <div class="p-4 rounded-3xl bg-white dark:bg-card border border-gray-100 dark:border-border shadow-sm">
+              <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Voted Count</p>
+              <p class="text-xl font-black text-gray-900 dark:text-foreground">{{ totalVotesCast.toLocaleString() }}</p>
+            </div>
+            <div class="p-4 rounded-3xl bg-white dark:bg-card border border-gray-100 dark:border-border shadow-sm">
+              <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Voter Turnout</p>
+              <p class="text-xl font-black text-primary">{{ voterTurnout }}%</p>
+            </div>
+            <div class="p-4 rounded-3xl bg-white dark:bg-card border border-gray-100 dark:border-border shadow-sm">
+              <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Status</p>
+              <p class="text-xl font-black text-accent uppercase">{{ currentElection.is_active ? 'Live' : 'Ended' }}</p>
+            </div>
+          </div>
+
+          <!-- Results Section -->
+          <div class="space-y-8 pb-12">
+            <!-- Empty State -->
+            <div v-if="sortedResults.length === 0" class="flex flex-col items-center justify-center p-20 border-2 border-dashed border-gray-100 dark:border-border rounded-3xl bg-white dark:bg-card/50 shadow-sm">
+              <div class="rounded-2xl bg-gray-50 dark:bg-muted/50 p-6 mb-6">
+                <Inbox class="h-12 w-12 text-gray-300" />
+              </div>
+              <h3 class="text-xl font-bold text-gray-900 dark:text-foreground uppercase">No Data Found</h3>
+              <p class="text-sm text-gray-500 mt-2 font-medium">Please adjust your filters or switch elections.</p>
+            </div>
+
+            <!-- Results Cards -->
+            <div v-for="[positionName, candidates] in sortedResults" :key="positionName" class="bg-white dark:bg-card rounded-[2rem] shadow-sm border-2 border-gray-50 dark:border-border overflow-hidden group hover:border-primary/20 transition-all duration-500">
+              <!-- Position Header -->
+              <div class="px-8 py-5 bg-gray-50/50 dark:bg-muted/30 border-b-2 border-gray-50 dark:border-border flex items-center justify-between">
+                <h3 class="text-sm md:text-lg font-black text-gray-900 dark:text-foreground uppercase tracking-tight">{{ positionName }}</h3>
+                <div class="flex items-center gap-2">
+                  <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest">{{ candidates.length }} Contenders</span>
+                </div>
+              </div>
+
+              <!-- Candidates List -->
+              <div class="divide-y-2 divide-gray-50 dark:divide-border">
+                <div v-if="candidates.length === 0" class="px-8 py-16 text-center">
+                  <p class="text-sm text-gray-400 font-medium">No candidate data available for this position.</p>
+                </div>
+
+                <div 
+                  v-for="(candidate, index) in candidates" 
+                  :key="candidate.id"
+                  class="relative overflow-hidden group/item transition-all duration-300"
+                >
+                  <!-- Progress Bar Background -->
+                  <div class="absolute inset-0 flex items-center pointer-events-none opacity-[0.03] group-hover/item:opacity-[0.07] transition-opacity">
+                    <div 
+                      :class="[
+                        'h-full transition-all duration-1000 ease-out',
+                        index === 0 ? 'bg-primary' : 'bg-gray-400'
+                      ]"
+                      :style="{ width: candidate.percentage + '%' }"
+                    ></div>
+                  </div>
+
+                  <!-- Content -->
+                  <div class="relative flex flex-col sm:flex-row sm:items-center p-4 sm:p-0">
+                    <!-- Rank & Photo -->
+                    <div class="flex items-center gap-4 sm:gap-0 sm:flex-none">
+                      <div 
+                        :class="[
+                          'w-10 h-10 sm:w-16 sm:h-20 flex items-center justify-center font-black text-lg sm:text-2xl rounded-xl sm:rounded-none transition-colors',
+                          index === 0 
+                            ? 'bg-primary text-primary-foreground' 
+                            : 'bg-gray-100 dark:bg-muted text-gray-400'
+                        ]"
+                      >
+                        {{ index + 1 }}
+                      </div>
+                      
+                      <div class="sm:hidden flex-shrink-0">
+                        <img :src="getCandidatePhoto(candidate.photo)" class="w-12 h-12 rounded-full object-cover border-2 border-gray-100 dark:border-border" />
+                      </div>
+                    </div>
+
+                    <!-- Candidate Identity -->
+                    <div class="flex-1 px-4 sm:px-8 py-4 min-w-0">
+                      <div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
+                        <span class="text-base sm:text-xl font-black text-gray-900 dark:text-foreground uppercase tracking-tight truncate">
+                          {{ candidate.name }}
+                        </span>
+                        <span class="text-[10px] sm:text-xs font-bold text-gray-400 uppercase tracking-widest truncate">
+                          {{ candidate.partylist || 'Independent' }}
+                        </span>
+                      </div>
+                      <!-- Progress bar mini (mobile only) -->
+                      <div class="mt-3 sm:hidden">
+                        <div class="h-1.5 w-full bg-gray-100 dark:bg-muted rounded-full overflow-hidden">
+                          <div :class="['h-full rounded-full transition-all duration-1000', index === 0 ? 'bg-primary' : 'bg-gray-300']" :style="{ width: candidate.percentage + '%' }"></div>
+                        </div>
+                        <div class="flex justify-between mt-1">
+                          <span class="text-[9px] font-black text-primary uppercase">{{ candidate.percentage }}% Coverage</span>
+                          <span class="text-[9px] font-black text-gray-400 uppercase">{{ candidate.votes.toLocaleString() }} Ballots</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Performance Stats (Desktop) -->
+                    <div class="hidden sm:flex flex-shrink-0 items-center gap-8 px-8 py-4">
+                      <div class="text-right">
+                        <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-0.5">Statistical Share</p>
+                        <p class="text-lg font-black text-gray-900 dark:text-foreground leading-none">{{ candidate.percentage }}%</p>
+                      </div>
+                      <div class="text-right">
+                        <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-0.5">Verified Ballots</p>
+                        <div class="flex items-center justify-end gap-2">
+                          <span class="text-lg font-black text-primary leading-none">{{ candidate.votes.toLocaleString() }}</span>
+                          <CheckCircle2 v-if="index === 0" class="w-4 h-4 text-emerald-600" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </template>
 
@@ -361,7 +438,7 @@ function getPositionStatistics(positionName, candidates) {
               @click="showElectionModal = false"
               class="p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
             >
-              <Icon name="x" class="w-5 h-5 text-gray-500" />
+              <X class="w-5 h-5 text-gray-500" />
             </button>
           </div>
 
@@ -391,9 +468,8 @@ function getPositionStatistics(positionName, candidates) {
                   </div>
                   <p class="text-sm text-gray-500 dark:text-gray-400">{{ election.startDate }}</p>
                 </div>
-                <Icon 
+                <CheckCircle 
                   v-if="election.id === selectedElection?.id"
-                  name="check-circle" 
                   class="w-5 h-5 text-purple-600 dark:text-purple-400 flex-shrink-0" 
                 />
               </div>
@@ -417,9 +493,9 @@ function getPositionStatistics(positionName, candidates) {
               <p class="print-tagline">"Inspiring Change, Creating Futures"</p>
             </div>
             <div class="print-contact">
-              <p>president@dnsc.edu.ph</p>
+              <p>president @dnsc.edu.ph</p>
               <p>dnsc.edu.ph</p>
-              <p>@dnscedu</p>
+              <p> @dnscedu</p>
               <p>New Visayas, Panabo City, 8105</p>
             </div>
           </div>
@@ -534,7 +610,7 @@ function getPositionStatistics(positionName, candidates) {
 }
 
 /* Print Styles */
-@media print {
+ @media print {
   /* Hide screen-only content when printing */
   .screen-only {
     display: none !important;

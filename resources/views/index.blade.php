@@ -20,16 +20,23 @@
 <body>
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-custom fixed-top">
-        <div class="container">
-            <a class="navbar-brand" href="{{ route('index') }}">
-                <img src="{{ asset('images/icsalogo.png') }}" alt="IC Logo">
-                <span class="syncopate-bold" style="text-shadow: 0 2px 8px rgba(0,0,0,0.5);">ICSA OVS</span>
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <div class="container-fluid px-4 px-lg-5">
+            <!-- Left Section (Brand) -->
+            <div class="d-flex flex-grow-1 align-items-center">
+                <a class="navbar-brand d-flex align-items-center gap-2" href="{{ route('index') }}">
+                    <img src="{{ asset('images/icsalogo.png') }}" alt="IC Logo">
+                    <span class="syncopate-bold d-none d-sm-inline" style="text-shadow: 0 2px 8px rgba(0,0,0,0.5);">ICSA OVS</span>
+                </a>
+            </div>
+
+            <!-- Toggler for Mobile -->
+            <button class="navbar-toggler ms-auto" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav mx-auto">
+
+            <!-- Center Section (Navigation Links) -->
+            <div class="collapse navbar-collapse flex-grow-0" id="navbarNav">
+                <ul class="navbar-nav mx-auto text-center">
                     <li class="nav-item">
                         <a class="nav-link active" href="{{ route('index') }}">Home</a>
                     </li>
@@ -39,8 +46,16 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{{ route('contact') }}">Contact</a>
                     </li>
+                    <!-- Login for Mobile -->
+                    <li class="nav-item d-lg-none mt-3">
+                        <a href="{{ route('login') }}" class="btn btn-login w-100">Login</a>
+                    </li>
                 </ul>
-                <a href="{{ route('login') }}" class="btn btn-login">Login</a>   
+            </div>
+
+            <!-- Right Section (Login Button) -->
+            <div class="d-none d-lg-flex flex-grow-1 justify-content-end align-items-center">
+                <a href="{{ route('login') }}" class="btn btn-login px-4">Login</a>   
             </div>
         </div>
     </nav>
@@ -171,7 +186,7 @@
         </div>
     </footer>
 
-   
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
 </body>
 </html>

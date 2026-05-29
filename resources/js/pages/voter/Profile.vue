@@ -1,7 +1,9 @@
- <script setup lang="ts">
+<script setup lang="ts">
 import { Head, router, useForm } from '@inertiajs/vue3';
 import { ref } from 'vue';
 import VoterLayout from '@/layouts/VoterLayout.vue';
+import { User, Mail, GraduationCap, Calendar, Hash, Hash as SectionIcon, PencilLine, Camera, X, CheckCircle2, Upload } from 'lucide-vue-next';
+import Icon from '@/components/Icon.vue';
 
 interface Voter {
     id: number;
@@ -91,194 +93,219 @@ function saveInfo() {
     <Head title="Profile" />
     
     <VoterLayout>
-        <div class="min-h-screen bg-gray-50">
-            <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-10 min-h-[calc(100vh-64px)]">
                 <!-- Header -->
-                <div class="mb-6">
-                    <h1 class="text-2xl font-semibold text-gray-900">Profile</h1>
-                    <p class="text-sm text-gray-600 mt-1">Manage your personal information</p>
+                <div class="mb-8">
+                    <h1 class="text-xl md:text-2xl font-black text-gray-900 dark:text-foreground uppercase tracking-tight">Voter Profile</h1>
+                    <p class="text-sm text-gray-500 dark:text-muted-foreground mt-1">Manage your digital identity and credentials</p>
                 </div>
 
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <!-- Profile Card -->
-                    <div class="bg-white border border-gray-200 rounded-lg p-6">
-                        <div class="flex flex-col items-center">
-                            <div class="relative mb-4">
+                    <div class="bg-white dark:bg-card border border-gray-100 dark:border-border rounded-3xl p-8 shadow-sm text-center relative overflow-hidden">
+                        <div class="absolute top-0 left-0 w-full h-24 bg-gradient-to-br from-primary/10 to-accent/10 dark:from-primary/20 dark:to-accent/20"></div>
+                        
+                        <div class="relative flex flex-col items-center">
+                            <div class="relative group mb-6">
                                 <img :src="avatarPreview || voter.photo || '/images/default-avatar.png'"
-                                    class="w-24 h-24 rounded-full object-cover border-2 border-gray-200"
+                                    class="w-32 h-32 rounded-full object-cover border-4 border-white dark:border-card shadow-xl transition-transform group-hover:scale-105"
                                     alt="Profile" />
                                 <button @click="photoModal = true" type="button"
-                                    class="absolute bottom-0 right-0 bg-purple-800 text-white p-1.5 rounded-full hover:bg-purple-700 transition">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                    </svg>
+                                    class="absolute bottom-0 right-0 bg-primary text-primary-foreground p-2.5 rounded-full hover:bg-primary/90 transition-all shadow-lg active:scale-95 border-2 border-white dark:border-card">
+                                    <Camera class="w-5 h-5" />
                                 </button>
                             </div>
-                            <h2 class="text-lg font-semibold text-gray-900 text-center">{{ voter.name }}</h2>
-                            <p class="text-sm text-gray-600 mt-1">{{ voter.program }}</p>
-                            <div class="mt-4 w-full pt-4 border-t border-gray-100">
-                                <div class="flex items-center justify-center gap-2">
-                                    <div class="w-2 h-2 rounded-full" :class="voter.voted ? 'bg-green-500' : 'bg-red-500'"></div>
-                                    <span class="text-sm font-medium" :class="voter.voted ? 'text-green-700' : 'text-red-600'">
-                                        {{ voter.voted ? 'Voted' : 'Not Voted' }}
-                                    </span>
+                            
+                            <h2 class="text-xl font-black text-gray-900 dark:text-foreground leading-tight">{{ voter.name }}</h2>
+                            <p class="text-sm font-bold text-primary mt-1 uppercase tracking-widest">{{ voter.program }}</p>
+                            
+                            <div class="mt-8 w-full space-y-3">
+                                <div class="p-4 rounded-2xl bg-gray-50 dark:bg-muted/30 border dark:border-border flex flex-col items-center gap-2">
+                                    <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Election Status</p>
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-2.5 h-2.5 rounded-full shadow-sm animate-pulse" :class="voter.voted ? 'bg-green-500' : 'bg-red-500'"></div>
+                                        <span class="text-sm font-black" :class="voter.voted ? 'text-green-700 dark:text-green-400' : 'text-red-600 dark:text-red-400'">
+                                            {{ voter.voted ? 'PARTICIPATED' : 'VOTE PENDING' }}
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     <!-- Information Card -->
-                    <div class="lg:col-span-2 bg-white border border-gray-200 rounded-lg p-6">
-                        <div class="flex items-center justify-between mb-6">
-                            <h2 class="text-lg font-semibold text-gray-900">Personal Information</h2>
+                    <div class="lg:col-span-2 bg-white dark:bg-card border border-gray-100 dark:border-border rounded-3xl p-6 md:p-8 shadow-sm">
+                        <div class="flex items-center justify-between mb-8">
+                            <div class="flex items-center gap-3">
+                                <div class="p-2 rounded-xl bg-accent/10 text-accent">
+                                    <User class="w-5 h-5" />
+                                </div>
+                                <h2 class="text-lg font-black text-gray-900 dark:text-foreground uppercase tracking-tight">Personal Details</h2>
+                            </div>
                             <button @click="openEdit" type="button"
-                                class="px-4 py-2 text-sm text-purple-600 hover:text-purple-700 border border-purple-200 rounded-md hover:bg-purple-50 transition">
-                                Edit
+                                class="flex items-center gap-2 px-4 py-2 text-xs font-black uppercase tracking-widest text-primary hover:bg-primary/5 rounded-xl transition-all border-2 border-transparent hover:border-primary/10">
+                                <PencilLine class="w-4 h-4" />
+                                Edit Info
                             </button>
                         </div>
 
-                        <dl class="space-y-4">
-                            <div class="flex border-b border-gray-100 pb-3">
-                                <dt class="text-sm text-gray-600 w-32">Student ID</dt>
-                                <dd class="text-sm font-medium text-gray-900">{{ voter.student_id }}</dd>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-6 gap-x-8">
+                            <div class="space-y-1">
+                                <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
+                                    <Hash class="w-3 h-3" />
+                                    Student ID
+                                </label>
+                                <p class="text-sm font-bold text-gray-900 dark:text-foreground">{{ voter.student_id }}</p>
                             </div>
-                            <div class="flex border-b border-gray-100 pb-3">
-                                <dt class="text-sm text-gray-600 w-32">Name</dt>
-                                <dd class="text-sm font-medium text-gray-900">{{ voter.name }}</dd>
+                            <div class="space-y-1">
+                                <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
+                                    <Mail class="w-3 h-3" />
+                                    Institutional Email
+                                </label>
+                                <p class="text-sm font-bold text-gray-900 dark:text-foreground break-all">{{ voter.email }}</p>
                             </div>
-                            <div class="flex border-b border-gray-100 pb-3">
-                                <dt class="text-sm text-gray-600 w-32">Email</dt>
-                                <dd class="text-sm font-medium text-gray-900">{{ voter.email }}</dd>
+                            <div class="space-y-1">
+                                <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
+                                    <GraduationCap class="w-3 h-3" />
+                                    Academic Program
+                                </label>
+                                <p class="text-sm font-bold text-gray-900 dark:text-foreground">{{ voter.program }}</p>
                             </div>
-                            <div class="flex border-b border-gray-100 pb-3">
-                                <dt class="text-sm text-gray-600 w-32">Program</dt>
-                                <dd class="text-sm font-medium text-gray-900">{{ voter.program }}</dd>
+                            <div class="space-y-1">
+                                <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
+                                    <Calendar class="w-3 h-3" />
+                                    Year Level
+                                </label>
+                                <p class="text-sm font-bold text-gray-900 dark:text-foreground">{{ voter.year }}</p>
                             </div>
-                            <div class="flex border-b border-gray-100 pb-3">
-                                <dt class="text-sm text-gray-600 w-32">Year Level</dt>
-                                <dd class="text-sm font-medium text-gray-900">{{ voter.year }}</dd>
+                            <div class="space-y-1">
+                                <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
+                                    <SectionIcon class="w-3 h-3" />
+                                    Section
+                                </label>
+                                <p class="text-sm font-bold text-gray-900 dark:text-foreground">{{ voter.section || 'NOT ASSIGNED' }}</p>
                             </div>
-                            <div class="flex pb-3">
-                                <dt class="text-sm text-gray-600 w-32">Section</dt>
-                                <dd class="text-sm font-medium text-gray-900">{{ voter.section || 'N/A' }}</dd>
-                            </div>
-                        </dl>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Edit Modal -->
-        <div v-if="showEditModal" class="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div class="fixed inset-0 bg-black/50" @click="closeAllModals"></div>
+        <!-- Edit Modal (High-end) -->
+        <div v-if="showEditModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 animate-in fade-in duration-300">
+            <div class="fixed inset-0 bg-black/60 backdrop-blur-sm" @click="closeAllModals"></div>
             
-            <div class="relative bg-white rounded-lg shadow-xl w-full max-w-2xl p-6">
-                <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-lg font-semibold text-gray-900">Edit Information</h3>
-                    <button @click="closeAllModals" type="button" class="text-gray-400 hover:text-gray-600">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                        </svg>
+            <div class="relative bg-white dark:bg-card rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col border dark:border-border animate-in zoom-in-95 duration-300">
+                <div class="p-6 border-b dark:border-border flex items-center justify-between">
+                    <h3 class="text-lg font-black text-gray-900 dark:text-foreground uppercase tracking-tight">Update Information</h3>
+                    <button @click="closeAllModals" type="button" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-muted text-gray-400 transition-colors">
+                        <X class="w-5 h-5" />
                     </button>
                 </div>
 
-                <form @submit.prevent="saveInfo" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Student ID</label>
-                        <input v-model="form.student_id" required
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent" />
-                        <span v-if="form.errors.student_id" class="text-xs text-red-600 mt-1">{{ form.errors.student_id }}</span>
+                <form @submit.prevent="saveInfo" class="p-6 md:p-8">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div class="space-y-1.5">
+                            <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Student ID</label>
+                            <input v-model="form.student_id" required
+                                class="w-full h-12 px-4 border-2 border-gray-100 dark:border-border rounded-2xl text-sm bg-white dark:bg-background dark:text-foreground focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-bold" />
+                        </div>
+
+                        <div class="space-y-1.5">
+                            <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Full Name</label>
+                            <input v-model="form.name" required
+                                class="w-full h-12 px-4 border-2 border-gray-100 dark:border-border rounded-2xl text-sm bg-white dark:bg-background dark:text-foreground focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-bold" />
+                        </div>
+
+                        <div class="space-y-1.5">
+                            <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Email Address</label>
+                            <input v-model="form.email" type="email" required
+                                class="w-full h-12 px-4 border-2 border-gray-100 dark:border-border rounded-2xl text-sm bg-white dark:bg-background dark:text-foreground focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-bold" />
+                        </div>
+
+                        <div class="space-y-1.5">
+                            <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Program</label>
+                            <select v-model="form.program" required
+                                class="w-full h-12 px-4 border-2 border-gray-100 dark:border-border rounded-2xl text-sm bg-white dark:bg-background dark:text-foreground focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-bold appearance-none">
+                                <option value="">Select program</option>
+                                <option value="BSIT">BSIT</option>
+                                <option value="BSIS">BSIS</option>
+                            </select>
+                        </div>
+
+                        <div class="space-y-1.5">
+                            <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Year Level</label>
+                            <select v-model="form.year" required
+                                class="w-full h-12 px-4 border-2 border-gray-100 dark:border-border rounded-2xl text-sm bg-white dark:bg-background dark:text-foreground focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-bold appearance-none">
+                                <option value="">Select year</option>
+                                <option value="1st Year">1st Year</option>
+                                <option value="2nd Year">2nd Year</option>
+                                <option value="3rd Year">3rd Year</option>
+                                <option value="4th Year">4th Year</option>
+                            </select>
+                        </div>
+
+                        <div class="space-y-1.5">
+                            <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Section</label>
+                            <input v-model="form.section"
+                                class="w-full h-12 px-4 border-2 border-gray-100 dark:border-border rounded-2xl text-sm bg-white dark:bg-background dark:text-foreground focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-bold" 
+                                placeholder="e.g., A, B, C" />
+                        </div>
                     </div>
 
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Name</label>
-                        <input v-model="form.name" required
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent" />
-                        <span v-if="form.errors.name" class="text-xs text-red-600 mt-1">{{ form.errors.name }}</span>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                        <input v-model="form.email" type="email" required
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent" />
-                        <span v-if="form.errors.email" class="text-xs text-red-600 mt-1">{{ form.errors.email }}</span>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Program</label>
-                        <select v-model="form.program" required
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
-                            <option value="">Select program</option>
-                            <option value="BSIT">BSIT</option>
-                            <option value="BSIS">BSIS</option>
-                        </select>
-                        <span v-if="form.errors.program" class="text-xs text-red-600 mt-1">{{ form.errors.program }}</span>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Year Level</label>
-                        <select v-model="form.year" required
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
-                            <option value="">Select year</option>
-                            <option value="1st Year">1st Year</option>
-                            <option value="2nd Year">2nd Year</option>
-                            <option value="3rd Year">3rd Year</option>
-                            <option value="4th Year">4th Year</option>
-                        </select>
-                        <span v-if="form.errors.year" class="text-xs text-red-600 mt-1">{{ form.errors.year }}</span>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Section (Optional)</label>
-                        <input v-model="form.section"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent" 
-                            placeholder="e.g., A, B, C" />
-                        <span v-if="form.errors.section" class="text-xs text-red-600 mt-1">{{ form.errors.section }}</span>
-                    </div>
-
-                    <div class="md:col-span-2 flex justify-end gap-2 mt-4 pt-4 border-t border-gray-100">
+                    <div class="flex flex-col sm:flex-row justify-end gap-3 mt-10 pt-6 border-t dark:border-border">
                         <button type="button" @click="closeAllModals" :disabled="form.processing"
-                            class="px-4 py-2 text-sm border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 disabled:opacity-50">
+                            class="h-12 px-6 text-xs font-black uppercase tracking-widest border-2 border-gray-100 dark:border-border rounded-2xl text-gray-500 dark:text-muted-foreground hover:bg-gray-50 dark:hover:bg-muted disabled:opacity-50 transition-all order-2 sm:order-1">
                             Cancel
                         </button>
                         <button type="submit" :disabled="form.processing" 
-                            class="px-4 py-2 text-sm bg-purple-600 text-white rounded-md hover:bg-purple-700 disabled:opacity-50">
-                            {{ form.processing ? 'Saving...' : 'Save Changes' }}
+                            class="h-12 px-8 text-xs font-black uppercase tracking-widest bg-primary text-primary-foreground rounded-2xl hover:bg-primary/90 disabled:opacity-50 shadow-lg shadow-primary/20 transition-all order-1 sm:order-2">
+                            {{ form.processing ? 'Syncing...' : 'Update Identity' }}
                         </button>
                     </div>
                 </form>
             </div>
         </div>
 
-        <!-- Photo Modal -->
-        <div v-if="photoModal" class="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div class="fixed inset-0 bg-black/50" @click="closeAllModals"></div>
+        <!-- Photo Modal (Modern) -->
+        <div v-if="photoModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 animate-in fade-in duration-300">
+            <div class="fixed inset-0 bg-black/60 backdrop-blur-sm" @click="closeAllModals"></div>
             
-            <div class="relative bg-white rounded-lg shadow-xl w-full max-w-md p-6">
-                <h3 class="text-lg font-semibold text-gray-900 mb-4">Change Profile Photo</h3>
+            <div class="relative bg-white dark:bg-card rounded-3xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col border dark:border-border animate-in zoom-in-95 duration-300">
+                <div class="p-6 border-b dark:border-border flex items-center justify-between">
+                    <h3 class="text-lg font-black text-gray-900 dark:text-foreground uppercase tracking-tight">Upload Portrait</h3>
+                    <button @click="closeAllModals" type="button" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-muted text-gray-400 transition-colors">
+                        <X class="w-5 h-5" />
+                    </button>
+                </div>
                 
-                <div class="mb-6">
+                <div class="p-6">
                     <input type="file" accept="image/jpeg,image/jpg,image/png" class="hidden" id="photo-input" @change="onAvatarChange" />
                     <label for="photo-input"
-                        class="flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-gray-300 rounded-md hover:border-purple-500 hover:bg-purple-50 cursor-pointer transition">
-                        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
-                        </svg>
-                        <span class="text-sm text-gray-600">Click to upload (JPG, PNG, max 2MB)</span>
+                        class="flex flex-col items-center justify-center gap-4 px-6 py-10 border-2 border-dashed border-gray-200 dark:border-border rounded-3xl hover:border-primary dark:hover:border-primary/50 hover:bg-primary/5 dark:hover:bg-primary/10 cursor-pointer transition-all group">
+                        <div class="w-16 h-16 rounded-2xl bg-primary/10 text-primary flex items-center justify-center group-hover:scale-110 transition-transform">
+                            <Upload class="w-8 h-8" />
+                        </div>
+                        <div class="text-center">
+                            <p class="text-sm font-bold text-gray-700 dark:text-foreground">Click to select photo</p>
+                            <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">JPG or PNG • Max 2MB</p>
+                        </div>
                     </label>
-                    <p v-if="selectedFile" class="text-xs text-gray-600 mt-2">Selected: {{ selectedFile.name }}</p>
-                </div>
+                    
+                    <div v-if="selectedFile" class="mt-6 p-4 rounded-2xl bg-green-50 dark:bg-green-900/10 border border-green-100 dark:border-green-900/20 flex items-center gap-3">
+                        <CheckCircle2 class="w-5 h-5 text-green-500" />
+                        <span class="text-xs font-bold text-green-700 dark:text-green-400 truncate">{{ selectedFile.name }}</span>
+                    </div>
 
-                <div class="flex justify-end gap-2">
-                    <button @click="closeAllModals" type="button"
-                        class="px-4 py-2 text-sm border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
-                        Cancel
-                    </button>
-                    <button @click="savePhoto" type="button"
-                        class="px-4 py-2 text-sm bg-purple-800 text-white rounded-md hover:bg-purple-700">
-                        Save Photo
-                    </button>
+                    <div class="flex flex-col gap-3 mt-8">
+                        <button @click="savePhoto" type="button" :disabled="!selectedFile"
+                            class="h-12 w-full text-xs font-black uppercase tracking-widest bg-primary text-primary-foreground rounded-2xl hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all disabled:opacity-50 disabled:grayscale">
+                            Apply Changes
+                        </button>
+                        <button @click="closeAllModals" type="button"
+                            class="h-10 w-full text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-gray-600 transition-colors">
+                            Cancel
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
