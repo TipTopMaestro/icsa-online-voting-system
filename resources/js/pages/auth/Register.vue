@@ -11,7 +11,7 @@ import { Spinner } from '@/components/ui/spinner';
 import AuthBase from '@/layouts/AuthLayout.vue';
 import { login } from '@/routes';
 import { Head } from '@inertiajs/vue3';
-import { CheckCircle2, XCircle } from 'lucide-vue-next';
+import { CheckCircle2, XCircle, User, Mail, IdCard, Lock } from 'lucide-vue-next';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/vue/24/outline';
 
 const form = ref({
@@ -96,10 +96,13 @@ const submit = async () => {
         </div>
 
         <form @submit.prevent="submit" class="space-y-6">
-            <div class="space-y-4">
+            <div class="space-y-5">
                 <!-- Name -->
                 <div class="space-y-2">
-                    <Label for="name" class="text-sm font-medium text-gray-700">Full Name</Label>
+                    <Label for="name" class="text-xs font-black text-gray-900 uppercase tracking-widest flex items-center gap-2 ml-1">
+                        <User class="w-3 h-3 text-primary" />
+                        Full Name
+                    </Label>
                     <Input
                         id="name"
                         v-model="form.name"
@@ -109,14 +112,17 @@ const submit = async () => {
                         autocomplete="name"
                         placeholder="Juan Dela Cruz"
                         :disabled="processing"
-                        class="h-11"
+                        class="h-12 rounded-xl border-2 border-gray-100 focus:ring-2 focus:ring-primary/20 transition-all font-medium"
                     />
                     <InputError :message="errors.name?.[0]" />
                 </div>
 
                 <!-- Email -->
                 <div class="space-y-2">
-                    <Label for="email" class="text-sm font-medium text-gray-700">Email Address</Label>
+                    <Label for="email" class="text-xs font-black text-gray-900 uppercase tracking-widest flex items-center gap-2 ml-1">
+                        <Mail class="w-3 h-3 text-primary" />
+                        Email Address
+                    </Label>
                     <Input
                         id="email"
                         v-model="form.email"
@@ -126,14 +132,17 @@ const submit = async () => {
                         autocomplete="email"
                         placeholder="student@example.com"
                         :disabled="processing"
-                        class="h-11"
+                        class="h-12 rounded-xl border-2 border-gray-100 focus:ring-2 focus:ring-primary/20 transition-all font-medium"
                     />
                     <InputError :message="errors.email?.[0]" />
                 </div>
 
                 <!-- Student ID -->
                 <div class="space-y-2">
-                    <Label for="student_id" class="text-sm font-medium text-gray-700">Student ID</Label>
+                    <Label for="student_id" class="text-xs font-black text-gray-900 uppercase tracking-widest flex items-center gap-2 ml-1">
+                        <IdCard class="w-3 h-3 text-primary" />
+                        Student ID
+                    </Label>
                     <Input
                         id="student_id"
                         v-model="form.student_id"
@@ -143,15 +152,18 @@ const submit = async () => {
                         autocomplete="off"
                         placeholder="2024-12345"
                         :disabled="processing"
-                        class="h-11"
+                        class="h-12 rounded-xl border-2 border-gray-100 focus:ring-2 focus:ring-primary/20 transition-all font-medium"
                     />
                     <InputError :message="errors.student_id?.[0]" />
                 </div>
 
                 <!-- Password -->
                 <div class="space-y-2">
-                    <Label for="password" class="text-sm font-medium text-gray-700">Password</Label>
-                    <div class="relative">
+                    <Label for="password" class="text-xs font-black text-gray-900 uppercase tracking-widest flex items-center gap-2 ml-1">
+                        <Lock class="w-3 h-3 text-primary" />
+                        Password
+                    </Label>
+                    <div class="relative group">
                         <Input
                             id="password"
                             v-model="form.password"
@@ -161,15 +173,14 @@ const submit = async () => {
                             autocomplete="new-password"
                             placeholder="Minimum 8 characters"
                             :disabled="processing"
-                            class="h-11 pr-10"
+                            class="h-12 rounded-xl border-2 border-gray-100 focus:ring-2 focus:ring-primary/20 transition-all font-medium pr-11"
                             :class="{ 'border-red-500 focus-visible:ring-red-500': !passwordsMatch }"
                         />
                         <button
                             type="button"
                             @click="showPassword = !showPassword"
-                            class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none transition-colors"
+                            class="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-primary focus:outline-none transition-colors"
                             :tabindex="-1"
-                            aria-label="Toggle password visibility"
                         >
                             <EyeIcon v-if="!showPassword" class="h-5 w-5" />
                             <EyeSlashIcon v-else class="h-5 w-5" />
@@ -180,8 +191,11 @@ const submit = async () => {
 
                 <!-- Confirm Password -->
                 <div class="space-y-2">
-                    <Label for="password_confirmation" class="text-sm font-medium text-gray-700">Confirm Password</Label>
-                    <div class="relative">
+                    <Label for="password_confirmation" class="text-xs font-black text-gray-900 uppercase tracking-widest flex items-center gap-2 ml-1">
+                        <CheckCircle2 class="w-3 h-3 text-primary" />
+                        Confirm Password
+                    </Label>
+                    <div class="relative group">
                         <Input
                             id="password_confirmation"
                             v-model="form.password_confirmation"
@@ -191,41 +205,40 @@ const submit = async () => {
                             autocomplete="new-password"
                             placeholder="Re-enter your password"
                             :disabled="processing"
-                            class="h-11 pr-10"
+                            class="h-12 rounded-xl border-2 border-gray-100 focus:ring-2 focus:ring-primary/20 transition-all font-medium pr-11"
                             :class="{ 'border-red-500 focus-visible:ring-red-500': !passwordsMatch }"
                         />
                         <button
                             type="button"
                             @click="showPasswordConfirmation = !showPasswordConfirmation"
-                            class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none transition-colors"
+                            class="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-primary focus:outline-none transition-colors"
                             :tabindex="-1"
-                            aria-label="Toggle password confirmation visibility"
                         >
                             <EyeIcon v-if="!showPasswordConfirmation" class="h-5 w-5" />
                             <EyeSlashIcon v-else class="h-5 w-5" />
                         </button>
                     </div>
-                    <div v-if="!passwordsMatch" class="flex items-center gap-1.5 mt-1 animate-in fade-in slide-in-from-top-1 duration-200">
+                    <div v-if="!passwordsMatch" class="flex items-center gap-1.5 mt-1.5 animate-in fade-in slide-in-from-top-1 duration-200">
                         <XCircle class="h-3.5 w-3.5 text-red-500" />
-                        <span class="text-[11px] font-bold text-red-500 uppercase tracking-tight">Passwords do not match</span>
+                        <span class="text-[10px] font-black text-red-500 uppercase tracking-widest">Passwords do not match</span>
                     </div>
                     <InputError :message="errors.password_confirmation?.[0]" />
                 </div>
 
                 <Button
                     type="submit"
-                    class="w-full h-11 text-white btn-custom"
+                    class="w-full h-12 text-white font-black uppercase text-xs tracking-widest rounded-xl btn-custom mt-2"
                     :tabindex="6"
                     :disabled="processing || !passwordsMatch"
                 >
-                    <Spinner v-if="processing" />
-                    Create Account
+                    <Spinner v-if="processing" class="mr-2" />
+                    {{ processing ? 'Processing...' : 'Create Account' }}
                 </Button>
             </div>
 
-            <div class="text-center text-sm text-gray-600">
+            <div class="text-center text-xs font-bold text-gray-400 uppercase tracking-widest pt-4">
                 Already have an account?
-                <TextLink :href="login()" :tabindex="7" class="font-medium text-purple-700 hover:text-purple-800 underline">Log in</TextLink>
+                <TextLink :href="login()" :tabindex="7" class="ml-1 text-primary hover:underline">Log in</TextLink>
             </div>
         </form>
     </AuthBase>

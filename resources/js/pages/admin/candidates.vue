@@ -258,8 +258,9 @@ function handlePhotoCreate(e: Event) {
 function submitCreate() {
   createForm.post('/admin/candidates', {
     onSuccess: (page) => {
-        if (page.props.flash?.candidate_password) {
-            generatedPassword.value = page.props.flash.candidate_password as string;
+        const flash = page.props.flash as any;
+        if (flash?.generated_password) {
+            generatedPassword.value = flash.generated_password;
             closeCreateModal();
             showPasswordModal.value = true;
         } else {

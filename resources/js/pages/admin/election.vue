@@ -238,16 +238,13 @@ const getStatusBadge = (election: Election) => {
 
                         <!-- Main Actions -->
                         <div class="flex flex-wrap items-center gap-2 lg:justify-end">
-                            <div v-if="!election.is_active && election.status !== 'ended'" class="flex gap-2 w-full sm:w-auto">
-                                <button @click="openActivateConfirm(election)" class="flex-1 sm:flex-none px-4 py-2 bg-emerald-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-700 transition-all active:scale-95">Activate Polls</button>
+                            <div v-if="!election.is_active" class="flex gap-2 w-full sm:w-auto">
+                                <button v-if="election.status !== 'ended'" @click="openActivateConfirm(election)" class="flex-1 sm:flex-none px-4 py-2 bg-emerald-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-700 transition-all active:scale-95">Activate Polls</button>
                                 <button @click="openEditModal(election)" class="flex-1 sm:flex-none p-2 bg-gray-50 dark:bg-muted text-blue-600 rounded-xl hover:bg-blue-50 transition-all border dark:border-border"><PencilLine class="w-5 h-5" /></button>
                                 <button @click="openDeleteConfirm(election)" class="flex-1 sm:flex-none p-2 bg-gray-50 dark:bg-muted text-red-600 rounded-xl hover:bg-red-50 transition-all border dark:border-border"><Trash class="w-5 h-5" /></button>
                             </div>
-                            <div v-else-if="election.is_active" class="w-full sm:w-auto">
-                                <button @click="openDeactivateConfirm(election)" class="w-full sm:w-auto px-6 py-2.5 bg-red-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-red-700 transition-all active:scale-95">Force End Election</button>
-                            </div>
                             <div v-else class="w-full sm:w-auto">
-                                <button @click="openDeleteConfirm(election)" class="w-full sm:w-auto px-6 py-2.5 bg-gray-100 dark:bg-muted text-gray-400 rounded-xl text-[10px] font-black uppercase tracking-widest hover:text-red-600 transition-all">Delete Election</button>
+                                <button @click="openDeactivateConfirm(election)" class="w-full sm:w-auto px-6 py-2.5 bg-red-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-red-700 transition-all active:scale-95">Force End Election</button>
                             </div>
                         </div>
                     </div>
