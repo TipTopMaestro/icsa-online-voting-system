@@ -8,7 +8,7 @@ import Icon from '@/components/Icon.vue';
 interface User {
     name: string;
     email: string;
-    photo: string | null;
+    avatar: string | null;
 }
 
 interface Candidate {
@@ -27,7 +27,7 @@ const props = defineProps<{
 
 const photoModal = ref(false);
 const editingPlatform = ref(false);
-const photoPreview = ref<string | null>(props.user.photo);
+const photoPreview = ref<string | null>(props.user.avatar);
 
 const platformForm = useForm({
     platform: props.candidate?.platform || '',

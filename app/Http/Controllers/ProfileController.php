@@ -24,7 +24,7 @@ class ProfileController extends Controller
                     'id' => $user->id,
                     'name' => $user->name,
                     'email' => $user->email,
-                    'photo' => $user->photo ? asset('storage/' . $user->photo) : null,
+                    'avatar' => $user->photo ? asset('storage/' . $user->photo) : null,
                     'role' => $user->role
                 ]
             ]);
@@ -39,7 +39,7 @@ class ProfileController extends Controller
                 'program' => $voter->course,
                 'year' => $voter->year_level,
                 'section' => $voter->section,
-                'photo' => $voter->photo ? asset('storage/' . $voter->photo) : null,
+                'avatar' => $voter->photo ? asset('storage/' . $voter->photo) : null,
                 'voted' => (bool) $voter->has_voted_active
             ]
         ]);

@@ -13,7 +13,7 @@ interface Voter {
     program: string;
     year: string;
     section: string;
-    photo: string | null;
+    avatar: string | null;
     voted: boolean;
 }
 
@@ -117,7 +117,7 @@ function saveInfo() {
                         
                         <div class="relative flex flex-col items-center">
                             <div class="relative group mb-6">
-                                <img :src="avatarPreview || voter.photo || '/images/default-avatar.png'"
+                                <img :src="avatarPreview || voter.avatar || '/images/default-avatar.png'"
                                     class="w-32 h-32 rounded-full object-cover border-4 border-white dark:border-card shadow-xl transition-transform group-hover:scale-105"
                                     alt="Profile" />
                                 <button @click="photoModal = true" type="button"
@@ -291,11 +291,11 @@ function saveInfo() {
                 <div class="p-6">
                     <input type="file" accept="image/jpeg,image/jpg,image/png" class="hidden" id="photo-input" @change="onAvatarChange" />
                     <label for="photo-input"
-                        class="flex flex-col items-center justify-center gap-4 px-6 py-10 border-2 border-dashed border-gray-200 dark:border-border hover:border-primary dark:hover:border-primary/50 hover:bg-primary/5 dark:hover:bg-primary/10 cursor-pointer transition-all group"
+                        class="flex flex-col items-center justify-center gap-4 px-6 py-10 border-2 border-dashed border-gray-200 dark:border-border rounded-3xl hover:border-primary dark:hover:border-primary/50 hover:bg-primary/5 dark:hover:bg-primary/10 cursor-pointer transition-all group"
                         :class="{'border-destructive/50 bg-destructive/5': photoForm.errors.photo}"
                     >
                         <div class="w-16 h-16 rounded-2xl bg-primary/10 text-primary flex items-center justify-center group-hover:scale-110 transition-transform">
-                            <Upload class="w-8 h-8" />
+                            <Upload class="size-8" />
                         </div>
                         <div class="text-center">
                             <p class="text-sm font-bold text-gray-700 dark:text-foreground">Click to select photo</p>

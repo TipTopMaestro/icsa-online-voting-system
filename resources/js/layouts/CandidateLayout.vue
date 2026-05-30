@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { Link, router, usePage } from '@inertiajs/vue3';
 import { Menu, X, LayoutDashboard, User, BarChart3, Bell, Settings, LogOut } from 'lucide-vue-next';
 import Icon from '@/components/Icon.vue';
@@ -8,7 +8,7 @@ const profileOpen = ref(false);
 const mobileMenuOpen = ref(false);
 
 const page = usePage();
-const user = page.props.auth?.user || { name: 'Candidate', email: '', photo: null };
+const user = computed(() => page.props.auth?.user || { name: 'Candidate', email: '', avatar: null });
 
 const isActive = (path: string) => {
     return page.url.startsWith(path);
@@ -93,8 +93,8 @@ const closeMobileMenu = () => {
                                 <span class="hidden md:block text-sm font-medium text-gray-700 dark:text-gray-300 max-w-[120px] truncate">{{ user.name }}</span>
                                 <div class="w-9 h-9 rounded-full bg-primary/10 dark:bg-primary/10 flex items-center justify-center overflow-hidden border-2 border-primary/20 flex-shrink-0">
                                     <img 
-                                        v-if="user.photo" 
-                                        :src="user.photo" 
+                                        v-if="user.avatar" 
+                                        :src="user.avatar" 
                                         :alt="user.name"
                                         class="w-full h-full object-cover"
                                     />

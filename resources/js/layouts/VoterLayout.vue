@@ -10,7 +10,7 @@ const mobileMenuOpen = ref(false);
 
 // Get user from Inertia page props
 const page = usePage();
-const user = page.props.auth?.user || { name: 'Voter', email: '' };
+const user = computed(() => page.props.auth?.user || { name: 'Voter', email: '', avatar: null });
 
 // Check if link is active
 const isActive = (path: string) => {
@@ -104,8 +104,8 @@ const closeMobileMenu = () => {
                                 <span class="hidden md:block text-sm font-medium text-gray-700 dark:text-gray-300 max-w-[120px] truncate">{{ user.name }}</span>
                                 <div class="w-9 h-9 rounded-full bg-primary/10 dark:bg-primary/10 flex items-center justify-center overflow-hidden border-2 border-primary/20 flex-shrink-0">
                                     <img 
-                                        v-if="user.photo" 
-                                        :src="user.photo" 
+                                        v-if="user.avatar" 
+                                        :src="user.avatar" 
                                         :alt="user.name"
                                         class="w-full h-full object-cover"
                                     />
