@@ -2,7 +2,7 @@
 import { Head, router, useForm } from '@inertiajs/vue3';
 import { ref, computed } from 'vue';
 import CandidateLayout from '@/layouts/CandidateLayout.vue';
-import { Camera, PencilLine, Save, X, Upload, CheckCircle2, GraduationCap, Users, Mail, User } from 'lucide-vue-next';
+import { Camera, PencilLine, Save, X, Upload, CheckCircle2, GraduationCap, Users, Mail, User, AlertCircle } from 'lucide-vue-next';
 import Icon from '@/components/Icon.vue';
 
 interface User {
@@ -27,11 +27,14 @@ const props = defineProps<{
 
 const photoModal = ref(false);
 const editingPlatform = ref(false);
-const photoFile = ref<File | null>(null);
 const photoPreview = ref<string | null>(props.user.photo);
 
 const platformForm = useForm({
     platform: props.candidate?.platform || '',
+});
+
+const photoForm = useForm({
+    photo: null as File | null,
 });
 
 const openEditPlatform = () => {
@@ -53,21 +56,27 @@ function onPhotoChange(e: Event) {
     if (!input || !input.files || input.files.length === 0) return;
     const file = input.files[0];
     
-    photoFile.value = file;
+    photoForm.photo = file;
     photoPreview.value = URL.createObjectURL(file);
+    
+    // Clear previous errors when a new file is selected
+    photoForm.clearErrors('photo');
+
+    // Client-side validation for immediate feedback
+    if (file.size > 2 * 1024 * 1024) {
+        photoForm.setError('photo', 'The photo exceeds the 2MB size limit. Please choose a smaller file.');
+    }
 }
 
 const uploadPhoto = () => {
-    if (!photoFile.value) return;
+    if (!photoForm.photo || photoForm.errors.photo) return;
     
-    const form = new FormData();
-    form.append('photo', photoFile.value);
-    
-    router.post('/candidate/profile/photo', form, {
+    photoForm.post('/candidate/profile/photo', {
         preserveScroll: true,
+        forceFormData: true,
         onSuccess: () => {
             photoModal.value = false;
-            photoFile.value = null;
+            photoForm.reset();
         },
     });
 };
@@ -167,7 +176,7 @@ const uploadPhoto = () => {
                             <div v-if="candidate && candidate.platform && !editingPlatform" class="relative group">
                                 <div class="p-6 md:p-8 bg-primary/[0.02] dark:bg-primary/[0.05] rounded-3xl border-2 border-primary/5 dark:border-primary/10 relative">
                                     <div class="absolute -top-4 -left-2 text-6xl text-primary/10 font-serif">"</div>
-                                    <p class="text-base md:text-lg text-gray-800 dark:text-gray-300 leading-relaxed whitespace-pre-wrap italic">{{ candidate.platform }}</p>
+                                    <p class="text-base md:text-lg text-gray-800 dark:text-gray-300 leading-relaxed whitespace-pre-wrap break-words italic">{{ candidate.platform }}</p>
                                 </div>
                             </div>
 
@@ -236,7 +245,10 @@ const uploadPhoto = () => {
 
                     <div class="p-8">
                         <input type="file" accept="image/*" class="hidden" id="modal-avatar-input" @change="onPhotoChange" />
-                        <label for="modal-avatar-input" class="flex flex-col items-center justify-center gap-4 px-6 py-10 rounded-3xl border-2 border-dashed border-gray-200 dark:border-border hover:border-primary dark:hover:border-primary/50 hover:bg-primary/5 dark:hover:bg-primary/10 cursor-pointer transition-all group">
+                        <label for="modal-avatar-input" 
+                            class="flex flex-col items-center justify-center gap-4 px-6 py-10 rounded-3xl border-2 border-dashed border-gray-200 dark:border-border hover:border-primary dark:hover:border-primary/50 hover:bg-primary/5 dark:hover:bg-primary/10 cursor-pointer transition-all group"
+                            :class="{'border-destructive/50 bg-destructive/5': photoForm.errors.photo}"
+                        >
                             <div class="w-16 h-16 rounded-2xl bg-primary/10 text-primary flex items-center justify-center group-hover:scale-110 transition-transform">
                                 <Upload class="w-8 h-8" />
                             </div>
@@ -246,18 +258,34 @@ const uploadPhoto = () => {
                             </div>
                         </label>
                         
-                        <div v-if="photoFile" class="mt-6 p-4 rounded-2xl bg-green-50 dark:bg-green-900/10 border border-green-100 dark:border-green-900/20 flex items-center gap-3">
+                        <!-- Error Display -->
+                        <div v-if="photoForm.errors.photo" class="mt-4 p-4 rounded-2xl bg-destructive/10 border border-destructive/20 flex items-start gap-3 animate-in slide-in-from-top-2 duration-300">
+                            <AlertCircle class="w-5 h-5 text-destructive shrink-0 mt-0.5" />
+                            <div class="space-y-1">
+                                <p class="text-xs font-black text-destructive uppercase tracking-tight">Validation Error</p>
+                                <p class="text-xs font-medium text-destructive/80 leading-relaxed">{{ photoForm.errors.photo }}</p>
+                            </div>
+                        </div>
+
+                        <div v-if="photoForm.photo && !photoForm.errors.photo" class="mt-6 p-4 rounded-2xl bg-green-50 dark:bg-green-900/10 border border-green-100 dark:border-green-900/20 flex items-center gap-3">
                             <CheckCircle2 class="w-5 h-5 text-green-500" />
-                            <span class="text-xs font-bold text-green-700 dark:text-green-400 truncate">{{ photoFile.name }}</span>
+                            <span class="text-xs font-bold text-green-700 dark:text-green-400 truncate">{{ photoForm.photo.name }}</span>
                         </div>
 
                         <div class="flex flex-col gap-3 mt-8">
                             <button 
                                 @click="uploadPhoto"
-                                :disabled="!photoFile"
-                                class="h-12 w-full text-xs font-black uppercase tracking-widest bg-primary text-primary-foreground rounded-2xl hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed"
+                                :disabled="!photoForm.photo || photoForm.errors.photo || photoForm.processing"
+                                class="h-12 w-full text-xs font-black uppercase tracking-widest bg-primary text-primary-foreground rounded-2xl hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed flex items-center justify-center gap-2"
                             >
-                                Apply New Photo
+                                <span v-if="photoForm.processing" class="flex items-center gap-2">
+                                    <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    Uploading...
+                                </span>
+                                <span v-else>Apply New Photo</span>
                             </button>
                             <button @click="photoModal = false" type="button"
                                 class="h-10 w-full text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-gray-600 transition-colors">
