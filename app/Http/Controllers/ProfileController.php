@@ -19,13 +19,12 @@ class ProfileController extends Controller
             ->first();
         
         if (!$voter) {
-            // Handle case where user is not a voter (e.g. admin)
             return Inertia::render('voter/Profile', [
                 'voter' => [
                     'id' => $user->id,
                     'name' => $user->name,
                     'email' => $user->email,
-                    'photo' => $user->photo ? asset('storage/' . $user->photo) : null,
+                    'avatar' => $user->photo ? asset('storage/' . $user->photo) : null,
                     'role' => $user->role
                 ]
             ]);
@@ -40,7 +39,7 @@ class ProfileController extends Controller
                 'program' => $voter->course,
                 'year' => $voter->year_level,
                 'section' => $voter->section,
-                'photo' => $voter->photo ? asset('storage/' . $voter->photo) : null,
+                'avatar' => $voter->photo ? asset('storage/' . $voter->photo) : null,
                 'voted' => (bool) $voter->has_voted_active
             ]
         ]);
@@ -53,19 +52,23 @@ class ProfileController extends Controller
             'email' => 'required|email|max:255|unique:users,email,' . Auth::id(),
             'program' => 'required|string|in:BSIT,BSIS',
             'year' => 'required|string|in:1st Year,2nd Year,3rd Year,4th Year',
-            'section' => 'nullable|string|max:10'
+            'section' => 'nullable|string|max:10',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048'
         ]);
         
         try {
-            // Call the Stored Procedure to handle the multi-table update
-            DB::statement('CALL sp_UpdateUserProfile(?, ?, ?, ?, ?, ?, ?)', [
-                Auth::id(),
-                $request->name,
-                $request->email,
-                $request->student_id,
-                $request->program,
-                $request->year,
-                $request->section ?? ''
+            $user = Auth::user();
+            $photoPath = $this->handlePhotoUpload($request, $user->getRawOriginal('photo'));
+
+            $this->executeProfileUpdate([
+                'user_id' => $user->id,
+                'name' => $request->name,
+                'email' => $request->email,
+                'student_id' => $request->student_id,
+                'program' => $request->program,
+                'year' => $request->year,
+                'section' => $request->section ?? '',
+                'photo' => $photoPath
             ]);
 
             return back()->with('success', 'Profile updated successfully');
@@ -73,5 +76,55 @@ class ProfileController extends Controller
             \Log::error('Profile update failed: ' . $e->getMessage());
             return back()->withErrors(['error' => 'Failed to update profile.']);
         }
+    }
+
+    public function updatePhoto(Request $request)
+    {
+        $request->validate(['photo' => 'required|image|mimes:jpeg,png,jpg|max:2048']);
+
+        try {
+            $user = Auth::user();
+            $voter = DB::table('voter_profiles')->where('user_id', $user->id)->first();
+
+            if (!$voter) return back()->withErrors(['photo' => 'Voter profile not found.']);
+
+            $photoPath = $this->handlePhotoUpload($request, $user->getRawOriginal('photo'));
+
+            $this->executeProfileUpdate([
+                'user_id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'student_id' => $voter->student_id,
+                'program' => $voter->course,
+                'year' => $voter->year_level,
+                'section' => $voter->section,
+                'photo' => $photoPath
+            ]);
+
+            return back()->with('success', 'Profile photo updated successfully');
+        } catch (\Exception $e) {
+            \Log::error('Photo update failed: ' . $e->getMessage());
+            return back()->withErrors(['photo' => 'Failed to upload photo.']);
+        }
+    }
+
+    private function handlePhotoUpload(Request $request, $oldPath) {
+        if (!$request->hasFile('photo')) return $oldPath;
+
+        if ($oldPath) Storage::disk('public')->delete($oldPath);
+        return $request->file('photo')->store('profiles', 'public');
+    }
+
+    private function executeProfileUpdate(array $data) {
+        DB::statement('CALL sp_UpdateUserProfile(?, ?, ?, ?, ?, ?, ?, ?)', [
+            $data['user_id'],
+            $data['name'],
+            $data['email'],
+            $data['student_id'],
+            $data['program'],
+            $data['year'],
+            $data['section'],
+            $data['photo']
+        ]);
     }
 }

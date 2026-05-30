@@ -9,6 +9,7 @@ import ModalTrigger from "@/components/ModalTrigger.vue"
 import Icon from '@/components/Icon.vue';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { Network, Plus, Calendar, Users, Briefcase, UserCheck, Trash, PencilLine, CheckCircle, CircleStop, Clock, History, AlertTriangle } from 'lucide-vue-next';
 
 interface Election {
     id: number;
@@ -79,33 +80,22 @@ const openDeactivateConfirm = (election: Election) => {
     deactivateConfirmOpen.value = true;
 };
 
+const closeModal = () => {
+    open.value = false;
+    form.reset();
+    selectedElection.value = null;
+};
+
 const submitForm = () => {
-    console.log('Form submitted', form.data());
-    console.log('Edit mode:', editMode.value);
-    
     if (editMode.value && selectedElection.value) {
         form.put(`/admin/election/${selectedElection.value.id}`, {
             preserveScroll: true,
-            onSuccess: () => {
-                open.value = false;
-                form.reset();
-            },
-            onError: (errors) => {
-                console.error('Form errors:', errors);
-            }
+            onSuccess: () => closeModal(),
         });
     } else {
-        console.log('Posting to: /admin/election');
         form.post('/admin/election', {
             preserveScroll: true,
-            onSuccess: () => {
-                console.log('Election created successfully');
-                open.value = false;
-                form.reset();
-            },
-            onError: (errors) => {
-                console.error('Form errors:', errors);
-            }
+            onSuccess: () => closeModal(),
         });
     }
 };
@@ -148,317 +138,276 @@ const deactivateElection = () => {
     }
 };
 
-const formatDateTimeForInput = (datetime: string) => {
-    if (!datetime) return '';
-    const date = new Date(datetime);
+const breadcrumbs: BreadcrumbItem[] = [
+    {
+        title: 'Elections',
+        href: '/admin/election',
+    },
+];
+
+const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+};
+
+const formatDateTimeForInput = (dateString: string) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
     return date.toISOString().slice(0, 16);
 };
 
 const formatDateRange = (start: string, end: string) => {
-    const startDate = new Date(start);
-    const endDate = new Date(end);
-    
-    const options: Intl.DateTimeFormatOptions = { day: '2-digit', month: 'short', year: 'numeric' };
-    return `${startDate.toLocaleDateString('en-US', options)} - ${endDate.toLocaleDateString('en-US', options)}`;
+    const s = new Date(start);
+    const e = new Date(end);
+    return `${s.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${e.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
 };
 
 const getVoterTurnout = (election: Election) => {
     if (election.total_voters === 0) return 0;
-    // Use voted_count (unique voters) instead of votes_count (all votes)
-    const turnout = (election.voted_count / election.total_voters) * 100;
-    // Cap at 100% to prevent exceeding
-    return Math.min(turnout, 100).toFixed(1);
+    return ((election.voted_count / election.total_voters) * 100).toFixed(1);
 };
 
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Election',
-        href: '/admin/election',
-    },
-];
+const getStatusBadge = (election: Election) => {
+    if (election.is_active) {
+        return { label: 'Live', class: 'bg-green-50 text-green-700 border-green-100 dark:bg-green-500/10 dark:text-green-400 dark:border-green-500/20', pulse: true };
+    } else if (election.status === 'ended') {
+        return { label: 'Ended', class: 'bg-gray-50 text-gray-500 border-gray-100 dark:bg-muted dark:text-gray-400 dark:border-border', pulse: false };
+    } else {
+        return { label: 'Scheduled', class: 'bg-blue-50 text-blue-700 border-blue-100 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20', pulse: false };
+    }
+};
 </script>
 
 <template>
-    <Head title="Elections" />
-    <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="p-6">
-            <ModalTrigger v-model="open">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <h1 class="text-2xl sm:text-3xl font-semibold text-gray-800 dark:text-gray-100">Elections</h1>
-                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Monitor and manage ongoing elections</p>
-                    </div>
-                    <button 
-                        @click="openCreateModal"
-                        class="inline-flex items-center gap-2 px-4 py-2 bg-[#5A2D6F] hover:bg-[#4b255c] dark:bg-[#5A2D6F] dark:hover:bg-[#4b255c] text-white text-sm font-medium rounded-md transition-colors">
-                        <Icon name="plus" class="h-4 w-4" />
-                        Create Election
-                    </button>
-                </div>
-            </ModalTrigger>
+    <Head title="Election Systems" />
 
+    <AppLayout :breadcrumbs="breadcrumbs">
+        <div class="flex h-full flex-1 flex-col gap-4 md:gap-8 p-4 md:p-8 min-h-[calc(100vh-64px)]">
+            <!-- Header Section -->
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                    <h1 class="text-xl md:text-3xl font-black text-gray-900 dark:text-foreground uppercase tracking-tight">Electoral Systems</h1>
+                    <p class="text-muted-foreground mt-1 text-[11px] md:text-sm font-medium">Configure and monitor democratic voting cycles.</p>
+                </div>
+                <button 
+                    @click="openCreateModal"
+                    class="flex items-center justify-center gap-2 rounded-xl px-6 py-2.5 text-[10px] font-black uppercase tracking-widest bg-primary text-primary-foreground hover:bg-primary/90 transition-all active:scale-95"
+                >
+                    <Plus class="h-4 w-4" />
+                    New Election
+                </button>
+            </div>
+
+            <!-- Empty State -->
+            <div v-if="electionsList.length === 0" class="flex flex-col items-center justify-center p-12 md:p-20 border-2 border-dashed border-gray-100 dark:border-border rounded-3xl bg-white dark:bg-card/50 shadow-sm max-w-2xl mx-auto w-full">
+                <div class="rounded-2xl bg-gray-50 dark:bg-muted/50 p-6 mb-6">
+                    <Network class="h-12 w-12 text-gray-300" />
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 dark:text-foreground">Initialize System</h3>
+                <p class="text-sm text-gray-500 mb-8 text-center max-w-xs font-medium">Create your first election system to begin the nomination and voting process.</p>
+                <button @click="openCreateModal" class="px-8 py-3 bg-primary text-primary-foreground rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-primary/90 transition-all">Create Election Now</button>
+            </div>
+            
+            <!-- Elections List -->
+            <div v-else class="grid grid-cols-1 gap-6">
+                <div
+                    v-for="election in electionsList"
+                    :key="election.id"
+                    :class="[
+                        'group rounded-3xl border transition-all duration-300 bg-white dark:bg-card p-6 md:p-8 shadow-sm relative overflow-hidden',
+                        election.is_active ? 'border-primary/20 ring-4 ring-primary/5' : 'border-gray-100 dark:border-border hover:border-primary/20'
+                    ]"
+                >
+                    <!-- Live Indicator Bar -->
+                    <div v-if="election.is_active" class="absolute top-0 left-0 w-full h-1.5 bg-primary"></div>
+
+                    <div class="flex flex-col lg:flex-row lg:items-start justify-between gap-6 mb-8">
+                        <div class="flex-1 min-w-0">
+                            <div class="flex flex-wrap items-center gap-3 mb-2">
+                                <h2 class="text-lg md:text-2xl font-black text-gray-900 dark:text-foreground leading-tight uppercase tracking-tight">{{ election.title }}</h2>
+                                <span 
+                                    :class="getStatusBadge(election).class"
+                                    class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border"
+                                >
+                                    <span v-if="getStatusBadge(election).pulse" class="h-1.5 w-1.5 rounded-full bg-current" />
+                                    {{ getStatusBadge(election).label }}
+                                </span>
+                            </div>
+                            <p class="text-sm text-gray-500 dark:text-muted-foreground font-medium leading-relaxed max-w-3xl">{{ election.description || 'No system description provided.' }}</p>
+                        </div>
+
+                        <!-- Main Actions -->
+                        <div class="flex flex-wrap items-center gap-2 lg:justify-end">
+                            <div v-if="!election.is_active" class="flex gap-2 w-full sm:w-auto">
+                                <button v-if="election.status !== 'ended'" @click="openActivateConfirm(election)" class="flex-1 sm:flex-none px-4 py-2 bg-emerald-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-700 transition-all active:scale-95">Activate Polls</button>
+                                <button @click="openEditModal(election)" class="flex-1 sm:flex-none p-2 bg-gray-50 dark:bg-muted text-blue-600 rounded-xl hover:bg-blue-50 transition-all border dark:border-border"><PencilLine class="w-5 h-5" /></button>
+                                <button @click="openDeleteConfirm(election)" class="flex-1 sm:flex-none p-2 bg-gray-50 dark:bg-muted text-red-600 rounded-xl hover:bg-red-50 transition-all border dark:border-border"><Trash class="w-5 h-5" /></button>
+                            </div>
+                            <div v-else class="w-full sm:w-auto">
+                                <button @click="openDeactivateConfirm(election)" class="w-full sm:w-auto px-6 py-2.5 bg-red-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-red-700 transition-all active:scale-95">Force End Election</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Metrics Grid -->
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div class="p-4 rounded-2xl bg-gray-50 dark:bg-muted/30 border dark:border-border group-hover:bg-primary/[0.02] transition-colors">
+                            <div class="flex items-center gap-2 text-gray-400 mb-1">
+                                <Users class="w-3.5 h-3.5" />
+                                <span class="text-[9px] font-black uppercase tracking-widest">Turnout</span>
+                            </div>
+                            <div class="flex items-end gap-2">
+                                <p class="text-xl font-black text-gray-900 dark:text-foreground leading-none">{{ getVoterTurnout(election) }}%</p>
+                                <span class="text-[10px] text-gray-400 font-bold mb-0.5">{{ election.voted_count }}/{{ election.total_voters }}</span>
+                            </div>
+                            <div class="w-full bg-gray-200 dark:bg-muted h-1 rounded-full mt-3 overflow-hidden">
+                                <div class="bg-primary h-full transition-all duration-1000" :style="{ width: getVoterTurnout(election) + '%' }"></div>
+                            </div>
+                        </div>
+
+                        <div class="p-4 rounded-2xl bg-gray-50 dark:bg-muted/30 border dark:border-border">
+                            <div class="flex items-center gap-2 text-gray-400 mb-1">
+                                <CheckCircle class="w-3.5 h-3.5" />
+                                <span class="text-[9px] font-black uppercase tracking-widest">Valid Votes</span>
+                            </div>
+                            <p class="text-xl font-black text-gray-900 dark:text-foreground leading-none">{{ election.votes_count.toLocaleString() }}</p>
+                            <p class="text-[9px] text-primary font-bold mt-2 uppercase tracking-widest">Cast Ballots</p>
+                        </div>
+
+                        <div class="p-4 rounded-2xl bg-gray-50 dark:bg-muted/30 border dark:border-border">
+                            <div class="flex items-center gap-2 text-gray-400 mb-1">
+                                <Briefcase class="w-3.5 h-3.5" />
+                                <span class="text-[9px] font-black uppercase tracking-widest">Positions</span>
+                            </div>
+                            <p class="text-xl font-black text-gray-900 dark:text-foreground leading-none">{{ election.positions_count }}</p>
+                            <p class="text-[9px] text-gray-400 font-bold mt-2 uppercase tracking-widest">Defined Roles</p>
+                        </div>
+
+                        <div class="p-4 rounded-2xl bg-gray-50 dark:bg-muted/30 border dark:border-border">
+                            <div class="flex items-center gap-2 text-gray-400 mb-1">
+                                <UserCheck class="w-3.5 h-3.5" />
+                                <span class="text-[9px] font-black uppercase tracking-widest">Candidates</span>
+                            </div>
+                            <p class="text-xl font-black text-gray-900 dark:text-foreground leading-none">{{ election.candidates_count }}</p>
+                            <p class="text-[9px] text-gray-400 font-bold mt-2 uppercase tracking-widest">Approved Nominees</p>
+                        </div>
+                    </div>
+
+                    <!-- Footer Meta -->
+                    <div class="mt-6 pt-6 border-t dark:border-border flex flex-wrap items-center justify-between gap-4">
+                        <div class="flex flex-wrap items-center gap-x-4 gap-y-2 text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                            <div class="flex items-center gap-1.5 whitespace-normal sm:whitespace-nowrap">
+                                <Calendar class="w-3.5 h-3.5 flex-shrink-0" />
+                                <span>Cycle: {{ formatDateRange(election.start_datetime, election.end_datetime) }}</span>
+                            </div>
+                            <div class="flex items-center gap-1.5 whitespace-normal sm:whitespace-nowrap">
+                                <Clock class="w-3.5 h-3.5 flex-shrink-0" />
+                                <span>Created: {{ formatDate(election.created_at) }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modals -->
             <!-- Create/Edit Modal -->
             <Modal v-model="open">
-                <h2 class="text-xl font-semibold mb-4">{{ editMode ? 'Edit Election' : 'Create Election' }}</h2>
+                <div class="p-4 md:p-2">
+                    <h2 class="text-2xl font-black text-gray-900 dark:text-foreground uppercase tracking-tight mb-8">{{ editMode ? 'Modify Election' : 'Create Election' }}</h2>
 
-                <form @submit.prevent="submitForm" class="space-y-4">
-                    <div>
-                        <Label for="title" class="text-sm font-medium mb-2">Election Title</Label>
-                        <Input
-                            v-model="form.title"
-                            type="text"
-                            id="title"
-                            placeholder="e.g., ICSA Election 2025"
-                            class="w-full"
-                            required
-                        />
-                        <p v-if="form.errors.title" class="text-xs text-red-500 mt-1">{{ form.errors.title }}</p>
-                    </div>
-
-                    <div>
-                        <Label for="description" class="text-sm font-medium mb-2">Description</Label>
-                        <textarea
-                            v-model="form.description"
-                            id="description"
-                            rows="3"
-                            class="w-full rounded-md border bg-background p-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                            placeholder="Brief description of the election"
-                        />
-                        <p v-if="form.errors.description" class="text-xs text-red-500 mt-1">{{ form.errors.description }}</p>
-                    </div>
-
-                    <div>
-                        <Label for="start_datetime" class="text-sm font-medium mb-2">Start Date & Time</Label>
-                        <Input
-                            v-model="form.start_datetime"
-                            type="datetime-local"
-                            id="start_datetime"
-                            class="w-full"
-                            required
-                        />
-                        <p v-if="form.errors.start_datetime" class="text-xs text-red-500 mt-1">{{ form.errors.start_datetime }}</p>
-                    </div>
-
-                    <div>
-                        <Label for="end_datetime" class="text-sm font-medium mb-2">End Date & Time</Label>
-                        <Input
-                            v-model="form.end_datetime"
-                            type="datetime-local"
-                            id="end_datetime"
-                            class="w-full"
-                            required
-                        />
-                        <p v-if="form.errors.end_datetime" class="text-xs text-red-500 mt-1">{{ form.errors.end_datetime }}</p>
-                    </div>
-
-                    <div class="flex justify-end gap-3 pt-4">
-                        <Button variant="ghost" type="button" @click="open = false">Cancel</Button>
-                        <button 
-                            type="submit"
-                            :disabled="form.processing"
-                            class="inline-flex items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-medium bg-[#5A2D6F] hover:bg-[#4b255c] text-white disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            {{ form.processing ? 'Saving...' : (editMode ? 'Update Election' : 'Create Election') }}
-                        </button>
-                    </div>
-                </form>
-            </Modal>
-
-            <!-- Delete Confirmation Modal -->
-            <Modal v-model="deleteConfirmOpen">
-                <div class="text-center">
-                    <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/20">
-                        <Icon name="trash" class="h-6 w-6 text-red-600 dark:text-red-400" />
-                    </div>
-                    <h3 class="mt-4 text-lg font-semibold">Delete Election</h3>
-                    <p class="mt-2 text-sm text-muted-foreground">
-                        Are you sure you want to delete "{{ selectedElection?.title }}"? This action cannot be undone.
-                    </p>
-                    <div class="mt-6 flex justify-center gap-3">
-                        <Button variant="ghost" @click="deleteConfirmOpen = false">Cancel</Button>
-                        <Button variant="default" class="bg-red-500 hover:bg-red-600" @click="deleteElection">
-                            Delete
-                        </Button>
-                    </div>
-                </div>
-            </Modal>
-
-            <!-- Activate Confirmation Modal -->
-            <Modal v-model="activateConfirmOpen">
-                <div class="text-center">
-                    <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/20">
-                        <Icon name="checkCircle" class="h-6 w-6 text-green-600 dark:text-green-400" />
-                    </div>
-                    <h3 class="mt-4 text-lg font-semibold">Activate Election</h3>
-                    <p class="mt-2 text-sm text-muted-foreground">
-                        This will activate "{{ selectedElection?.title }}" and deactivate any other active elections. Voters will be able to cast their votes.
-                    </p>
-                    <div class="mt-6 flex justify-center gap-3">
-                        <Button variant="ghost" @click="activateConfirmOpen = false">Cancel</Button>
-                        <Button variant="default" class="bg-green-500 hover:bg-green-600" @click="activateElection">
-                            Activate
-                        </Button>
-                    </div>
-                </div>
-            </Modal>
-
-            <!-- Deactivate Confirmation Modal -->
-            <Modal v-model="deactivateConfirmOpen">
-                <div class="text-center">
-                    <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-orange-100 dark:bg-orange-900/20">
-                        <Icon name="CircleStop" class="h-6 w-6 text-orange-600 dark:text-orange-400" />
-                    </div>
-                    <h3 class="mt-4 text-lg font-semibold">End Election</h3>
-                    <p class="mt-2 text-sm text-muted-foreground">
-                        This will end "{{ selectedElection?.title }}". No more votes will be accepted. Are you sure?
-                    </p>
-                    <div class="mt-6 flex justify-center gap-3">
-                        <Button variant="ghost" @click="deactivateConfirmOpen = false">Cancel</Button>
-                        <Button variant="default" class="bg-red-500 hover:bg-red-600" @click="deactivateElection">
-                            End Election
-                        </Button>
-                    </div>
-                </div>
-            </Modal>
-        </div>
-
-        <!-- Empty State -->
-        <div v-if="electionsList.length === 0" class="flex flex-col items-center justify-center p-12">
-            <div class="rounded-full bg-muted p-6 mb-4">
-                <Icon name="vote" class="h-12 w-12 text-muted-foreground" />
-            </div>
-            <h3 class="text-lg font-semibold mb-2">No elections yet</h3>
-            <p class="text-sm text-muted-foreground mb-4">Get started by creating your first election</p>
-            <Button @click="openCreateModal" class="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium bg-[#5A2D6F] hover:bg-[#4b255c] text-white">
-                <Icon name="plus" class="h-4 w-4" />
-                Create Election
-            </Button>
-        </div>
-          
-        <!-- Elections List -->
-        <div v-else class="space-y-4 p-4">
-            <div
-                v-for="election in electionsList"
-                :key="election.id"
-                :class="[
-                    'group rounded-xl border p-6 transition-all duration-300',
-                    election.status === 'active' 
-                    ? 'bg-card hover:shadow-lg hover:border-primary/50' 
-                    : 'bg-muted/30'
-                ]">
-                <div class="flex items-start justify-between gap-4 mb-4">
-                    <div class="flex-1">
-                        <div class="flex items-center gap-3 mb-2">
-                            <h3 class="text-lg font-semibold" :class="election.status === 'ended' ? 'text-muted-foreground' : ''">
-                                {{ election.title }}
-                            </h3>
-                            <span 
-                            :class="[
-                            'inline-flex items-center gap-1.5 rounded-md px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset',
-                            election.status === 'active'
-                            ? 'bg-green-50 text-green-700 ring-green-600/20 dark:bg-green-500/10 dark:text-green-400 dark:ring-green-500/30'
-                            : election.status === 'scheduled'
-                            ? 'bg-blue-50 text-blue-700 ring-blue-600/20 dark:bg-blue-500/10 dark:text-blue-400 dark:ring-blue-500/30'
-                            : 'bg-muted text-muted-foreground ring-border'
-                            ]">
-                            <span class="h-1.5 w-1.5 rounded-full" :class="election.status === 'active' ? 'bg-green-600 dark:bg-green-400 animate-pulse' : election.status === 'scheduled' ? 'bg-blue-600 dark:bg-blue-400' : 'bg-muted-foreground'" />
-                                {{ election.status === 'active' ? 'Live' : election.status === 'scheduled' ? 'Scheduled' : 'Ended' }}
-                            </span>
+                    <form @submit.prevent="submitForm" class="space-y-6">
+                        <div class="space-y-1.5">
+                            <Label for="title" class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Election Title</Label>
+                            <Input v-model="form.title" type="text" id="title" placeholder="e.g., ICSA Annual Elections 2025" class="h-12 rounded-2xl border-2 border-gray-100 dark:border-border focus:ring-2 focus:ring-primary/20 transition-all font-bold" required />
+                            <p v-if="form.errors.title" class="text-[10px] text-red-500 font-bold mt-1 uppercase">{{ form.errors.title }}</p>
                         </div>
-                            <p class="text-sm text-muted-foreground mb-4">{{ election.description || 'No description provided' }}</p>
-                                    
-                        <!-- Progress Bar (only for active elections) -->
-                        <div class="mb-4" v-if="election.status === 'active'">
-                            <div class="flex items-center justify-between text-xs mb-2">
-                                <span class="text-muted-foreground">Voter Turnout</span>
-                                <span class="font-medium">{{ election.voted_count }}/{{ election.total_voters }} ({{ getVoterTurnout(election) }}%)</span>
-                            </div>
-                            <div class="h-2 w-full rounded-full bg-muted overflow-hidden">
-                                <div 
-                                    class="h-full rounded-full bg-purple-900 transition-all duration-500"
-                                    :style="{ width: `${getVoterTurnout(election)}%` }"
+
+                        <div class="space-y-1.5">
+                            <Label for="description" class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Description</Label>
+                            <textarea v-model="form.description" id="description" rows="3" class="w-full rounded-2xl border-2 border-gray-100 dark:border-border bg-white dark:bg-background p-4 text-sm font-medium focus:ring-2 focus:ring-primary/20 transition-all resize-none" placeholder="Provide context for voters and candidates..." />
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-1 gap-4">
+                            <div class="space-y-1.5 min-w-0">
+                                <Label for="start_datetime" class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 block">Opening</Label>
+                                <Input 
+                                    v-model="form.start_datetime" 
+                                    type="datetime-local" 
+                                    id="start_datetime" 
+                                    class="h-12 px-3 rounded-2xl border-2 border-gray-100 dark:border-border font-semibold text-sm w-full block overflow-hidden" 
+                                    required 
                                 />
-                                </div>
                             </div>
-
-                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-                                <div class="flex items-center gap-2 text-sm">
-                                    <Icon name="calendar" class="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                                    <div class="min-w-0">
-                                        <p class="text-xs text-muted-foreground">Duration</p>
-                                        <p class="font-medium text-xs truncate">{{ formatDateRange(election.start_datetime, election.end_datetime) }}</p>
-                                    </div>
-                                </div>
-                                <div class="flex items-center gap-2 text-sm">
-                                    <Icon name="users" class="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                                    <div class="min-w-0">
-                                        <p class="text-xs text-muted-foreground">Votes</p>
-                                        <p class="font-medium text-xs">{{ election.votes_count }}</p>
-                                    </div>
-                                </div>
-                                <div class="flex items-center gap-2 text-sm">
-                                    <Icon name="briefcase" class="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                                    <div class="min-w-0">
-                                        <p class="text-xs text-muted-foreground">Positions</p>
-                                        <p class="font-medium text-xs">{{ election.positions_count }}</p>
-                                    </div>
-                                </div>
-                                <div class="flex items-center gap-2 text-sm">
-                                    <Icon name="userCheck" class="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                                    <div class="min-w-0">
-                                        <p class="text-xs text-muted-foreground">Candidates</p>
-                                        <p class="font-medium text-xs">{{ election.candidates_count }}</p>
-                                    </div>
-                                </div>
+                            <div class="space-y-1.5 min-w-0">
+                                <Label for="end_datetime" class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 block">Closing</Label>
+                                <Input 
+                                    v-model="form.end_datetime" 
+                                    type="datetime-local" 
+                                    id="end_datetime" 
+                                    class="h-12 px-3 rounded-2xl border-2 border-gray-100 dark:border-border font-semibold text-sm w-full block overflow-hidden" 
+                                    required 
+                                />
+                            </div>
                         </div>
+
+                        <div class="flex flex-col sm:flex-row justify-end gap-3 pt-8 border-t dark:border-border">
+                            <button @click="closeModal" type="button" class="h-12 px-6 rounded-2xl text-[10px] font-black uppercase tracking-widest text-gray-400 hover:bg-gray-50 transition-all order-2 sm:order-1">Discard</button>
+                            <button type="submit" :disabled="form.processing" class="h-12 px-10 rounded-2xl bg-primary text-primary-foreground font-black text-[10px] uppercase tracking-widest hover:bg-primary/90 transition-all disabled:opacity-50 order-1 sm:order-2">
+                                {{ form.processing ? 'Syncing...' : (editMode ? 'Save' : 'Save') }}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </Modal>
+
+            <!-- Delete Confirmation -->
+            <Modal v-model="deleteConfirmOpen">
+                <div class="p-8 text-center">
+                    <div class="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/20 mb-6">
+                        <Trash class="h-10 w-10 text-red-600" />
+                    </div>
+                    <h3 class="text-xl font-black text-gray-900 dark:text-foreground uppercase tracking-tight mb-2">Delete Election?</h3>
+                    <p class="text-sm text-gray-500 font-medium mb-8">This will permanently remove "{{ selectedElection?.title }}" and all associated ballots. This action is terminal.</p>
+                    <div class="flex flex-col gap-3">
+                        <button @click="deleteElection" class="h-14 w-full bg-red-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-red-700 transition-all">TERMINATE ELECTION</button>
+                        <button @click="deleteConfirmOpen = false" class="h-10 w-full text-[10px] font-black text-gray-400 uppercase tracking-widest">Abort Action</button>
                     </div>
                 </div>
-                            
-                <div class="flex items-center gap-2 pt-4 border-t">
-                    <!-- Activate Button (for scheduled elections) -->
-                    <button 
-                        v-if="election.status === 'scheduled' && !election.is_active"
-                        @click="openActivateConfirm(election)"
-                        class="flex-1 inline-flex items-center justify-center gap-2 rounded-lg bg-green-600 hover:bg-green-700 text-primary-foreground px-4 py-2 text-sm font-medium transition-colors">
-                        <Icon name="play" class="h-4 w-4" />
-                        Activate Election
-                    </button>
-                    
-                    <!-- View Results Button -->
-                    <button 
-                        v-if="election.status !== 'scheduled'"
-                        @click="router.visit('/admin/result')"
-                        class="flex-1 inline-flex items-center justify-center gap-2 rounded-lg bg-transparent px-4 py-2 text-sm font-medium text-dark-foreground hover:bg-primary/20 transition-colors border-2 border-dark-foreground">
-                        <Icon name="barChart" class="h-4 w-4" />
-                        View Results
-                    </button>
+            </Modal>
 
-                    <!-- End Election Button (for active elections) -->
-                    <button 
-                        v-if="election.status === 'active' && election.is_active"
-                        @click="openDeactivateConfirm(election)"
-                        class="inline-flex items-center justify-center gap-2 rounded-lg border bg-red-500 text-white px-4 py-2 text-sm font-medium hover:bg-red-600 transition-colors">
-                        <Icon name="CircleStop" class="h-4 w-4" />
-                        End Election
-                    </button>
-
-                    <!-- Edit Button (for all elections) -->
-                    <button 
-                        @click="openEditModal(election)"
-                        class="inline-flex items-center justify-center gap-2 rounded-lg border bg-card hover:bg-accent px-4 py-2 text-sm font-medium transition-colors">
-                        <Icon name="edit" class="h-4 w-4" />
-                        Edit
-                    </button>
-
-                    <!-- Delete Button (for all elections) -->
-                    <button 
-                        @click="openDeleteConfirm(election)"
-                        class="inline-flex items-center justify-center gap-2 rounded-lg border bg-card hover:bg-accent px-4 py-2 text-sm font-medium transition-colors text-red-600">
-                        <Icon name="trash" class="h-4 w-4" />
-                    </button>
+            <!-- Status Action Modals (Activate/End) -->
+            <Modal v-model="activateConfirmOpen">
+                <div class="p-8 text-center">
+                    <div class="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-emerald-50 dark:bg-emerald-900/10 border border-emerald-100 dark:border-emerald-900/20 mb-6 text-emerald-600">
+                        <CheckCircle class="h-10 w-10" />
+                    </div>
+                    <h3 class="text-xl font-black text-gray-900 dark:text-foreground uppercase tracking-tight mb-2">Go Live?</h3>
+                    <p class="text-sm text-gray-500 font-medium mb-8">This will activate the ballots for "{{ selectedElection?.title }}". Only one system can be active at a time.</p>
+                    <div class="flex flex-col gap-3">
+                        <button @click="activateElection" class="h-14 w-full bg-emerald-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-emerald-700 transition-all">INITIALIZE POLLS</button>
+                        <button @click="activateConfirmOpen = false" class="h-10 w-full text-[10px] font-black text-gray-400 uppercase tracking-widest">Keep Pending</button>
+                    </div>
                 </div>
-            </div>
+            </Modal>
+
+            <Modal v-model="deactivateConfirmOpen">
+                <div class="p-8 text-center">
+                    <div class="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-orange-50 dark:bg-orange-900/10 border border-orange-100 dark:border-orange-900/20 mb-6 text-orange-600">
+                        <CircleStop class="h-10 w-10" />
+                    </div>
+                    <h3 class="text-xl font-black text-gray-900 dark:text-foreground uppercase tracking-tight mb-2">Terminate Polls?</h3>
+                    <p class="text-sm text-gray-500 font-medium mb-8">This will force-stop all voting for "{{ selectedElection?.title }}". Results will be finalized and archived.</p>
+                    <div class="flex flex-col gap-3">
+                        <button @click="deactivateElection" class="h-14 w-full bg-red-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-red-700 transition-all">END ELECTION NOW</button>
+                        <button @click="deactivateConfirmOpen = false" class="h-10 w-full text-[10px] font-black text-gray-400 uppercase tracking-widest">Continue Voting</button>
+                    </div>
+                </div>
+            </Modal>
         </div>
     </AppLayout>
 </template>
 
+<style scoped>
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 10px; }
+</style>

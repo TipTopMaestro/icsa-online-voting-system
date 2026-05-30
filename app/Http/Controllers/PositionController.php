@@ -94,8 +94,8 @@ class PositionController extends Controller
 
     public function destroy($id) {
         try {
-            // Note: Since no sp_DeletePosition exists in the provided dump, use raw SQL DELETE
-            DB::statement('DELETE FROM positions WHERE id = ?', [$id]);
+            // Call the stored procedure sp_DeletePosition
+            DB::statement('CALL sp_DeletePosition(?)', [$id]);
 
             return redirect()->back()->with('success', 'Position deleted successfully');
         } catch (\Exception $e) {

@@ -2,6 +2,7 @@
 import { Head, Link } from '@inertiajs/vue3'
 import { ref, computed } from 'vue'
 import VoterLayout from '@/layouts/VoterLayout.vue'
+import { Search, Filter, User, Info, Vote, X, ChevronDown, Award } from 'lucide-vue-next';
 
 // Props from backend
 interface Props {
@@ -12,9 +13,6 @@ interface Props {
 }
 
 const props = defineProps<Props>()
-
-// Debug: Log candidates data
-console.log('Candidates data:', props.candidates)
 
 // Search and filter state
 const searchTerm = ref('')
@@ -38,15 +36,10 @@ const selectOption = (option: { value: string; label: string }) => {
   dropdownOpen.value = false
 }
 
-// Helper function to get photo URL
-const getPhotoUrl = (photo: string) => {
-  return `/storage/candidates/${photo}`
-}
-
 // Filter candidates
 const filteredCandidates = computed(() => {
   const term = searchTerm.value.trim().toLowerCase()
-  let list = props.candidates.filter(c => {
+  const list = props.candidates.filter(c => {
     if (!term) return true
     const hay = `${c.name ?? ''} ${c.position ?? ''} ${c.party ?? ''} ${c.course ?? ''} ${c.platform ?? ''}`.toLowerCase()
     return hay.includes(term)
@@ -60,14 +53,39 @@ const filteredCandidates = computed(() => {
   return list
 })
 
+// Group candidates by position
+const groupedCandidates = computed(() => {
+  const groups: Record<string, any[]> = {}
+  
+  // Get unique positions from the filtered list
+  filteredCandidates.value.forEach(c => {
+    if (!groups[c.position]) {
+      groups[c.position] = []
+    }
+    groups[c.position].push(c)
+  })
+  
+  // Sort positions based on the order they appear in props.positions
+  const sortedGroups: Record<string, any[]> = {}
+  props.positions.forEach(p => {
+    if (groups[p.label]) {
+      sortedGroups[p.label] = groups[p.label]
+    }
+  })
+
+  // Catch any positions not in the props.positions list (though there shouldn't be any)
+  Object.keys(groups).forEach(pos => {
+    if (!sortedGroups[pos]) {
+      sortedGroups[pos] = groups[pos]
+    }
+  })
+  
+  return sortedGroups
+})
+
 const selectedCandidate = ref<any | null>(null)
 
 const initials = (name: string) => name.split(' ').map(s => s[0]).slice(0,2).join('').toUpperCase()
-
-const getCandidatePhoto = (photo: string | null) => {
-  if (!photo) return '/images/default-avatar.png'
-  return photo.startsWith('http') ? photo : `/storage/candidates/${photo}`
-}
 
 const openModal = (candidate: any) => {
   selectedCandidate.value = candidate
@@ -82,185 +100,265 @@ const closeModal = () => {
   <div>
     <Head title="View Candidates" />
     <VoterLayout>
-        <!-- Page body -->
-    <main class="min-h-screen bg-gray-50 py-6 sm:py-8 lg:py-10">
-      <div class="max-w-1xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8 min-h-[calc(100vh-64px)]">
         
+        <!-- Header -->
+        <div class="mb-8">
+            <h1 class="text-xl md:text-2xl font-bold text-gray-900 dark:text-foreground">Candidates</h1>
+            <p class="text-sm text-gray-500 dark:text-muted-foreground mt-1">{{ election?.title || 'Election' }}</p>
+        </div>
+
         <!-- No Active Election Message -->
-        <div v-if="!election" class="max-w-2xl mx-auto text-center py-12">
-          <div class="bg-white rounded-2xl shadow-lg p-8">
-            <svg class="w-20 h-20 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-            </svg>
-            <h3 class="text-2xl font-bold text-gray-900 mb-2">No Active Election</h3>
-            <p class="text-gray-600">{{ message }}</p>
+        <div v-if="!election" class="max-w-2xl mx-auto text-center py-10 md:py-20">
+          <div class="bg-white dark:bg-card rounded-2xl shadow-sm p-8 md:p-12 border dark:border-border">
+            <div class="w-16 h-16 bg-gray-50 dark:bg-muted/50 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Users class="w-8 h-8 text-gray-300 dark:text-muted-foreground" />
+            </div>
+            <h3 class="text-xl font-bold text-gray-900 mb-2 dark:text-foreground">No Active Election</h3>
+            <p class="text-sm text-gray-600 dark:text-muted-foreground">{{ message }}</p>
+            <div class="mt-8">
+                <Link href="/voter/dashboard" class="text-sm font-bold text-primary hover:underline uppercase tracking-widest">Return to Dashboard</Link>
+            </div>
           </div>
         </div>
 
         <!-- Candidates List (when election is active) -->
         <template v-else>
-        <!-- Sort then Search (compact) -->
-        <div class="mb-6 sm:mb-10 px-2 sm:px-6">
-          <div class="flex flex-col sm:flex-row sm:items-center gap-3">
-          <div class="relative w-full sm:w-44">
-        <!-- Button -->
-        <button
-        @click="dropdownOpen = !dropdownOpen"
-        class="w-full flex items-center justify-between px-4 py-2 rounded-xl
-              border border-slate-300 bg-white text-left shadow-sm
-              focus:ring-2 focus:ring-purple-800 text-sm"
-      >
-        <span>{{ sortOptionLabel }}</span>
+            <!-- Filters -->
+            <div class="mb-10 bg-white dark:bg-card border dark:border-border p-4 rounded-2xl shadow-sm">
+                <div class="flex flex-col lg:flex-row gap-4">
+                    <!-- Search -->
+                    <div class="flex-1 relative group">
+                        <Search class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-primary transition-colors" />
+                        <input 
+                            v-model="searchTerm" 
+                            type="text" 
+                            placeholder="Search by name, party, or platform..." 
+                            class="w-full bg-gray-50 dark:bg-background border-none rounded-xl pl-10 pr-4 py-2.5 text-sm focus:ring-2 focus:ring-primary/20 transition-all dark:text-foreground"
+                        />
+                    </div>
 
-        <!-- Arrow Icon -->
-        <svg
-          class="w-6 h-6 text-purple-800 transition-transform duration-200"
-          :class="{ 'rotate-180': dropdownOpen }"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M19 9l-7 7-7-7" />
-        </svg>
-        </button>
+                    <!-- Position Filter -->
+                    <div class="relative w-full lg:w-64">
+                        <button
+                            @click="dropdownOpen = !dropdownOpen"
+                            class="w-full flex items-center justify-between px-4 py-2.5 bg-gray-50 dark:bg-background rounded-xl text-sm font-medium dark:text-foreground border-none focus:ring-2 focus:ring-primary/20 transition-all"
+                        >
+                            <div class="flex items-center gap-2">
+                                <Filter class="w-3.5 h-3.5 text-primary" />
+                                <span class="truncate">{{ sortOptionLabel }}</span>
+                            </div>
+                            <ChevronDown class="w-4 h-4 text-gray-400 transition-transform duration-200" :class="{ 'rotate-180': dropdownOpen }" />
+                        </button>
 
-        <!-- Options Panel -->
-        <div
-          v-show="dropdownOpen"
-          class="absolute z-50 mt-2 w-full rounded-xl border-2 border-purple-800 bg-white shadow-xl overflow-hidden ring-1 ring-purple-50"
-        >
-          <div
-            v-for="option in options"
-            :key="option.value"
-            @click="selectOption(option)"
-            class="px-4 py-2 cursor-pointer hover:bg-purple-100 text-sm"
-          >
-            {{ option.label }}
-          </div>
-        </div>
-      </div>
-
-            <div class="w-full sm:w-44 relative">
-              <svg class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                <path d="M21 21l-4.35-4.40" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                <circle cx="11" cy="11" r="8" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-              <input v-model="searchTerm" type="search" placeholder="Search candidates..." aria-label="Search" class="bg-white w-full px-4 py-2 pl-10 border border-slate-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-800 text-sm" />
-            </div>
-          </div>
-        </div>
-
-        <!-- Candidates Grid -->
-        <div class="grid gap-6 sm:gap-6 lg:gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 px-2 sm:px-0">
-          <div v-for="c in filteredCandidates" :key="c.id" class="flex flex-col items-center bg-white rounded-2xl shadow-lg pt-16 pb-6 px-4 sm:px-6 text-center hover:shadow-xl transition-shadow relative mt-8">
-            <!-- Avatar (overlapping) -->
-            <img v-if="c.image" :src="c.image" :alt="c.name" class="absolute -top-12 left-1/2 transform -translate-x-1/2 h-24 w-24 sm:h-28 sm:w-28 rounded-full object-cover ring-4 ring-white shadow-lg" />
-            <div v-else class="absolute -top-12 left-1/2 transform -translate-x-1/2 h-24 w-24 sm:h-28 sm:w-28 rounded-full bg-gradient-to-tr from-purple-200 to-purple-600 flex items-center justify-center text-white font-bold text-3xl sm:text-4xl ring-4 ring-white shadow-lg">
-              {{ initials(c.name) }}
+                        <div
+                            v-show="dropdownOpen"
+                            class="absolute left-0 right-0 mt-2 bg-white dark:bg-purple-900 border-2 border-slate-100 dark:border-purple-600 rounded-xl shadow-xl z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-200"
+                            @click.outside="dropdownOpen = false"
+                        >
+                            <div class="max-h-60 overflow-y-auto py-1">
+                                <div
+                                    v-for="option in options"
+                                    :key="option.value"
+                                    @click="selectOption(option)"
+                                    class="px-4 py-2 hover:bg-primary/10 dark:hover:bg-purple-800 cursor-pointer text-sm transition-colors"
+                                    :class="sortOption === option.value ? 'text-primary font-bold bg-primary/5 dark:bg-purple-800' : 'text-gray-700 dark:text-purple-100'"
+                                >
+                                    {{ option.label }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <!-- Name and Title -->
-            <h3 class="text-xl font-bold text-slate-900 mt-2 px-2">{{ c.name }}</h3>
-            <p class="text-sm text-slate-600 font-medium mt-1">{{ c.position }}</p>
-            <p v-if="c.party" class="text-xs text-purple-600 font-medium mt-1">{{ c.party }}</p>
+            <!-- Candidates Grouped by Position -->
+            <div v-if="Object.keys(groupedCandidates).length > 0" class="space-y-20 pb-1">
+                <div v-for="(candidates, positionName) in groupedCandidates" :key="positionName" class="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    <!-- Group Header -->
+                    <div class="flex items-center gap-6 mb-10 relative z-10">
+                        <div class="flex-shrink-0 w-16 h-16 rounded-3xl bg-primary/10 flex items-center justify-center border border-primary/20 shadow-md">
+                            <Award class="w-8 h-8 text-primary" />
+                        </div>
+                        <div class="flex flex-col gap-1.5">
+                            <h2 class="text-2xl md:text-2xl font-black text-gray-900 dark:text-foreground uppercase tracking-tighter leading-none">{{ positionName }}</h2>
+                            <div class="flex items-center gap-3">
+                                <div class="w-2.5 h-2.5 rounded-full bg-primary animate-pulse"></div>
+                                <p class="text-[11px] md:text-xs font-black text-primary/70 uppercase tracking-[0.25em]">{{ candidates.length }} Nominee{{ candidates.length > 1 ? 's' : '' }}</p>
+                            </div>
+                        </div>
+                        <div class="flex-1 h-px bg-gradient-to-r from-gray-200 to-transparent dark:from-border/50 dark:to-transparent ml-8"></div>
+                    </div>
 
-            <!-- Buttons -->
-            <div class="flex gap-3 mt-6 w-full">
-              <button @click="openModal(c)" class="flex-1 px-4 py-2 bg-purple-100 text-purple-700 rounded-lg font-medium hover:bg-purple-200 transition-colors text-sm">View Info</button>
-              <Link :href="`/voter/vote?highlight=${c.id}`" class="flex-1 px-4 py-2 bg-purple-800 text-white rounded-lg font-medium hover:bg-purple-900 transition-colors text-sm inline-flex items-center justify-center">Vote</Link>
+                    <!-- Candidates Grid for this Position -->
+                    <div class="grid gap-x-8 gap-y-20 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                        <div 
+                            v-for="c in candidates" 
+                            :key="c.id" 
+                            class="group flex flex-col items-center bg-white dark:bg-card rounded-2xl shadow-sm border border-gray-100 dark:border-border pt-14 pb-6 px-5 text-center hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-1 transition-all relative"
+                        >
+                            <!-- Avatar -->
+                            <div class="absolute -top-10 left-1/2 -translate-x-1/2">
+                                <div class="relative">
+                                    <img 
+                                        v-if="c.image" 
+                                        :src="c.image" 
+                                        class="h-20 w-20 md:h-24 md:w-24 rounded-full object-cover ring-4 ring-white dark:ring-card shadow-lg border-2 border-primary/20 group-hover:border-primary/50 transition-colors" 
+                                    />
+                                    <div v-else class="h-20 w-20 md:h-24 md:w-24 rounded-full bg-gradient-to-tr from-primary/10 to-primary/30 flex items-center justify-center text-primary font-black text-2xl md:text-3xl ring-4 ring-white dark:ring-card shadow-lg">
+                                        {{ initials(c.name) }}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Name and Title -->
+                            <div class="flex-1">
+                                <h3 class="text-base md:text-lg font-black text-gray-900 dark:text-foreground leading-snug group-hover:text-primary transition-colors">{{ c.name }}</h3>
+                                <p class="text-[10px] md:text-xs font-bold text-gray-400 dark:text-muted-foreground uppercase tracking-widest mt-1.5">{{ c.party || 'Independent' }}</p>
+                                
+                                <div class="mt-4 flex flex-wrap justify-center gap-1.5">
+                                    <span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-primary/10 text-primary border border-primary/10 uppercase">
+                                        {{ c.course || 'IT' }}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Actions -->
+                            <div class="flex gap-2 mt-6 w-full">
+                                <button 
+                                    @click="openModal(c)" 
+                                    class="flex-1 px-3 py-2 bg-gray-50 dark:bg-muted/50 text-gray-700 dark:text-foreground rounded-xl font-bold text-[11px] hover:bg-primary/10 hover:text-primary transition-all border border-transparent hover:border-primary/10"
+                                >
+                                    <div class="flex items-center justify-center gap-1.5">
+                                        <Info class="w-3.5 h-3.5" />
+                                        VIEW INFO
+                                    </div>
+                                </button>
+                                <Link 
+                                    :href="`/voter/vote?highlight=${c.id}`" 
+                                    class="flex-1 px-3 py-2 bg-primary text-primary-foreground rounded-xl font-bold text-[11px] hover:bg-primary/90 transition-all shadow-md shadow-primary/10"
+                                >
+                                    <div class="flex items-center justify-center gap-1.5">
+                                        <Vote class="w-3.5 h-3.5" />
+                                        VOTE NOW
+                                    </div>
+                                </Link>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-          </div>
-        </div>
+
+            <!-- Empty results -->
+            <div v-else class="text-center py-20 bg-white dark:bg-card border dark:border-border rounded-3xl shadow-sm">
+                <div class="w-16 h-16 bg-gray-50 dark:bg-muted/50 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Search class="w-8 h-8 text-gray-300" />
+                </div>
+                <h3 class="text-lg font-bold text-gray-900 dark:text-foreground">No matches found</h3>
+                <p class="text-sm text-gray-500 mt-1">Try adjusting your search or position filter</p>
+                <button @click="searchTerm = ''; sortOption = 'all'" class="mt-6 text-sm font-bold text-primary uppercase tracking-widest">Clear all filters</button>
+            </div>
         </template>
       </div>
-    </main>
-
-    <!-- View Candidate Modal -->
-    <div v-if="selectedCandidate" class="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div class="fixed inset-0 bg-black/40" @click="closeModal"></div>
-
-      <div class="relative bg-white dark:bg-card rounded-xl shadow-lg w-full max-w-3xl max-h-[90vh] overflow-y-auto p-6 z-50 border dark:border-border">
-        <!-- Header -->
-        <div class="flex items-start justify-between mb-6">
-          <h3 class="text-xl font-semibold dark:text-foreground">Candidate Details</h3>
-          <button @click="closeModal" class="text-muted-foreground hover:text-foreground transition">
-            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-            </svg>
-          </button>
-        </div>
-
-        <!-- Content -->
-        <div class="space-y-6">
-          <!-- Photo and Basic Info -->
-          <div class="flex flex-col sm:flex-row items-center sm:items-start gap-6">
-            <img 
-              v-if="selectedCandidate.image" 
-              :src="selectedCandidate.image" 
-              :alt="selectedCandidate.name"
-              class="w-32 h-32 rounded-full object-cover border-4 border-purple-100 dark:border-primary/20"
-            />
-            <div 
-              v-else 
-              class="w-32 h-32 rounded-full bg-gradient-to-tr from-purple-200 to-purple-600 flex items-center justify-center text-white font-bold text-3xl border-4 border-purple-100 dark:border-primary/20"
-            >
-              {{ initials(selectedCandidate.name) }}
-            </div>
-            <div class="flex-1 text-center sm:text-left">
-              <h4 class="text-2xl font-bold mb-2 dark:text-foreground">{{ selectedCandidate.name }}</h4>
-              <p class="text-muted-foreground mb-3">{{ selectedCandidate.email }}</p>
-              <div class="flex flex-wrap gap-2 justify-center sm:justify-start">
-                <span v-if="selectedCandidate.party" class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 dark:bg-primary/10 text-purple-700 dark:text-primary">
-                  {{ selectedCandidate.party }}
-                </span>
-                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 dark:bg-muted text-gray-700 dark:text-muted-foreground">
-                  {{ selectedCandidate.course }}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Details Grid -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t dark:border-border">
-            <div>
-              <label class="block text-sm font-medium text-muted-foreground mb-1">Position</label>
-              <p class="font-semibold dark:text-foreground">{{ selectedCandidate.position }}</p>
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-muted-foreground mb-1">Election</label>
-              <p class="font-semibold dark:text-foreground">{{ election.title }}</p>
-            </div>
-          </div>
-
-          <!-- Platform -->
-          <div class="pt-4 border-t dark:border-border">
-            <label class="block text-sm font-medium text-muted-foreground mb-2">Platform</label>
-            <div class="bg-gray-50 dark:bg-muted/30 rounded-lg p-4">
-              <p class="text-sm leading-relaxed dark:text-foreground whitespace-pre-wrap">
-                {{ selectedCandidate.platform || 'No platform provided' }}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Footer -->
-        <div class="mt-6 pt-4 border-t dark:border-border flex gap-3">
-          <button 
-            @click="closeModal"
-            class="flex-1 px-4 py-2.5 border border-gray-300 dark:border-border rounded-lg text-gray-700 dark:text-foreground hover:bg-gray-50 dark:hover:bg-muted transition font-medium"
-          >
-            Close
-          </button>
-          <Link 
-            :href="`/voter/vote?highlight=${selectedCandidate.id}`" 
-            class="flex-1 px-4 py-2.5 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 transition inline-flex items-center justify-center"
-          >
-            Vote for this Candidate
-          </Link>
-        </div>
-      </div>
-    </div>
     </VoterLayout>
   </div>
+
+  <!-- View Candidate Modal (Modern Scaling) -->
+  <div v-if="selectedCandidate" class="fixed inset-0 z-[100] flex items-center justify-center p-4 animate-in fade-in duration-300">
+    <div class="fixed inset-0 bg-black/60 backdrop-blur-sm" @click="closeModal"></div>
+
+    <div class="relative bg-white dark:bg-card rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col z-50 border dark:border-border animate-in slide-in-from-bottom-10 duration-300">
+      <!-- Modal Header -->
+      <div class="h-28 md:h-36 bg-gradient-to-r from-primary to-purple-600 relative overflow-hidden">
+        <!-- Abstract pattern -->
+        <div class="absolute inset-0 opacity-10">
+            <div class="absolute top-0 left-0 w-32 h-32 bg-white rounded-full -translate-x-1/2 -translate-y-1/2"></div>
+            <div class="absolute bottom-0 right-0 w-48 h-48 bg-white rounded-full translate-x-1/3 translate-y-1/3"></div>
+        </div>
+        <button @click="closeModal" class="absolute top-4 right-4 p-2 bg-white/20 hover:bg-white/30 backdrop-blur-md rounded-full text-white transition-colors">
+          <X class="w-5 h-5" />
+        </button>
+      </div>
+
+      <div class="px-6 pb-6 flex flex-col flex-1 overflow-y-auto scrollbar-hide">
+        <!-- Profile Identity -->
+        <div class="flex flex-col items-center -mt-14 md:-mt-18 mb-8">
+            <div class="relative">
+                <img 
+                    v-if="selectedCandidate.image" 
+                    :src="selectedCandidate.image" 
+                    class="w-28 h-28 md:w-36 md:h-36 rounded-full object-cover border-4 border-white dark:border-card shadow-2xl"
+                />
+                <div 
+                    v-else 
+                    class="w-28 h-28 md:w-36 md:h-36 rounded-full bg-gradient-to-tr from-primary/20 to-primary flex items-center justify-center text-white font-black text-3xl md:text-5xl border-4 border-white dark:border-card shadow-2xl"
+                >
+                    {{ initials(selectedCandidate.name) }}
+                </div>
+            </div>
+            <div class="mt-5 text-center px-4">
+                <h4 class="text-xl md:text-3xl font-black text-gray-900 dark:text-foreground tracking-tight">{{ selectedCandidate.name }}</h4>
+                <p class="text-xs md:text-sm font-bold text-primary mt-1.5 uppercase tracking-widest flex items-center justify-center gap-2">
+                    <Award class="w-4 h-4" />
+                    {{ selectedCandidate.position }}
+                </p>
+                <p class="text-xs text-gray-400 dark:text-muted-foreground mt-2">{{ selectedCandidate.email }}</p>
+            </div>
+        </div>
+
+        <!-- Meta Grid -->
+        <div class="grid grid-cols-2 gap-3 mb-8">
+          <div class="p-4 bg-gray-50 dark:bg-muted/30 rounded-2xl border dark:border-border text-center">
+            <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Affiliation</p>
+            <p class="text-sm font-bold text-gray-900 dark:text-foreground truncate">{{ selectedCandidate.party || 'Independent' }}</p>
+          </div>
+          <div class="p-4 bg-gray-50 dark:bg-muted/30 rounded-2xl border dark:border-border text-center">
+            <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Program</p>
+            <p class="text-sm font-bold text-gray-900 dark:text-foreground truncate">{{ selectedCandidate.course }}</p>
+          </div>
+        </div>
+
+        <!-- Campaign Statement -->
+        <div class="space-y-4">
+          <h5 class="text-[10px] font-black text-gray-400 dark:text-muted-foreground uppercase tracking-widest flex items-center gap-2 px-1">
+            <Icon name="file-text" class="w-3 h-3 text-primary" />
+            Campaign Platform
+          </h5>
+          <div class="p-5 md:p-6 bg-primary/5 dark:bg-primary/10 rounded-2xl border border-primary/10 relative">
+            <div class="absolute -top-3 -left-1 text-4xl text-primary/20 font-serif">"</div>
+            <p class="text-sm md:text-base leading-relaxed text-gray-800 dark:text-gray-300 whitespace-pre-wrap italic">
+              {{ selectedCandidate.platform || 'This candidate has not provided a campaign statement yet.' }}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Footer Actions -->
+      <div class="p-6 border-t dark:border-border bg-gray-50/50 dark:bg-muted/10 flex flex-col sm:flex-row gap-3">
+        <button 
+          @click="closeModal"
+          class="flex-1 h-12 border-2 border-gray-200 dark:border-border rounded-xl text-xs font-bold text-gray-500 dark:text-muted-foreground uppercase tracking-widest hover:bg-gray-100 dark:hover:bg-muted transition-colors order-2 sm:order-1"
+        >
+          CLOSE PROFILE
+        </button>
+        <Link 
+          :href="`/voter/vote?highlight=${selectedCandidate.id}`" 
+          class="flex-1 h-12 bg-primary text-primary-foreground rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 inline-flex items-center justify-center gap-2 order-1 sm:order-2"
+        >
+          <Vote class="w-4 h-4" />
+          VOTE FOR CANDIDATE
+        </Link>
+      </div>
+    </div>
+  </div>
 </template>
+
+<style scoped>
+.scrollbar-hide::-webkit-scrollbar {
+    display: none;
+}
+.scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+</style>

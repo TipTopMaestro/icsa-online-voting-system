@@ -38,15 +38,15 @@ const mainNavItems: NavItem[] = [
         href: admin.position.url(),
         icon: Briefcase,
     },
-     {
-        title: 'Voters',
-        href: admin.voters.url(),
-        icon: Users,
-    },
     {
         title: 'Candidates',
         href: admin.candidates.url(),
         icon: User,
+    },
+     {
+        title: 'Voters',
+        href: admin.voters.url(),
+        icon: Users,
     },
     {
         title: 'Announcement',
@@ -59,7 +59,7 @@ const mainNavItems: NavItem[] = [
 const footerNavItems: NavItem[] = [
     {
         title: 'Github Repo',
-        href: 'https://github.com/carbajosafroyd/icsa-ovs-lara-vue',
+        href: 'https://github.com/TipTopMaestro/icsa-online-voting-system',
         icon: Folder,
     },
 ];

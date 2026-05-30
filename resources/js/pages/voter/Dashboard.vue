@@ -96,12 +96,11 @@ const formattedCountdown = computed(() => {
     <Head title="Dashboard" />
     
     <VoterLayout>
-        <div class="min-h-screen bg-gray-50">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8 min-h-[calc(100vh-64px)]">
                 <!-- Header -->
                 <div class="mb-6">
-                    <h1 class="text-2xl font-semibold text-gray-900">Dashboard</h1>
-                    <p class="text-sm text-gray-600 mt-1">Welcome back, {{ user.name }}</p>
+                    <h1 class="text-xl md:text-2xl font-bold text-gray-900 dark:text-foreground">Dashboard</h1>
+                    <p class="text-sm text-gray-600 dark:text-muted-foreground mt-1">Welcome back, {{ user.name }}</p>
                 </div>
 
                 <!-- Main Content -->
@@ -109,86 +108,102 @@ const formattedCountdown = computed(() => {
                     <!-- Main Column -->
                     <div class="lg:col-span-2 space-y-6">
                         <!-- Active Election -->
-                        <div class="bg-white border border-gray-200 rounded-lg p-6">
-                            <div class="flex items-start justify-between mb-4">
-                                <div>
-                                    <h2 class="text-lg font-semibold text-gray-900">
+                        <div class="bg-white dark:bg-card border border-gray-200 dark:border-border rounded-xl p-5 md:p-6 shadow-sm">
+                            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
+                                <div class="flex-1">
+                                    <h2 class="text-lg font-bold text-gray-900 dark:text-foreground leading-tight">
                                         {{ activeElection ? activeElection.name : 'No Active Election' }}
                                     </h2>
-                                    <p v-if="activeElection" class="text-sm text-gray-600 mt-1">{{ activeElection.description }}</p>
+                                    <p v-if="activeElection" class="text-sm text-gray-600 dark:text-muted-foreground mt-1 line-clamp-2 md:line-clamp-none">{{ activeElection.description }}</p>
                                 </div>
-                                <span v-if="hasVoted" class="inline-flex items-center px-3 py-1 rounded-md text-xs font-medium bg-green-50 text-green-700 border border-green-200">
+                                <span v-if="hasVoted" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800 self-start sm:self-auto">
                                     Voted
                                 </span>
                             </div>
 
                             <!-- Countdown -->
-                            <div v-if="activeElection && formattedCountdown" class="mt-6">
-                                <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">Time Remaining</p>
-                                <div class="grid grid-cols-4 gap-4">
+                            <div v-if="activeElection && formattedCountdown" class="mt-8 bg-gray-50/50 dark:bg-muted/30 rounded-xl p-4 md:p-6 border dark:border-border">
+                                <p class="text-[10px] font-bold text-gray-400 dark:text-muted-foreground uppercase tracking-widest mb-4 text-center">Time Remaining</p>
+                                <div class="grid grid-cols-4 gap-2 md:gap-4">
                                     <div class="text-center">
-                                        <div class="text-2xl font-semibold text-gray-900">{{ formattedCountdown.days }}</div>
-                                        <div class="text-xs text-gray-500 mt-1">Days</div>
+                                        <div class="text-xl md:text-3xl font-bold text-gray-900 dark:text-foreground">{{ formattedCountdown.days }}</div>
+                                        <div class="text-[10px] text-gray-500 dark:text-muted-foreground mt-1 uppercase font-medium">Days</div>
                                     </div>
                                     <div class="text-center">
-                                        <div class="text-2xl font-semibold text-gray-900">{{ formattedCountdown.hours }}</div>
-                                        <div class="text-xs text-gray-500 mt-1">Hours</div>
+                                        <div class="text-xl md:text-3xl font-bold text-gray-900 dark:text-foreground">{{ formattedCountdown.hours }}</div>
+                                        <div class="text-[10px] text-gray-500 dark:text-muted-foreground mt-1 uppercase font-medium">Hours</div>
                                     </div>
                                     <div class="text-center">
-                                        <div class="text-2xl font-semibold text-gray-900">{{ formattedCountdown.minutes }}</div>
-                                        <div class="text-xs text-gray-500 mt-1">Minutes</div>
+                                        <div class="text-xl md:text-3xl font-bold text-gray-900 dark:text-foreground">{{ formattedCountdown.minutes }}</div>
+                                        <div class="text-[10px] text-gray-500 dark:text-muted-foreground mt-1 uppercase font-medium">Mins</div>
                                     </div>
                                     <div class="text-center">
-                                        <div class="text-2xl font-semibold text-gray-900">{{ formattedCountdown.seconds }}</div>
-                                        <div class="text-xs text-gray-500 mt-1">Seconds</div>
+                                        <div class="text-xl md:text-3xl font-bold text-gray-900 dark:text-foreground">{{ formattedCountdown.seconds }}</div>
+                                        <div class="text-[10px] text-gray-500 dark:text-muted-foreground mt-1 uppercase font-medium">Secs</div>
                                     </div>
                                 </div>
                             </div>
 
                             <!-- Actions -->
-                            <div v-if="activeElection" class="mt-6 pt-6 border-t border-gray-100 flex gap-3">
+                            <div v-if="activeElection" class="mt-6 pt-6 border-t border-gray-100 dark:border-border flex flex-col sm:flex-row gap-3">
                                 <Link v-if="!hasVoted" href="/voter/vote" 
-                                    class="flex-1 bg-purple-800 text-white px-4 py-2.5 rounded-md text-sm font-medium hover:bg-purple-700 transition text-center">
+                                    class="flex-1 bg-primary text-primary-foreground px-4 py-3 rounded-xl text-sm font-semibold hover:bg-primary/90 transition text-center shadow-sm">
                                     Cast Vote
                                 </Link>
                                 <Link href="/voter/candidates" 
-                                    class="flex-1 bg-gray-100 text-gray-700 px-4 py-2.5 rounded-md text-sm font-medium hover:bg-gray-200 transition text-center">
+                                    class="flex-1 bg-gray-100 dark:bg-muted text-gray-700 dark:text-foreground px-4 py-3 rounded-xl text-sm font-semibold hover:bg-gray-200 dark:hover:bg-muted/80 transition text-center border border-gray-200 dark:border-border shadow-sm">
                                     View Candidates
                                 </Link>
                             </div>
                         </div>
 
                         <!-- Statistics -->
-                        <div class="grid grid-cols-2 gap-6">
-                            <div class="bg-white border border-gray-200 rounded-lg p-6">
-                                <p class="text-sm text-gray-600">Elections Participated</p>
-                                <p class="text-3xl font-semibold text-gray-900 mt-2">{{ statistics.totalElectionsParticipated }}</p>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
+                            <div class="bg-white dark:bg-card border border-gray-200 dark:border-border rounded-xl p-5 md:p-6 shadow-sm flex items-center gap-4">
+                                <div class="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
+                                    <Icon name="calendar" class="w-6 h-6" />
+                                </div>
+                                <div>
+                                    <p class="text-xs font-medium text-gray-500 dark:text-muted-foreground uppercase tracking-wide">Elections</p>
+                                    <p class="text-2xl font-bold text-gray-900 dark:text-foreground mt-0.5">{{ statistics.totalElectionsParticipated }}</p>
+                                </div>
                             </div>
-                            <div class="bg-white border border-gray-200 rounded-lg p-6">
-                                <p class="text-sm text-gray-600">Votes Cast</p>
-                                <p class="text-3xl font-semibold text-gray-900 mt-2">{{ statistics.totalVotesCast }}</p>
+                            <div class="bg-white dark:bg-card border border-gray-200 dark:border-border rounded-xl p-5 md:p-6 shadow-sm flex items-center gap-4">
+                                <div class="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center text-accent flex-shrink-0">
+                                    <Icon name="vote" class="w-6 h-6" />
+                                </div>
+                                <div>
+                                    <p class="text-xs font-medium text-gray-500 dark:text-muted-foreground uppercase tracking-wide">Votes Cast</p>
+                                    <p class="text-2xl font-bold text-gray-900 dark:text-foreground mt-0.5">{{ statistics.totalVotesCast }}</p>
+                                </div>
                             </div>
                         </div>
 
                         <!-- Announcements -->
-                        <div class="bg-white border border-gray-200 rounded-lg p-6">
-                            <div class="flex items-center justify-between mb-4">
-                                <h3 class="text-base font-semibold text-gray-900">Recent Announcements</h3>
-                                <Link href="/voter/announcements" class="text-sm text-purple-600 hover:text-purple-700">
+                        <div class="bg-white dark:bg-card border border-gray-200 dark:border-border rounded-xl p-5 md:p-6 shadow-sm">
+                            <div class="flex items-center justify-between mb-6">
+                                <h3 class="text-base font-bold text-gray-900 dark:text-foreground">Recent Announcements</h3>
+                                <Link href="/voter/announcements" class="text-xs font-bold text-accent dark:text-accent hover:underline uppercase tracking-wider">
                                     View all
                                 </Link>
                             </div>
 
-                            <div v-if="recentAnnouncements.length > 0" class="space-y-3">
+                            <div v-if="recentAnnouncements.length > 0" class="space-y-4">
                                 <div v-for="announcement in recentAnnouncements" :key="announcement.id" 
-                                    class="border-l-2 border-purple-600 pl-4 py-2">
-                                    <h4 class="text-sm font-medium text-gray-900">{{ announcement.title }}</h4>
-                                    <p class="text-sm text-gray-600 mt-1 line-clamp-2">{{ announcement.content }}</p>
-                                    <p class="text-xs text-gray-500 mt-1">{{ announcement.created_at }}</p>
+                                    class="border-l-4 border-primary pl-4 py-2 bg-primary/5 dark:bg-primary/10 rounded-r-xl transition-all hover:bg-primary/10 dark:hover:bg-primary/20 group">
+                                    <h4 class="text-sm font-bold text-gray-900 dark:text-foreground group-hover:text-primary transition-colors">{{ announcement.title }}</h4>
+                                    <p class="text-xs text-gray-600 dark:text-muted-foreground mt-1 line-clamp-2 leading-relaxed">{{ announcement.content }}</p>
+                                    <p class="text-[10px] text-gray-400 dark:text-gray-500 mt-2 font-medium flex items-center gap-1">
+                                        <Icon name="clock" class="w-3 h-3" />
+                                        {{ announcement.created_at }}
+                                    </p>
                                 </div>
                             </div>
-                            <div v-else class="text-center py-8 text-gray-500 text-sm">
-                                No announcements
+                            <div v-else class="text-center py-10">
+                                <div class="w-16 h-16 bg-gray-50 dark:bg-muted/50 rounded-full flex items-center justify-center mx-auto mb-3">
+                                    <Icon name="bell-off" class="w-8 h-8 text-gray-300 dark:text-muted-foreground" />
+                                </div>
+                                <p class="text-sm text-gray-500 dark:text-muted-foreground font-medium">No announcements yet</p>
                             </div>
                         </div>
                     </div>
@@ -196,41 +211,52 @@ const formattedCountdown = computed(() => {
                     <!-- Sidebar -->
                     <div class="space-y-6">
                         <!-- Status -->
-                        <div class="bg-white border border-gray-200 rounded-lg p-6">
-                            <h3 class="text-base font-semibold text-gray-900 mb-4">Status</h3>
-                            <div class="flex items-center gap-2">
-                                <div class="w-2 h-2 rounded-full" :class="hasVoted ? 'bg-green-500' : 'bg-yellow-500'"></div>
-                                <span class="text-sm" :class="hasVoted ? 'text-green-700' : 'text-yellow-700'">
+                        <div class="bg-white dark:bg-card border border-gray-200 dark:border-border rounded-xl p-5 md:p-6 shadow-sm">
+                            <h3 class="text-sm font-bold text-gray-400 dark:text-muted-foreground uppercase tracking-widest mb-4">Status</h3>
+                            <div class="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-muted/30 border dark:border-border">
+                                <div class="w-2.5 h-2.5 rounded-full animate-pulse shadow-sm" :class="hasVoted ? 'bg-green-500' : 'bg-yellow-500'"></div>
+                                <span class="text-sm font-bold" :class="hasVoted ? 'text-green-700 dark:text-green-400' : 'text-yellow-700 dark:text-yellow-400'">
                                     {{ votingStatus }}
                                 </span>
                             </div>
                         </div>
 
                         <!-- Navigation -->
-                        <div class="bg-white border border-gray-200 rounded-lg p-6">
-                            <h3 class="text-base font-semibold text-gray-900 mb-4">Quick Access</h3>
-                            <div class="space-y-1">
+                        <div class="bg-white dark:bg-card border border-gray-200 dark:border-border rounded-xl p-5 md:p-6 shadow-sm">
+                            <h3 class="text-sm font-bold text-gray-400 dark:text-muted-foreground uppercase tracking-widest mb-4">Quick Access</h3>
+                            <div class="space-y-2">
                                 <Link href="/voter/vote" 
-                                    class="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 rounded-md hover:bg-gray-50">
-                                    Cast Vote
+                                    class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 dark:text-gray-300 rounded-xl hover:bg-primary/10 dark:hover:bg-primary/20 hover:text-primary dark:hover:text-primary transition-all group border border-transparent hover:border-primary/20">
+                                    <div class="w-8 h-8 rounded-lg bg-gray-50 dark:bg-muted/50 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                                        <Icon name="vote" class="w-4 h-4 text-gray-400 group-hover:text-primary transition-colors" />
+                                    </div>
+                                    <span class="font-semibold">Cast Vote</span>
                                 </Link>
                                 <Link href="/voter/candidates" 
-                                    class="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 rounded-md hover:bg-gray-50">
-                                    View Candidates
+                                    class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 dark:text-gray-300 rounded-xl hover:bg-primary/10 dark:hover:bg-primary/20 hover:text-primary dark:hover:text-primary transition-all group border border-transparent hover:border-primary/20">
+                                    <div class="w-8 h-8 rounded-lg bg-gray-50 dark:bg-muted/50 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                                        <Icon name="users" class="w-4 h-4 text-gray-400 group-hover:text-primary transition-colors" />
+                                    </div>
+                                    <span class="font-semibold">View Candidates</span>
                                 </Link>
                                 <Link href="/voter/result" 
-                                    class="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 rounded-md hover:bg-gray-50">
-                                    Results
+                                    class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 dark:text-gray-300 rounded-xl hover:bg-primary/10 dark:hover:bg-primary/20 hover:text-primary dark:hover:text-primary transition-all group border border-transparent hover:border-primary/20">
+                                    <div class="w-8 h-8 rounded-lg bg-gray-50 dark:bg-muted/50 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                                        <Icon name="bar-chart-2" class="w-4 h-4 text-gray-400 group-hover:text-primary transition-colors" />
+                                    </div>
+                                    <span class="font-semibold">Results</span>
                                 </Link>
                                 <Link href="/voter/profile" 
-                                    class="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 rounded-md hover:bg-gray-50">
-                                    Profile
+                                    class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 dark:text-gray-300 rounded-xl hover:bg-primary/10 dark:hover:bg-primary/20 hover:text-primary dark:hover:text-primary transition-all group border border-transparent hover:border-primary/20">
+                                    <div class="w-8 h-8 rounded-lg bg-gray-50 dark:bg-muted/50 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                                        <Icon name="user" class="w-4 h-4 text-gray-400 group-hover:text-primary transition-colors" />
+                                    </div>
+                                    <span class="font-semibold">Profile Settings</span>
                                 </Link>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
     </VoterLayout>
 </template>

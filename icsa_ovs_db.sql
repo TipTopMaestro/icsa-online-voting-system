@@ -227,10 +227,6 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_DeleteElection` (IN `p_id` BIGIN
     COMMIT;
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_GetAllPositions` ()   BEGIN
-        -- Returns all positions for the admin filter dropdowns
-        SELECT id, name, election_id FROM positions ORDER BY name ASC;
-    END$$
 
 CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_GetElectionStatistics` ()   BEGIN
     SELECT * FROM view_election_statistics ORDER BY created_at DESC;
@@ -327,7 +323,7 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_UpdatePosition` (IN `p_id` BIGIN
       updated_at = NOW() WHERE id = p_id;
     END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_UpdateUserProfile` (IN `p_user_id` BIGINT, IN `p_name` VARCHAR(255), IN `p_email` VARCHAR(255), IN `p_student_id` VARCHAR(50), IN `p_course` VARCHAR(100), IN `p_year_level` VARCHAR(50), IN `p_section` VARCHAR(50))   BEGIN
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_UpdateUserProfile` (IN `p_user_id` BIGINT, IN `p_name` VARCHAR(255), IN `p_email` VARCHAR(255), IN `p_student_id` VARCHAR(50), IN `p_course` VARCHAR(100), IN `p_year_level` VARCHAR(50), IN `p_section` VARCHAR(50), IN `p_photo` VARCHAR(255))   BEGIN
         DECLARE EXIT HANDLER FOR SQLEXCEPTION
         BEGIN
             ROLLBACK;
@@ -338,7 +334,10 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_UpdateUserProfile` (IN `p_user_i
    
         -- Update User record
         UPDATE users 
-        SET name = p_name, email = p_email, updated_at = NOW() 
+        SET name = p_name, 
+            email = p_email, 
+            photo = CASE WHEN p_photo IS NOT NULL AND p_photo != '' THEN p_photo ELSE photo END,
+            updated_at = NOW() 
         WHERE id = p_user_id;
    
         -- Update or Insert Voter Profile

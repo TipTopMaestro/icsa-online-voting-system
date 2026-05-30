@@ -14,7 +14,7 @@
 
         /* Navbar Styles */
         .navbar-custom {
-            background-color: #4B1D63;
+            background-color: #412B6B;
             padding: 1rem 0;
         }
 
@@ -44,7 +44,7 @@
 
         .navbar-custom .nav-link:hover,
         .navbar-custom .nav-link.active {
-            color: #FFC107 !important;
+            color: #F25912 !important;
         }
 
         .btn-login {
@@ -59,7 +59,7 @@
 
         .btn-login:hover {
             background-color: white;
-            color: #5A2D6F;
+            color: #5C3E94;
             transition: all 0.3s ease-in-out;
         }
 
@@ -143,7 +143,7 @@
             align-items: center;
             justify-content: center;
             margin: 0 auto 1.5rem;
-            color: #4B1D63;
+            color: #412B6B;
             font-size: 3rem;
         }
 
@@ -173,7 +173,7 @@
         .contact-form-card h3 {
             font-size: 2rem;
             font-weight: 700;
-            color: #4B1D63;
+            color: #412B6B;
             margin-bottom: 2rem;
             text-align: center;
         }
@@ -192,12 +192,12 @@
         }
 
         .form-control:focus {
-            border-color: #4B1D63;
-            box-shadow: 0 0 0 0.2rem rgba(75, 29, 99, 0.25);
+            border-color: #412B6B;
+            box-shadow: 0 0 0 0.2rem rgba(65, 43, 107, 0.25);
         }
 
         .btn-send {
-            background-color: #4B1D63;
+            background-color: #412B6B;
             color: white;
             padding: 0.75rem 3rem;
             border-radius: 20px;
@@ -210,14 +210,14 @@
 
         .btn-send:hover {
             background-color: transparent;
-            border: 1px solid #3a1750;
-            color: #3a1750;
+            border: 1px solid #211832;
+            color: #211832;
             transition: all 0.3s ease-in-out;
         }
 
         /* Footer */
         .footer {
-            background-color: #5A2D6F;
+            background-color: #5C3E94;
             color: white;
             padding: 3rem 0 1.5rem;
         }
@@ -254,7 +254,7 @@
         }
 
         .footer a:hover {
-            color: #FFC107;
+            color: #F25912;
         }
 
         .footer-bottom {

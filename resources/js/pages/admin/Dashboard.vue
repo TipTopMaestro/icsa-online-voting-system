@@ -6,6 +6,7 @@ import { Head, router } from '@inertiajs/vue3';
 import Icon from '@/components/Icon.vue';
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { createChart } from '@/composables/useChart';
+import { Clock, TrendingUp, Users, ClipboardList, CheckCircle, UserCheck, Plus, UserPlus, Megaphone, BarChart2, History, Activity, Loader, ArrowUpRight } from 'lucide-vue-next';
 
 interface Activity {
     type: string;
@@ -109,7 +110,6 @@ const initDoughnutChart = () => {
     const canvas = document.getElementById('doughnutChart') as HTMLCanvasElement;
     if (!canvas) return;
 
-    // Destroy existing instance
     if (doughnutChartInstance) {
         doughnutChartInstance.destroy();
     }
@@ -122,20 +122,15 @@ const initDoughnutChart = () => {
                 label: 'Votes',
                 data: props.chartData.data,
                 backgroundColor: [
-                    'rgba(57, 0, 68, 0.7)',
-                    'rgba(138, 9, 120, 1)',
-                    'rgba(186, 40, 215, 0.82)',
-                    'rgba(173, 88, 161, 0.7)',
-                    'rgba(159, 84, 15, 0.7)',
-                    'rgba(212, 106, 14, 1)',
-                    'rgba(233, 216, 198, 1)',
-                    'rgba(59, 130, 246, 0.8)',
-                    'rgba(244, 63, 94, 0.8)',
+                    'rgba(92, 62, 148, 0.8)',
+                    'rgba(242, 89, 18, 0.8)',
+                    'rgba(65, 43, 107, 0.8)',
+                    'rgba(33, 24, 50, 0.8)',
+                    'rgba(147, 51, 234, 0.8)',
+                    'rgba(249, 115, 22, 0.8)',
                 ],
-                borderWidth: 3,
-                borderColor: 'rgba(255, 255, 255, 0.8)',
-                hoverBorderWidth: 4,
-                hoverBorderColor: 'rgba(255, 255, 255, 1)',
+                borderWidth: 2,
+                borderColor: 'white',
                 hoverOffset: 15,
             }]
         },
@@ -146,161 +141,9 @@ const initDoughnutChart = () => {
                 legend: {
                     position: 'bottom',
                     labels: {
-                        padding: 15,
-                        font: {
-                            size: 12
-                        },
-                        usePointStyle: true,
-                        pointStyle: 'circle',
-                    }
-                },
-                tooltip: {
-                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                    padding: 12,
-                    cornerRadius: 8,
-                    titleFont: {
-                        size: 14,
-                        weight: 'bold'
-                    },
-                    bodyFont: {
-                        size: 13
-                    },
-                    displayColors: true,
-                    callbacks: {
-                        label: function(context: any) {
-                            const label = context.label || '';
-                            const value = context.parsed || 0;
-                            const position = props.chartData?.positions[context.dataIndex] || '';
-                            return `${label} (${position}): ${value} votes`;
-                        }
-                    }
-                }
-            }
-        }
-    });
-};
-
-const initLineChart = () => {
-    if (!props.chartData) return;
-    
-    const canvas = document.getElementById('lineChart') as HTMLCanvasElement;
-    if (!canvas) return;
-
-    if (lineChartInstance) {
-        lineChartInstance.destroy();
-    }
-
-    lineChartInstance = createChart(canvas, {
-        type: 'line',
-        data: {
-            labels: props.chartData.labels,
-            datasets: [{
-                label: 'Vote Trend',
-                data: props.chartData.data,
-                borderColor: 'rgba(57, 0, 68, 1)',
-                backgroundColor: (context: any) => {
-                    const ctx = context.chart.ctx;
-                    const gradient = ctx.createLinearGradient(0, 0, 0, 400);
-                    gradient.addColorStop(0, 'rgba(57, 0, 68, 0.3)');
-                    gradient.addColorStop(0.5, 'rgba(57, 0, 68, 0.15)');
-                    gradient.addColorStop(1, 'rgba(57, 0, 68, 0)');
-                    return gradient;
-                },
-                borderWidth: 3,
-                fill: true,
-                tension: 0.4,
-                pointBackgroundColor: 'rgba(57, 0, 68, 1)',
-                pointBorderColor: '#fff',
-                pointBorderWidth: 2,
-                pointRadius: 6,
-                pointHoverRadius: 10,
-                pointHoverBackgroundColor: 'rgba(57, 0, 68, 1)',
-                pointHoverBorderWidth: 3,
-                pointHitRadius: 15,
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            interaction: {
-                mode: 'index',
-                intersect: false,
-            },
-            animation: {
-                duration: 2500,
-                easing: 'easeInOutCubic',
-                delay: (context: any) => {
-                    let delay = 0;
-                    if (context.type === 'data' && context.mode === 'default') {
-                        delay = context.dataIndex * 150;
-                    }
-                    return delay;
-                },
-                x: {
-                    type: 'number',
-                    easing: 'easeInOutElastic',
-                    duration: 2000,
-                    from: 0,
-                },
-                y: {
-                    type: 'number',
-                    easing: 'easeInOutBounce',
-                    duration: 2500,
-                    from: (context: any) => {
-                        const chart = context.chart;
-                        const meta = chart.getDatasetMeta(0);
-                        return chart.scales.y.getPixelForValue(0);
-                    }
-                },
-                onProgress: (animation: any) => {
-                    const chart = animation.chart;
-                    const ctx = chart.ctx;
-                    ctx.save();
-                    ctx.shadowColor = 'rgba(99, 102, 241, 0.5)';
-                    ctx.shadowBlur = 10 * (animation.currentStep / animation.numSteps);
-                    ctx.restore();
-                },
-            },
-            plugins: {
-                legend: {
-                    display: false
-                },
-                tooltip: {
-                    enabled: true,
-                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                    padding: 12,
-                    cornerRadius: 8,
-                    titleFont: {
-                        size: 14,
-                        weight: 'bold'
-                    },
-                    bodyFont: {
-                        size: 13
-                    },
-                    displayColors: true,
-                    callbacks: {
-                        label: function(context: any) {
-                            const label = context.label || '';
-                            const value = context.parsed.y || 0;
-                            const position = props.chartData?.positions[context.dataIndex] || '';
-                            return `${label} (${position}): ${value} votes`;
-                        }
-                    }
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        stepSize: 1
-                    },
-                    grid: {
-                        color: 'rgba(0, 0, 0, 0.05)',
-                    }
-                },
-                x: {
-                    grid: {
-                        display: false,
+                        padding: 10,
+                        font: { size: 10, weight: '600' },
+                        usePointStyle: true
                     }
                 }
             }
@@ -309,88 +152,47 @@ const initLineChart = () => {
 };
 
 const updateCharts = () => {
-    // Destroy existing charts
-    if (doughnutChartInstance) {
-        doughnutChartInstance.destroy();
-        doughnutChartInstance = null;
-    }
-    if (lineChartInstance) {
-        lineChartInstance.destroy();
-        lineChartInstance = null;
-    }
-    
-    // Reinitialize with slight delay to ensure clean animation
-    setTimeout(() => {
-        initDoughnutChart();
-        initLineChart();
-    }, 100);
+    initDoughnutChart();
 };
 
 onMounted(() => {
-    if (props.chartData) {
-        // Wait for DOM to be fully ready
-        setTimeout(() => {
-            initDoughnutChart();
-            initLineChart();
-        }, 200);
-    }
-    
-    refreshInterval = window.setInterval(() => {
-        autoRefresh();
-    }, 30000);
+    initDoughnutChart();
+    refreshInterval = window.setInterval(autoRefresh, 30000);
 });
 
 onUnmounted(() => {
-    if (refreshInterval) {
-        clearInterval(refreshInterval);
-    }
-    if (doughnutChartInstance) {
-        doughnutChartInstance.destroy();
-    }
-    if (lineChartInstance) {
-        lineChartInstance.destroy();
-    }
+    if (refreshInterval) clearInterval(refreshInterval);
+    if (doughnutChartInstance) doughnutChartInstance.destroy();
 });
 
-const navigateToElection = () => {
-    router.visit('/admin/election');
-};
-
-const navigateToCandidates = () => {
-    router.visit('/admin/candidates');
-};
-
-const navigateToAnnouncements = () => {
-    router.visit('/admin/announcements');
-};
-
-const navigateToResults = () => {
-    router.visit('/admin/result');
-};
+const navigateToElection = () => router.visit('/admin/election');
+const navigateToCandidates = () => router.visit('/admin/candidates');
+const navigateToAnnouncements = () => router.visit('/admin/announcements');
+const navigateToResults = () => router.visit('/admin/result');
 </script>
 
 <template>
     <Head title="Dashboard" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="flex h-full flex-1 flex-col gap-6 p-6">
+        <div class="flex h-full flex-1 flex-col gap-4 md:gap-6 p-4 md:p-8 min-h-[calc(100vh-64px)]">
             <!-- Header Section -->
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                    <h1 class="text-2xl sm:text-3xl font-bold tracking-tight">Dashboard</h1>
-                    <p class="text-muted-foreground mt-1 text-sm">Welcome back! Here's what's happening with your elections.</p>
+                    <h1 class="text-xl md:text-3xl font-black text-gray-900 dark:text-foreground uppercase tracking-tight">Dashboard</h1>
+                    <p class="text-muted-foreground mt-1 text-[11px] md:text-sm font-medium">Real-time election oversight and analytics.</p>
                 </div>
-                <div class="flex items-center gap-3 flex-wrap">
-                    <div v-if="isRefreshing" class="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Icon name="loader" class="h-4 w-4 animate-spin" />
-                        <span class="hidden sm:inline">Refreshing...</span>
+                <div class="flex items-center gap-2 md:gap-3 flex-wrap">
+                    <div v-if="isRefreshing" class="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                        <Loader class="h-3 w-3 animate-spin" />
+                        <span>Syncing...</span>
                     </div>
-                    <div class="rounded-lg border bg-card px-3 sm:px-4 py-2">
+                    <div class="rounded-xl border bg-white dark:bg-card px-3 md:px-4 py-1.5 md:py-2 shadow-sm border-gray-100 dark:border-border">
                         <div class="flex items-center gap-2">
-                            <Icon name="trendingUp" class="h-4 w-4 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
+                            <TrendingUp class="h-3.5 w-3.5 md:h-4 md:w-4 text-primary flex-shrink-0" />
                             <div>
-                                <p class="text-xs text-muted-foreground whitespace-nowrap">Overall Turnout</p>
-                                <p class="text-base sm:text-lg font-bold">{{ turnoutPercentage }}%</p>
+                                <p class="text-[9px] md:text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none">Turnout</p>
+                                <p class="text-sm md:text-lg font-black text-gray-900 dark:text-foreground leading-tight">{{ turnoutPercentage }}%</p>
                             </div>
                         </div>
                     </div>
@@ -398,359 +200,150 @@ const navigateToResults = () => {
             </div>
 
             <!-- Stats Grid -->
-            <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                <!-- Total Voters Card -->
-                <div class="group relative overflow-hidden rounded-xl border border-gray-200 dark:border-gray-500 p-6 transition-all duration-300 hover:shadow-xl hover:scale-[1.02] bg-gradient-to-br from-[rgba(57,0,68,0.1)] to-[rgba(100,30,110,0.1)] dark:from-[rgba(57,0,68,0.1)] dark:to-[rgba(100,30,110,0.1)]">
-                    <div class="absolute right-0 top-0 h-24 w-24 translate-x-8 -translate-y-8 rounded-full bg-gradient-to-br from-[rgba(57,0,68,0.05)] to-[rgba(100,30,110,0.05)] dark:from-[rgba(57,0,68,0.05)] dark:to-[rgba(100,30,110,0.05)]" />
+            <div class="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+                <div v-for="(stat, i) in [
+                    { label: 'Total Voters', value: stats.totalVoters, sub: 'Registered students', icon: Users, color: 'primary' },
+                    { label: 'Active Elections', value: stats.activeElections, sub: 'Currently running', icon: ClipboardList, color: 'accent' },
+                    { label: 'Total Votes', value: stats.totalVotes, sub: 'Across active polls', icon: CheckCircle, color: 'primary' },
+                    { label: 'Candidates', value: stats.totalCandidates, sub: 'Verified candidates', icon: UserCheck, color: 'accent' }
+                ]" :key="i" class="group relative overflow-hidden rounded-2xl border border-gray-100 dark:border-border p-5 md:p-6 transition-all duration-300 hover:shadow-lg bg-white dark:bg-card">
+                    <div class="absolute right-0 top-0 h-24 w-24 translate-x-8 -translate-y-8 rounded-full opacity-[0.03] group-hover:scale-110 transition-transform bg-current" :class="`text-${stat.color}`" />
                     <div class="relative">
                         <div class="flex items-center justify-between mb-4">
-                            <div class="rounded-xl p-3 shadow-lg bg-[rgba(57,0,68,0.7)] dark:bg-[rgba(57,0,68,0.7)]" style="box-shadow: 0 5px 10px rgba(57, 0, 68, 0.9);">
-                                <Icon name="users" class="h-6 w-6 text-white" />
+                            <div class="rounded-xl p-2.5 shadow-sm" :class="stat.color === 'primary' ? 'bg-primary/10 text-primary' : 'bg-accent/10 text-accent'">
+                                <component :is="stat.icon" class="h-5 w-5 md:h-6 md:w-6" />
                             </div>
-                            <Icon name="arrowUpRight" class="h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity text-[rgba(57,0,68,0.8)] dark:text-white"/>
+                            <ArrowUpRight class="h-4 w-4 opacity-0 group-hover:opacity-100 transition-all text-gray-300"/>
                         </div>
                         <div class="space-y-1">
-                            <p class="text-sm font-medium text-[rgba(57,0,68,0.8)] dark:text-purple-200">Total Voters</p>
-                            <p class="text-3xl font-bold text-[rgba(57,0,68,0.8)] dark:text-purple-100">{{ stats.totalVoters.toLocaleString() }}</p>
-                            <p class="text-xs text-[rgba(57,0,68,0.8)] dark:text-purple-300">Registered students</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Active Elections Card -->
-                <div class="group relative overflow-hidden rounded-xl border border-gray-200 dark:border--800/30 p-6 transition-all duration-300 hover:shadow-xl hover:scale-[1.02] bg-gradient-to-br from-[rgba(173,88,161,0.3)] to-[rgba(200,120,185,0.3)] dark:from-[rgba(173,88,161,0.3)] dark:to-[rgba(200,120,185,0.3)]">
-                    <div class="absolute right-0 top-0 h-24 w-24 translate-x-8 -translate-y-8 rounded-full bg-gradient-to-br from-[rgba(173,88,161,0.1)] to-[rgba(200,120,185,0.1)] dark:from-[rgba(173,88,161,0.1)] dark:to-[rgba(200,120,185,0.1)]" />
-                    <div class="relative">
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="rounded-xl p-3 shadow-lg bg-[rgba(173,88,161,0.7)] dark:bg-[rgba(173,88,161,0.7)]" style="box-shadow: 0 5px 10px rgba(173, 88, 161, 1);">
-                                <Icon name="clipboardList" class="h-6 w-6 text-white" />
-                            </div>
-                            <Icon name="arrowUpRight" class="h-5 w-5 text-[rgba(173,88,161,0.7)] opacity-0 group-hover:opacity-100 transition-opacity dark:text-white" />
-                        </div>
-                        <div class="space-y-1">
-                            <p class="text-sm font-medium text-[rgba(173,88,161,2)] dark:text-purple-200">Active Elections</p>
-                            <p class="text-3xl font-bold text-[rgba(173,88,161,2)] dark:text-purple-100">{{ stats.activeElections }}</p>
-                            <p class="text-xs text-[rgba(173,88,161,2)] dark:text-purple-300">Currently running</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Total Votes Card -->
-                <div class="group relative overflow-hidden rounded-xl border border-gray-200 dark:border-gray-500 p-6 transition-all duration-300 hover:shadow-xl hover:scale-[1.02] bg-gradient-to-br from-[rgba(159,84,15,0.3)] to-[rgba(185,115,45,0.6)] dark:from-[rgba(159,84,15,0.3)] dark:to-[rgba(185,115,45,0.6)]">
-                    <div class="absolute right-0 top-0 h-24 w-24 translate-x-8 -translate-y-8 rounded-full bg-gradient-to-br from-[rgba(159,84,15,0.1)] to-[rgba(185,115,45,0.1)] dark:from-[rgba(159,84,15,0.1)] dark:to-[rgba(185,115,45,0.1)]"/>
-                    <div class="relative">
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="rounded-xl p-3 shadow-lg bg-[rgba(159,84,15,0.7)] dark:bg-[rgba(159,84,15,0.7)]" style="box-shadow: 0 5px 10px rgba(159, 84, 15, 1);">
-                                <Icon name="checkCircle" class="h-6 w-6 text-white" />
-                            </div>
-                            <Icon name="arrowUpRight" class="h-5 w-5 text-[rgba(159,84,15,0.7)] opacity-0 group-hover:opacity-100 transition-opacity dark:text-white" />
-                        </div>
-                        <div class="space-y-1">
-                            <p class="text-sm font-medium text-[rgba(159,84,15,2)] dark:text-purple-200">Total Votes Cast</p>
-                            <p class="text-3xl font-bold text-[rgba(159,84,15,2)] dark:text-purple-100">{{ stats.totalVotes.toLocaleString() }}</p>
-                            <p class="text-xs text-[rgba(159,84,15,2)] dark:text-purple-300">In active elections</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Total Candidates Card -->
-                <div class="group relative overflow-hidden rounded-xl border border-gray-200 dark:border-gray-500 p-6 transition-all duration-300 hover:shadow-xl hover:scale-[1.02] bg-gradient-to-br from-[rgba(235,135,49,0.3)] to-[rgba(245,160,80,0.6)] dark:from-[rgba(235,135,49,0.3)] dark:to-[rgba(245,160,80,0.6)]">
-                    <div class="absolute right-0 top-0 h-24 w-24 translate-x-8 -translate-y-8 rounded-full bg-gradient-to-br from-[rgba(235,135,49,0.1)] to-[rgba(245,160,80,0.1)] dark:from-[rgba(235,135,49,0.1)] dark:to-[rgba(245,160,80,0.1)]" />
-                    <div class="relative">
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="rounded-xl p-3 shadow-lg bg-[rgba(212,106,14,1)] dark:bg-[rgba(212,106,14,1)]" style="box-shadow: 0 5px 10px rgba(235, 135, 49, 1);">
-                                <Icon name="userCheck" class="h-6 w-6 text-white" />
-                            </div>
-                            <Icon name="arrowUpRight" class="h-5 w-5 text-[rgba(212,106,14,0.7)] opacity-0 group-hover:opacity-100 transition-opacity dark:text-white" />
-                        </div>
-                        <div class="space-y-1">
-                            <p class="text-sm font-medium text-[rgba(212,106,14,2)] dark:text-purple-200">Total Candidates</p>
-                            <p class="text-3xl font-bold text-[rgba(212,106,14,2)] dark:text-purple-100">{{ stats.totalCandidates }}</p>
-                            <p class="text-xs text-[rgba(212,106,14,2)] dark:text-purple-300">Running for positions</p>
+                            <p class="text-[10px] md:text-xs font-black text-gray-400 uppercase tracking-widest">{{ stat.label }}</p>
+                            <p class="text-xl md:text-3xl font-black text-gray-900 dark:text-foreground leading-tight">{{ stat.value.toLocaleString() }}</p>
+                            <p class="text-[10px] text-gray-400 font-medium">{{ stat.sub }}</p>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Charts Section -->
-            <div class="grid gap-6 grid-cols-1 lg:grid-cols-2">
-                
-
-                <!-- Line Chart -->
-                <div class="rounded-xl border bg-card p-4 sm:p-6">
-                    <div class="mb-4">
-                        <h3 class="text-base sm:text-lg font-semibold">Vote Trend</h3>
-                        <p class="text-xs sm:text-sm text-muted-foreground" v-if="activeElection">{{ activeElection.title }}</p>
-                        <p class="text-xs sm:text-sm text-muted-foreground" v-else>Candidate vote comparison</p>
+            <!-- Charts & Elections -->
+            <div class="grid gap-6 grid-cols-1 lg:grid-cols-3">
+                <div class="lg:col-span-1 rounded-2xl border border-gray-100 dark:border-border bg-white dark:bg-card p-5 md:p-6 shadow-sm">
+                    <div class="mb-6 text-center lg:text-left">
+                        <h3 class="text-sm md:text-base font-black text-gray-900 dark:text-foreground uppercase tracking-tight">Vote Distribution</h3>
+                        <p class="text-[10px] md:text-xs text-muted-foreground font-medium mt-1 uppercase tracking-widest">Share by position</p>
                     </div>
-                    
-                    <div v-if="chartData && activeElection" class="h-[250px] sm:h-[300px] lg:h-[350px]">
-                        <canvas id="lineChart"></canvas>
-                    </div>
-                    
-                    <div v-else class="flex flex-col items-center justify-center h-[250px] sm:h-[300px] lg:h-[350px]">
-                        <div class="rounded-full bg-muted p-4 mb-3">
-                            <Icon name="lineChart" class="h-8 w-8 text-muted-foreground" />
-                        </div>
-                        <p class="text-sm text-muted-foreground text-center">No active election with votes yet</p>
-                    </div>
-                </div>
-
-                <!-- Doughnut Chart -->
-                <div class="rounded-xl border bg-card p-4 sm:p-6">
-                    <div class="mb-4">
-                        <h3 class="text-base sm:text-lg font-semibold">Vote Distribution</h3>
-                        <p class="text-xs sm:text-sm text-muted-foreground" v-if="activeElection">{{ activeElection.title }}</p>
-                        <p class="text-xs sm:text-sm text-muted-foreground" v-else>Candidate vote breakdown</p>
-                    </div>
-                    
-                    <div v-if="chartData && activeElection" class="h-[250px] sm:h-[300px] lg:h-[350px]">
+                    <div class="h-[250px] md:h-[300px] relative">
                         <canvas id="doughnutChart"></canvas>
                     </div>
-                    
-                    <div v-else class="flex flex-col items-center justify-center h-[250px] sm:h-[300px] lg:h-[350px]">
-                        <div class="rounded-full bg-muted p-4 mb-3">
-                            <Icon name="pieChart" class="h-8 w-8 text-muted-foreground" />
-                        </div>
-                        <p class="text-sm text-muted-foreground text-center">No active election with votes yet</p>
+                </div>
+
+                <div class="lg:col-span-2 rounded-2xl border border-gray-100 dark:border-border bg-white dark:bg-card p-5 md:p-6 shadow-sm overflow-hidden">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-sm md:text-base font-black text-gray-900 dark:text-foreground uppercase tracking-tight">Active Processes</h3>
+                        <button @click="navigateToElection" class="text-[10px] font-black text-primary uppercase tracking-widest hover:underline">Full Directory</button>
+                    </div>
+
+                    <div class="overflow-x-auto -mx-5 md:-mx-6">
+                        <table class="w-full text-left">
+                            <thead class="bg-gray-50/50 dark:bg-muted/30 border-y border-gray-100 dark:border-border">
+                                <tr class="text-[9px] md:text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                                    <th class="px-5 md:px-6 py-3">Election Title</th>
+                                    <th class="px-5 md:px-6 py-3">Statistics</th>
+                                    <th class="px-5 md:px-6 py-3 text-right">Progress</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-50 dark:divide-border text-[11px] md:text-sm">
+                                <tr v-for="election in elections.slice(0, 5)" :key="election.id" class="hover:bg-gray-50/50 dark:hover:bg-muted/10 transition-colors">
+                                    <td class="px-5 md:px-6 py-4">
+                                        <div class="flex flex-col gap-1.5">
+                                            <p class="font-bold text-gray-900 dark:text-foreground leading-tight">{{ election.title }}</p>
+                                            <span :class="getStatusBadge(election).class" class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest border w-fit">
+                                                {{ getStatusBadge(election).label }}
+                                            </span>
+                                        </div>
+                                    </td>
+                                    <td class="px-5 md:px-6 py-4">
+                                        <div class="flex flex-col">
+                                            <span class="font-bold text-gray-700 dark:text-gray-300">{{ election.voted_count }} / {{ election.total_voters }}</span>
+                                            <span class="text-[9px] text-gray-400 uppercase font-black tracking-widest mt-0.5">Voted</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-5 md:px-6 py-4 text-right">
+                                        <div class="flex flex-col items-end gap-1.5">
+                                            <span class="font-black text-primary">{{ election.turnout_percentage }}%</span>
+                                            <div class="w-12 md:w-24 bg-gray-100 dark:bg-muted h-1 rounded-full overflow-hidden">
+                                                <div class="bg-primary h-full transition-all duration-1000" :style="{ width: election.turnout_percentage + '%' }"></div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
 
-            <!-- Main Content Grid -->
+            <!-- Management & Audit -->
             <div class="grid gap-6 grid-cols-1 lg:grid-cols-3">
-                <!-- Elections List - Takes 2 columns -->
-                <div class="lg:col-span-2 min-w-0">
-                    <div class="mb-4">
-                        <h2 class="text-xl font-semibold">Elections</h2>
-                        <p class="text-sm text-muted-foreground">Monitor and manage all elections</p>
+                <div class="rounded-2xl border border-gray-100 dark:border-border bg-white dark:bg-card p-6 shadow-sm">
+                    <div class="mb-6">
+                        <h3 class="text-sm md:text-base font-black text-gray-900 dark:text-foreground uppercase tracking-tight">Operations</h3>
+                        <p class="text-[10px] text-muted-foreground font-medium uppercase tracking-widest mt-1">Shortcuts</p>
                     </div>
-                    
-                    <!-- Empty State -->
-                    <div v-if="elections.length === 0" class="flex flex-col items-center justify-center p-12 border rounded-xl bg-card">
-                        <div class="rounded-full bg-muted p-6 mb-4">
-                            <Icon name="clipboardList" class="h-12 w-12 text-muted-foreground" />
-                        </div>
-                        <h3 class="text-lg font-semibold mb-2">No elections yet</h3>
-                        <p class="text-sm text-muted-foreground mb-4 text-center">Get started by creating your first election</p>
-                        <button 
-                            @click="navigateToElection"
-                            class="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium bg-[#5A2D6F] hover:bg-[#4b255c] text-white"
-                        >
-                            <Icon name="plus" class="h-4 w-4" />
-                            Create Election
+                    <div class="space-y-2">
+                        <button v-for="(btn, i) in [
+                            { label: 'Candidate Hub', icon: UserPlus, color: 'text-primary', action: navigateToCandidates },
+                            { label: 'Press Center', icon: Megaphone, color: 'text-accent', action: navigateToAnnouncements },
+                            { label: 'Outcome Analytics', icon: BarChart2, color: 'text-green-500', action: navigateToResults }
+                        ]" :key="i" @click="btn.action" class="flex items-center gap-3 w-full p-3 rounded-xl bg-gray-50 dark:bg-muted/30 border dark:border-border hover:bg-white dark:hover:bg-card hover:shadow-md transition-all group">
+                            <div class="p-2 rounded-lg bg-white dark:bg-card shadow-sm" :class="btn.color">
+                                <component :is="btn.icon" class="h-4 w-4" />
+                            </div>
+                            <span class="text-xs font-black text-gray-700 dark:text-foreground uppercase tracking-widest">{{ btn.label }}</span>
                         </button>
                     </div>
+                </div>
 
-                    <!-- Elections List -->
-                    <div v-else class="space-y-4">
-                        <!-- if election is ended it should not be hoverable -->
-                        <div
-                            v-for="election in elections"
-                            :key="election.id"
-                            
-                            :class="[
-                              'group rounded-xl border p-6 transition-all duration-300 bg-card',
-                              election.status === 'ended' ? '' : 'hover:shadow-lg hover:border-primary/50'
-                            ]"
-                        >
-                            <div class="flex items-start justify-between gap-4 mb-4">
-                                <div class="flex-1">
-                                    <div class="flex items-center gap-3 mb-2">
-                                        <h3 class="text-lg font-semibold">{{ election.title }}</h3>
-                                        <span 
-                                            :class="
-                                                getStatusBadge(election).pulse 
-                                                    ? 'inline-flex items-center gap-1.5 rounded-md px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ' + getStatusBadge(election).class
-                                                    : 'inline-flex items-center gap-1.5 rounded-md px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ' + getStatusBadge(election).class
-                                            "
-                                        >
-                                            <span 
-                                                v-if="getStatusBadge(election).pulse"
-                                                class="h-1.5 w-1.5 rounded-full bg-green-600 dark:bg-green-400 animate-pulse" 
-                                            />
-                                            <span v-else class="h-1.5 w-1.5 rounded-full bg-muted-foreground" />
-                                            {{ getStatusBadge(election).label }}
-                                        </span>
-                                    </div>
-                                    <p class="text-sm text-muted-foreground mb-4">{{ election.description }}</p>
-                                    
-                                    <!-- Progress Bar (only for active elections) -->
-                                    <div class="mb-4" v-if="election.is_active">
-                                        <div class="flex items-center justify-between text-xs mb-2">
-                                            <span class="text-muted-foreground">Voter Turnout</span>
-                                            <span class="font-medium">{{ election.turnout_percentage }}%</span>
-                                        </div>
-                                        <div class="h-2 w-full rounded-full bg-muted overflow-hidden">
-                                            <div 
-                                                class="h-full rounded-full bg-gradient-to-r from-purple-800 to-purple-900 transition-all duration-500"
-                                                :style="{ width: `${election.turnout_percentage}%` }"
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <!-- Election Metrics -->
-                                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-                                        <div class="flex items-center gap-2 text-sm">
-                                            <Icon name="calendar" class="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                                            <div class="min-w-0">
-                                                <p class="text-xs text-muted-foreground">Start Date</p>
-                                                <p class="font-medium text-xs truncate">{{ formatDate(election.start_datetime) }}</p>
-                                            </div>
-                                        </div>
-                                        <div class="flex items-center gap-2 text-sm">
-                                            <Icon name="users" class="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                                            <div class="min-w-0">
-                                                <p class="text-xs text-muted-foreground">Votes</p>
-                                                <p class="font-medium text-xs">{{ election.voted_count.toLocaleString() }}</p>
-                                            </div>
-                                        </div>
-                                        <div class="flex items-center gap-2 text-sm">
-                                            <Icon name="briefcase" class="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                                            <div class="min-w-0">
-                                                <p class="text-xs text-muted-foreground">Positions</p>
-                                                <p class="font-medium text-xs">{{ election.positions_count }}</p>
-                                            </div>
-                                        </div>
-                                        <div class="flex items-center gap-2 text-sm">
-                                            <Icon name="userCheck" class="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                                            <div class="min-w-0">
-                                                <p class="text-xs text-muted-foreground">Candidates</p>
-                                                <p class="font-medium text-xs">{{ election.candidates_count }}</p>
-                                            </div>
-                                        </div>
-                                    </div>
+                <div class="lg:col-span-2 rounded-2xl border border-gray-100 dark:border-border bg-white dark:bg-card p-6 shadow-sm overflow-hidden">
+                    <div class="flex items-center justify-between mb-8">
+                        <div>
+                            <h3 class="text-sm md:text-base font-black text-gray-900 dark:text-foreground uppercase tracking-tight">Recent Activity Log</h3>
+                            <p class="text-[10px] text-muted-foreground font-medium uppercase tracking-widest mt-1">Audit Trail</p>
+                        </div>
+                        <History class="h-5 w-5 text-gray-200" />
+                    </div>
+                    <div v-if="activities.length === 0" class="flex flex-col items-center justify-center py-10 opacity-50">
+                        <Activity class="h-8 w-8 text-gray-300 mb-2" />
+                        <p class="text-[10px] font-black uppercase tracking-widest text-gray-400">All Systems Nominal</p>
+                    </div>
+                    <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div v-for="(act, i) in activities.slice(0, 6)" :key="i" class="flex items-start gap-4 p-4 rounded-2xl bg-gray-50 dark:bg-muted/20 border dark:border-border group transition-all hover:bg-white dark:hover:bg-card hover:shadow-sm">
+                            <div class="h-10 w-10 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm" :class="act.color === 'blue' ? 'bg-blue-100 text-blue-600' : act.color === 'green' ? 'bg-green-100 text-green-600' : 'bg-purple-100 text-purple-600'">
+                                <Icon :name="act.icon" class="h-5 w-5" />
+                            </div>
+                            <div class="flex-1 min-w-0 py-0.5">
+                                <p class="text-[11px] font-black text-gray-900 dark:text-foreground uppercase tracking-tight truncate">{{ act.title }}</p>
+                                <p class="text-[10px] text-muted-foreground font-medium truncate mt-0.5">{{ act.description }}</p>
+                                <div class="flex items-center gap-1 mt-2 text-[8px] font-black text-gray-400 uppercase tracking-widest">
+                                    <Clock class="h-2.5 w-2.5" />
+                                    <span>{{ act.time }}</span>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <!-- Right Sidebar -->
-                <div class="space-y-6">
-                    <!-- Quick Actions Card -->
-                    <div class="rounded-xl border bg-card p-6">
-                        <div class="mb-4">
-                            <h3 class="text-lg font-semibold">Quick Actions</h3>
-                            <p class="text-sm text-muted-foreground">Manage your election system</p>
-                        </div>
-
-                        <div class="space-y-3">
-                            <button 
-                                @click="navigateToElection"
-                                class="flex items-start gap-3 w-full rounded-lg border bg-background p-4 hover:bg-accent hover:shadow-md transition-all duration-200 group text-left"
-                            >
-                                <div class="rounded-lg bg-primary/10 p-2 group-hover:bg-primary/20 transition-colors flex-shrink-0">
-                                    <Icon name="plus" class="h-5 w-5 text-primary" />
-                                </div>
-                                <div class="flex-1 min-w-0">
-                                    <p class="text-sm font-medium">Create Election</p>
-                                    <p class="text-xs text-muted-foreground">Start a new election</p>
-                                </div>
-                            </button>
-
-                            <button 
-                                @click="navigateToCandidates"
-                                class="flex items-start gap-3 w-full rounded-lg border bg-background p-4 hover:bg-accent hover:shadow-md transition-all duration-200 group text-left"
-                            >
-                                <div class="rounded-lg bg-blue-500/10 p-2 group-hover:bg-blue-500/20 transition-colors flex-shrink-0">
-                                    <Icon name="userPlus" class="h-5 w-5 text-blue-600" />
-                                </div>
-                                <div class="flex-1 min-w-0">
-                                    <p class="text-sm font-medium">Add Candidate</p>
-                                    <p class="text-xs text-muted-foreground">Register new candidate</p>
-                                </div>
-                            </button>
-
-                            <button 
-                                @click="navigateToAnnouncements"
-                                class="flex items-start gap-3 w-full rounded-lg border bg-background p-4 hover:bg-accent hover:shadow-md transition-all duration-200 group text-left"
-                            >
-                                <div class="rounded-lg bg-purple-500/10 p-2 group-hover:bg-purple-500/20 transition-colors flex-shrink-0">
-                                    <Icon name="megaphone" class="h-5 w-5 text-purple-600" />
-                                </div>
-                                <div class="flex-1 min-w-0">
-                                    <p class="text-sm font-medium">Add Announcement</p>
-                                    <p class="text-xs text-muted-foreground">Publish update</p>
-                                </div>
-                            </button>
-
-                            <button 
-                                @click="navigateToResults"
-                                class="flex items-start gap-3 w-full rounded-lg border bg-background p-4 hover:bg-accent hover:shadow-md transition-all duration-200 group text-left"
-                            >
-                                <div class="rounded-lg bg-green-500/10 p-2 group-hover:bg-green-500/20 transition-colors flex-shrink-0">
-                                    <Icon name="barChart2" class="h-5 w-5 text-green-600" />
-                                </div>
-                                <div class="flex-1 min-w-0">
-                                    <p class="text-sm font-medium">View Results</p>
-                                    <p class="text-xs text-muted-foreground">Check outcomes</p>
-                                </div>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Activity Feed -->
-                    <div class="rounded-xl border bg-card p-6">
-                        <div class="mb-4">
-                            <h3 class="text-lg font-semibold">Recent Activity</h3>
-                            <p class="text-sm text-muted-foreground">Latest system updates</p>
-                        </div>
-
-                        <!-- Empty Activities State -->
-                        <div v-if="activities.length === 0" class="flex flex-col items-center justify-center py-8">
-                            <div class="rounded-full bg-muted p-3 mb-3">
-                                <Icon name="activity" class="h-6 w-6 text-muted-foreground" />
-                            </div>
-                            <p class="text-sm text-muted-foreground text-center">No recent activities</p>
-                        </div>
-
-                        <!-- Activities List -->
-                        <div v-else class="space-y-4">
-                            <div
-                                v-for="(activity, index) in activities"
-                                :key="index"
-                                class="flex items-start gap-3 pb-4 border-b last:border-0 last:pb-0"
-                            >
-                                <div 
-                                    :class="
-                                        activity.color === 'green' ? 'rounded-lg p-2 flex-shrink-0 bg-green-100 dark:bg-green-950' :
-                                        activity.color === 'blue' ? 'rounded-lg p-2 flex-shrink-0 bg-blue-100 dark:bg-blue-950' :
-                                        'rounded-lg p-2 flex-shrink-0 bg-purple-100 dark:bg-purple-950'
-                                    "
-                                >
-                                    <Icon 
-                                        :name="activity.icon" 
-                                        :class="
-                                            activity.color === 'green' ? 'h-4 w-4 text-green-600 dark:text-green-400' :
-                                            activity.color === 'blue' ? 'h-4 w-4 text-blue-600 dark:text-blue-400' :
-                                            'h-4 w-4 text-purple-600 dark:text-purple-400'
-                                        "
-                                    />
-                                </div>
-                                <div class="flex-1 min-w-0">
-                                    <p class="text-sm font-medium">{{ activity.title }}</p>
-                                    <p class="text-xs text-muted-foreground truncate">{{ activity.description }}</p>
-                                    <p class="text-xs text-muted-foreground mt-1">{{ activity.time }}</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Last Updated -->
-                    <div class="text-center">
-                        <p class="text-xs text-muted-foreground">
-                            Last updated: {{ lastUpdated.toLocaleTimeString() }}
-                        </p>
-                    </div>
-                </div>
+            <div class="flex items-center justify-center gap-2 pt-4">
+                <div class="w-1.5 h-1.5 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)] animate-pulse"></div>
+                <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest">
+                    Cloud Infrastructure Connected: {{ lastUpdated.toLocaleTimeString() }}
+                </p>
             </div>
         </div>
     </AppLayout>
 </template>
 
-<style>
-    button:hover {
-        cursor: pointer;
-    }
+<style scoped>
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 10px; }
 </style>

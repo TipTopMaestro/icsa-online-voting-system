@@ -26,7 +26,7 @@ class CandidateController extends Controller
                 return Inertia::render('candidate/Dashboard', [
                     'user' => [
                         'name' => $user->name,
-                        'photo' => $user->photo ? asset('storage/' . $user->photo) : null,
+                        'avatar' => $user->photo ? asset('storage/' . $user->photo) : null,
                     ],
                     'activeElection' => null,
                     'candidatePosition' => null,
@@ -43,6 +43,7 @@ class CandidateController extends Controller
             
             $recentAnnouncements = DB::table('announcements')
                 ->where('is_published', 1)
+                ->whereIn('audience', ['all', 'candidates'])
                 ->orderBy('created_at', 'desc')
                 ->take(3)
                 ->get()
@@ -58,7 +59,7 @@ class CandidateController extends Controller
             return Inertia::render('candidate/Dashboard', [
                 'user' => [
                     'name' => $user->name,
-                    'photo' => $user->photo ? asset('storage/' . $user->photo) : null,
+                    'avatar' => $user->photo ? asset('storage/' . $user->photo) : null,
                 ],
                 'activeElection' => [
                     'id' => $candidateData->election_id,
@@ -101,7 +102,7 @@ class CandidateController extends Controller
                 'user' => [
                     'name' => $user->name,
                     'email' => $user->email,
-                    'photo' => $candidate && $candidate->candidate_photo 
+                    'avatar' => $candidate && $candidate->candidate_photo 
                         ? asset('storage/candidates/' . $candidate->candidate_photo)
                         : null,
                 ],
@@ -167,7 +168,7 @@ class CandidateController extends Controller
             ->join('users', 'announcements.created_by', '=', 'users.id')
             ->select('announcements.*', 'users.name as creator_name')
             ->where('is_published', true)
-            ->whereIn('audience', ['all', 'voters', 'candidates'])
+            ->whereIn('audience', ['all', 'candidates'])
             ->orderBy('created_at', 'desc')
             ->get();
         
@@ -309,7 +310,7 @@ class CandidateController extends Controller
             'user' => [
                 'name' => $user->name,
                 'email' => $user->email,
-                'photo' => $candidate && $candidate->photo 
+                'avatar' => $candidate && $candidate->photo 
                     ? asset('storage/candidates/' . $candidate->photo)
                     : null,
             ],
